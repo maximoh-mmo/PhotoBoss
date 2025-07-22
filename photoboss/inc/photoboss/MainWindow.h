@@ -29,11 +29,9 @@ public:
     void wire_connections();
     void init();
     void on_current_folder_changed();
-    auto on_scanned_file_count(int fileCount) -> void;
+    void on_scanned_file_count(int fileCount);
     void on_group_found(Group group);
-
-
-    void set_current_folder(const QString& folder) { m_current_folder_ = folder; }
+    void set_current_folder(const QString& folder);
     QString get_current_folder() const { return m_current_folder_; }
         
 private:

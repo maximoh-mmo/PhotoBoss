@@ -1,5 +1,6 @@
 #include "ImageScanner.h"
 #include <qdiriterator.h>
+#include <qelapsedtimer.h>
 
 namespace photoboss
 {
@@ -18,6 +19,10 @@ namespace photoboss
             QDir::Files | QDir::NoSymLinks,
             recursive ? QDirIterator::Subdirectories : QDirIterator::NoIteratorFlags);
         int count = 0;
+
+		QElapsedTimer timer; // Timer to manage progress updates
+        timer.start();
+
         while (iterator.hasNext())
         {
             if (m_cancelled_.load())
@@ -27,7 +32,10 @@ namespace photoboss
             }
 
             count++;
-            emit fileCount(count);
+            if (timer.elapsed() > 50) {
+                emit fileCount(count);
+                timer.restart();
+            }
             QString filePath = iterator.next();
             QFileInfo fileInfo(filePath);
             if (fileInfo.isFile())
@@ -40,6 +48,7 @@ namespace photoboss
                 imageFiles->push_back(metaData);
             }
         }
+        emit fileCount(count);
         emit filePathsCollected(imageFiles);
     }
 
