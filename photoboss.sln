@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36301.6 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "photoboss", "photoboss\photoboss.vcxproj", "{041AB711-BDBA-4C4D-85E1-9056D41C4115}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{041AB711-BDBA-4C4D-85E1-9056D41C4115}.Debug|x64.ActiveCfg = Debug|x64
+		{041AB711-BDBA-4C4D-85E1-9056D41C4115}.Debug|x64.Build.0 = Debug|x64
+		{041AB711-BDBA-4C4D-85E1-9056D41C4115}.Debug|x86.ActiveCfg = Debug|Win32
+		{041AB711-BDBA-4C4D-85E1-9056D41C4115}.Debug|x86.Build.0 = Debug|Win32
+		{041AB711-BDBA-4C4D-85E1-9056D41C4115}.Release|x64.ActiveCfg = Release|x64
+		{041AB711-BDBA-4C4D-85E1-9056D41C4115}.Release|x64.Build.0 = Release|x64
+		{041AB711-BDBA-4C4D-85E1-9056D41C4115}.Release|x86.ActiveCfg = Release|Win32
+		{041AB711-BDBA-4C4D-85E1-9056D41C4115}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2449A7B1-C4F3-4E9D-8674-1A10FA615B82}
+	EndGlobalSection
+EndGlobal
