@@ -8,12 +8,15 @@
 
 #include "DiskReader.h"
 #include "ImageScanner.h"
+#include "Queue.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 namespace photoboss {
-typedef struct {
+    class HashWorker;
+
+    typedef struct {
     QString name;
     QString path;
 } Group;
@@ -35,7 +38,7 @@ public:
     void OnScannedFileCount(int fileCount);
     void OnBrowse();
     void UpdateDiskReadProgress(int current, int total);
-	void OnImageReady(const std::unique_ptr<DiskReadResult>& result);
+    void OnFilePathsCollected(const std::list<ImageFileMetaData>& meta_data);
 	    
 private:
     Ui::MainWindow *ui_ = nullptr;
@@ -51,7 +54,10 @@ private:
     QStatusBar* m_status_bar_ = nullptr;
     DiskReader* m_disk_reader_ = nullptr;
     QThread* m_reader_thread_ = nullptr;
-
+    Queue<std::unique_ptr<DiskReadResult>> m_disk_read_queue_;
+    std::unique_ptr<std::list<ImageFileMetaData>> m_file_list;
+    std::vector<HashWorker*> m_hash_workers_;
+    std::vector<QThread*> m_hash_worker_threads_;
     bool b_include_subfolders_ = false;
     bool b_scanning_ = false;
 };

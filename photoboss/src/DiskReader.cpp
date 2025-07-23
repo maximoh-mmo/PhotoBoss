@@ -4,8 +4,8 @@
 
 namespace photoboss {
 
-    DiskReader::DiskReader(QObject* parent)
-        : QObject(parent), m_cancelled_(false) {
+    DiskReader::DiskReader(Queue<std::unique_ptr<DiskReadResult>>& queue, QObject* parent)
+        : QObject(parent), m_cancelled_(false), m_output_queue(queue) {
     }
 
     void DiskReader::Cancel() {
@@ -13,6 +13,11 @@ namespace photoboss {
     }
 
     void DiskReader::Start(const std::unique_ptr<std::list<ImageFileMetaData>>& files) {
+        if (!files) {
+            emit Finished();
+            return;
+        }
+
         m_cancelled_.store(false);
         int total = static_cast<int>(files->size());
         int current = 0;
@@ -26,7 +31,7 @@ namespace photoboss {
                 auto result = std::make_unique<DiskReadResult>();
                 result->meta = meta;
                 result->imageBytes = std::move(imageBytes);
-                emit ImageRead(std::move(result));
+                m_output_queue.push(std::move(result));
             }
 
             ++current;
@@ -35,7 +40,6 @@ namespace photoboss {
 
             QThread::msleep(1); // Small sleep to avoid hammering disk
         }
-
         emit Finished();
     }
 }

@@ -12,12 +12,19 @@ namespace photoboss {
     class HashWorker : public QObject {
         Q_OBJECT
     public:
-        explicit HashWorker(QObject* parent = nullptr);
+        explicit HashWorker(Queue<std::unique_ptr<DiskReadResult>>& inputQueue, QObject* parent = nullptr);
+        void Cancel();
 
     public slots:
-        void computeHash(std::unique_ptr<DiskReadResult> imageData);
+        void run();
 
     signals:
-        void imageHashed(std::unique_ptr<HashedImageResult> result);
+        void image_hashed(HashedImageResult* result);
+
+    protected:
+        void compute_hash(const std::unique_ptr<DiskReadResult>& imageData);
+    private:
+        Queue<std::unique_ptr<DiskReadResult>>& m_queue;
+        bool b_cancelled = false;
     };
 }

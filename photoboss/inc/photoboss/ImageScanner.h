@@ -16,13 +16,14 @@ namespace photoboss
         Q_OBJECT
     public:
         explicit ImageScanner(QObject* parent = nullptr);
+        ~ImageScanner();
         void Cancel();
 
     public slots:
         void StartScan(const QString& directoryPath, bool recursive);
         
     signals:
-        void filePathsCollected(const std::unique_ptr<std::list<ImageFileMetaData>>& meta_data);
+        void filePathsCollected(const std::list<ImageFileMetaData>& meta_data);
         void scanned_file_count(int);
         void progressUpdated(int);
         void scanCancelled();

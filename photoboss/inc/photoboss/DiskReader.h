@@ -5,6 +5,7 @@
 #include <QImage>
 
 #include "ImageScanner.h"  // For ImageFileMetaData
+#include "Queue.h"
 
 namespace photoboss {
 
@@ -16,18 +17,18 @@ namespace photoboss {
     class DiskReader : public QObject {
         Q_OBJECT
     public:
-        explicit DiskReader(QObject* parent = nullptr);
+        explicit DiskReader(Queue<std::unique_ptr<DiskReadResult>>& queue, QObject* parent = nullptr);
 
     public slots:
         void Start(const std::unique_ptr<std::list<ImageFileMetaData>>& files);
         void Cancel();
 
     signals:
-        void ImageRead(const std::unique_ptr<DiskReadResult>& result);
         void Finished();
         void ReadProgress(int current, int total);
 
     private:
         std::atomic<bool> m_cancelled_;
+        Queue<std::unique_ptr<DiskReadResult>>& m_output_queue;
     };
 }

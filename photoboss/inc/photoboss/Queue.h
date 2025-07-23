@@ -13,7 +13,9 @@ class Queue // A thread-safe queue implementation
     Queue &operator= (Queue &&) = delete;
     Queue() : b_is_bounded_(false), m_capacity_(-1) {}
     explicit Queue(size_t capacity) : b_is_bounded_ (capacity>0), m_capacity_(capacity) {}
+    void shutdown();
 private:
+    bool b_shutdown_ = false;
     bool b_is_bounded_;
     std::deque<T> m_deque_;
     size_t m_capacity_;
@@ -56,3 +58,12 @@ public:
         return true;
     }
 };
+
+template <typename T>
+void Queue<T>::shutdown()
+{
+    std::unique_lock lock(m_mutex_);
+    b_shutdown_ = true;
+    m_not_empty_.notify_all();
+    m_not_full_.notify_all();
+}

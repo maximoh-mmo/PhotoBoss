@@ -11,6 +11,11 @@ namespace photoboss
     {
     }
 
+    ImageScanner::~ImageScanner()
+    {
+        m_cancelled_.store(true);
+    }
+
     void ImageScanner::StartScan(const QString& directoryPath, const bool recursive)
     {
         m_cancelled_.store(false);
@@ -54,7 +59,7 @@ namespace photoboss
             }
         }
         emit scanned_file_count(count);
-        emit filePathsCollected(imageFiles);
+        emit filePathsCollected(*imageFiles);
     }
 
     void ImageScanner::Cancel()
