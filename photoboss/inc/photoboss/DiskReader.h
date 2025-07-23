@@ -4,15 +4,10 @@
 #include <memory>
 #include <QImage>
 
-#include "ImageScanner.h"  // For ImageFileMetaData
+#include "DataTypes.h"
 #include "Queue.h"
 
 namespace photoboss {
-
-    struct DiskReadResult {
-        ImageFileMetaData meta;
-        QByteArray imageBytes;
-    };
 
     class DiskReader : public QObject {
         Q_OBJECT

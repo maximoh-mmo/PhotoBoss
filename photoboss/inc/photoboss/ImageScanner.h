@@ -1,16 +1,12 @@
 #pragma once
 #include <qdatetime.h>
 #include <QObject>
+
+#include "DataTypes.h"
+
 namespace photoboss
 {
-    typedef struct
-    {
-        QString path;
-        quint64 size;
-        QDateTime lastModified;
-        QString suffix;
-    } ImageFileMetaData;
-
+    
     class ImageScanner : public QObject
     {
         Q_OBJECT
