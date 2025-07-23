@@ -1,4 +1,6 @@
 #include "ImageScanner.h"
+
+#include <iostream>
 #include <qdiriterator.h>
 #include <qelapsedtimer.h>
 
@@ -22,7 +24,7 @@ namespace photoboss
 
 		QElapsedTimer timer; // Timer to manage progress updates
         timer.start();
-
+        int lastupdate = 0;
         while (iterator.hasNext())
         {
             if (m_cancelled_.load())
@@ -32,10 +34,13 @@ namespace photoboss
             }
 
             count++;
-            if (timer.elapsed() > 50) {
-                emit fileCount(count);
+            if (timer.elapsed() > 50 || count - lastupdate >= 100) {
+                emit scanned_file_count(count);
+                std::cout << "Progress: " << count << " files scanned.\n";
+				lastupdate = count;
                 timer.restart();
             }
+
             QString filePath = iterator.next();
             QFileInfo fileInfo(filePath);
             if (fileInfo.isFile())
@@ -48,7 +53,7 @@ namespace photoboss
                 imageFiles->push_back(metaData);
             }
         }
-        emit fileCount(count);
+        emit scanned_file_count(count);
         emit filePathsCollected(imageFiles);
     }
 

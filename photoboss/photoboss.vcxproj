@@ -155,6 +155,8 @@
     <QtMoc Include="inc\photoboss\MainWindow.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\DiskReader.cpp" />
+    <ClCompile Include="src\HashWorker.cpp" />
     <ClCompile Include="src\perceptualhash.cpp" />
     <ClCompile Include="src\ImageScanner.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -162,6 +164,8 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="inc\photoboss\ImageScanner.h" />
+    <QtMoc Include="inc\photoboss\DiskReader.h" />
+    <QtMoc Include="inc\photoboss\HashWorker.h" />
     <ClInclude Include="inc\photoboss\Queue.h" />
     <ClInclude Include="inc\photoboss\perceptualhash.h" />
   </ItemGroup>

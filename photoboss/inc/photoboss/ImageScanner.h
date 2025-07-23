@@ -23,7 +23,7 @@ namespace photoboss
         
     signals:
         void filePathsCollected(const std::unique_ptr<std::list<ImageFileMetaData>>& meta_data);
-        void fileCount(int);
+        void scanned_file_count(int);
         void progressUpdated(int);
         void scanCancelled();
         

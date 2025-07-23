@@ -6,6 +6,7 @@
 #include <QtCore>
 #include <QtWidgets/QMainWindow>
 
+#include "DiskReader.h"
 #include "ImageScanner.h"
 
 QT_BEGIN_NAMESPACE
@@ -25,15 +26,17 @@ public:
     ~MainWindow();
 
     // MainWindow interface
-    void on_browse();
-    void wire_connections();
-    void init();
-    void on_current_folder_changed();
-    void on_scanned_file_count(int fileCount);
-    void on_group_found(Group group);
-    void set_current_folder(const QString& folder);
-    QString get_current_folder() const { return m_current_folder_; }
-        
+    void WireConnections();
+    void Init();
+    void OnCurrentFolderChanged();
+    void OnGroupFound(Group group);
+    void SetCurrentFolder(const QString& folder);
+    QString GetCurrentFolder() const { return m_current_folder_; }
+    void OnScannedFileCount(int fileCount);
+    void OnBrowse();
+    void UpdateDiskReadProgress(int current, int total);
+	void OnImageReady(const std::unique_ptr<DiskReadResult>& result);
+	    
 private:
     Ui::MainWindow *ui_ = nullptr;
 
@@ -46,6 +49,8 @@ private:
     ImageScanner* m_scanner_ = nullptr;
     QThread* m_scanner_thread_ = nullptr;
     QStatusBar* m_status_bar_ = nullptr;
+    DiskReader* m_disk_reader_ = nullptr;
+    QThread* m_reader_thread_ = nullptr;
 
     bool b_include_subfolders_ = false;
     bool b_scanning_ = false;
