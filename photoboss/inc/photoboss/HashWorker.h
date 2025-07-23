@@ -6,7 +6,7 @@ namespace photoboss {
 
     struct HashedImageResult {
         ImageFileMetaData meta;
-        QString hash;  // SHA256, pHash, etc.
+        std::vector<QString> hashes;  // SHA256, pHash, etc.
     };
 
     class HashWorker : public QObject {

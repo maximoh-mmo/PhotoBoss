@@ -58,5 +58,11 @@
     <ClInclude Include="inc\photoboss\Queue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="inc\photoboss\HashMethod.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\DataTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

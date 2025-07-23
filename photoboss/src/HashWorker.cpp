@@ -36,7 +36,7 @@ namespace photoboss {
 
         auto result = std::make_unique<HashedImageResult>();
         result->meta = imageData->meta;
-        result->hash = hash;
+        result->hashes.emplace_back(hash);
 
         emit image_hashed(result.release());
     }

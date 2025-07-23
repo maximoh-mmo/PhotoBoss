@@ -1,16 +1,25 @@
 #include "perceptualhash.h"
-#include <stdio.h>
+
+#include <QString>
 
 namespace photoboss
 {
-    std::string PerceptualHash::generateAverageHash(const std::string& imagePath)
+    QString PerceptualHash::computeHash(const QImage& image)
     {
-        // Placeholder for average hash generation logic
-        // This should read the image,
-        // resize it,
-        
-        // convert to grayscale,
-        // and compute the average hash
-        return "average_hash_placeholder";
+        return "";
+    }
+
+    double PerceptualHash::compareHash(const QString& hash1, const QString& hash2)
+    {
+        return 0;
+    }
+
+    QString PerceptualHash::getName() const
+    {
+        return "Perceptual";
+    }
+    QString PerceptualHash::computeHash(const QByteArray& rawBytes)
+    {
+        return "";
     }
 }

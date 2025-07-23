@@ -166,6 +166,8 @@
     <QtMoc Include="inc\photoboss\ImageScanner.h" />
     <QtMoc Include="inc\photoboss\DiskReader.h" />
     <QtMoc Include="inc\photoboss\HashWorker.h" />
+    <ClInclude Include="inc\photoboss\HashMethod.h" />
+    <ClInclude Include="inc\photoboss\DataTypes.h" />
     <ClInclude Include="inc\photoboss\Queue.h" />
     <ClInclude Include="inc\photoboss\perceptualhash.h" />
   </ItemGroup>

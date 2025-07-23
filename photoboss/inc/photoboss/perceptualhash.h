@@ -1,15 +1,15 @@
 #pragma once
-#include <string>
+
+#include "HashMethod.h"
 
 namespace photoboss {
-    class PerceptualHash {
-        public:
-        PerceptualHash() = default;
-        ~PerceptualHash() = default;
-        // Generate a perceptual hash for the given image file
-        static std::string generateAverageHash(const std::string& imagePath);
-        static std::string generateDCTHash(const std::string& imagePath);
-        // Compare two perceptual hashes and return a similarity score
-        static double compareHashes(const std::string& hash1, const std::string& hash2);
+    class PerceptualHash : public HashMethod
+    {
+    public:
+        PerceptualHash();
+        double compareHash(const QString& hash1, const QString& hash2) override;
+        QString getName() const override;
+        QString computeHash(const QByteArray& rawBytes) override;
+        QString computeHash(const QImage& image) override;
     };
 }

@@ -130,8 +130,8 @@ namespace photoboss
 
             worker->moveToThread(thread);
             connect(thread, &QThread::started, worker, &HashWorker::run);
-            connect(worker, &HashWorker::image_hashed, this, [](HashedImageResult* result) {
-            qDebug() << "Hashed:" << result->meta.path << "->" << result->hash;
+            connect(worker, &HashWorker::image_hashed, this, [](const HashedImageResult* result) {
+            qDebug() << "Hashed:" << result->meta.path << "->" << result->hashes.front();
             delete result;  // Clean up the result after processing
             });
 
