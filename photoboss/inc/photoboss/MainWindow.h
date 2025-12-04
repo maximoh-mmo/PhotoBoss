@@ -5,10 +5,12 @@
 #include <QProgressBar>
 #include <QtCore>
 #include <QtWidgets/QMainWindow>
-
+#include "ResultProcessor.h"
+#include "HashMethod.h"
 #include "DiskReader.h"
 #include "ImageScanner.h"
 #include "Queue.h"
+#include "SettingsSelection.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -51,14 +53,22 @@ private:
     QCheckBox* m_include_subfolders_ = nullptr;
     ImageScanner* m_scanner_ = nullptr;
     QThread* m_scanner_thread_ = nullptr;
+	QThread* m_result_thread_ = nullptr;
     QStatusBar* m_status_bar_ = nullptr;
     DiskReader* m_disk_reader_ = nullptr;
     QThread* m_reader_thread_ = nullptr;
+	ResultProcessor* m_result_processor_ = nullptr;
+	SettingsSelection* m_settings_dialog_ = nullptr;
+    std::vector<std::shared_ptr<HashMethod>> m_hash_methods;
     Queue<std::unique_ptr<DiskReadResult>> m_disk_read_queue_;
+    Queue<std::shared_ptr<HashedImageResult>> m_resultQueue_;
     std::unique_ptr<std::list<ImageFileMetaData>> m_file_list;
     std::vector<HashWorker*> m_hash_workers_;
     std::vector<QThread*> m_hash_worker_threads_;
     bool b_include_subfolders_ = false;
     bool b_scanning_ = false;
+
+private slots:
+	void openSettings();
 };
 }

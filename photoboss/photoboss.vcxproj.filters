@@ -33,9 +33,19 @@
     <ClCompile Include="src\HashWorker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Md5.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SettingsSelection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ResultProcessor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="resources\MainWindow.ui" />
+    <QtUic Include="resources\SettingsSelection.ui" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="inc\photoboss\MainWindow.h">
@@ -50,11 +60,14 @@
     <QtMoc Include="inc\photoboss\HashWorker.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="SettingsSelection.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="ResultProcessor.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="inc\photoboss\perceptualhash.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="inc\photoboss\Queue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
