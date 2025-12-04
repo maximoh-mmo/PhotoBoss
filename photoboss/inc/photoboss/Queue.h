@@ -57,6 +57,10 @@ public:
         m_not_full_.notify_one();
         return true;
     }
+
+    void notify_all() {
+        m_not_empty_.notify_all();
+	}
 };
 
 template <typename T>
