@@ -1,11 +1,11 @@
 #include "HashWorker.h"
-#include <QCryptographicHash>
+#include "HashMethod.h"
 #include <QThread>
 
 namespace photoboss {
 
-    HashWorker::HashWorker(Queue<std::unique_ptr<DiskReadResult>>& inputQueue, QObject* parent)
-        : QObject(parent) , m_queue(inputQueue)
+    HashWorker::HashWorker(Queue<std::unique_ptr<DiskReadResult>>& inputQueue, std::vector<std::shared_ptr<HashMethod>>& methods, QObject* parent)
+		: QObject(parent), m_queue(inputQueue), m_hash_methods(methods)
     {
     }
 
@@ -30,14 +30,17 @@ namespace photoboss {
 
     void HashWorker::compute_hash(const std::unique_ptr<DiskReadResult>& imageData)
     {
-        QCryptographicHash hasher(QCryptographicHash::Md5);
-        hasher.addData(imageData->imageBytes);
-        QString hash = hasher.result().toHex();
-
-        auto result = std::make_unique<HashedImageResult>();
+        auto result = std::make_shared<HashedImageResult>();
         result->meta = imageData->meta;
-        result->hashes.emplace_back(hash);
+        for (auto& method : m_hash_methods)
+        {
+			if (!method->isEnabled()) 
+                continue;
+            QString hash = method->computeHash(imageData->imageBytes);
+            // Store the hash
+            result->hashes.emplace(method->getName(), hash);
+		}       
 
-        emit image_hashed(result.release());
+        emit image_hashed(result);
     }
 }

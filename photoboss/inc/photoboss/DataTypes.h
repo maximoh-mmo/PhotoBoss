@@ -10,8 +10,13 @@ namespace photoboss {
         QString suffix;
     } ImageFileMetaData;
     
-    struct DiskReadResult {
+    typedef struct {
         ImageFileMetaData meta;
         QByteArray imageBytes;
-    };
+    } DiskReadResult;
+
+    typedef struct {
+        ImageFileMetaData meta;
+        std::map<QString, QString> hashes;  // SHA256, pHash, etc.
+    } HashedImageResult;
 }
