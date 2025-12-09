@@ -15,7 +15,7 @@ namespace photoboss {
         explicit DiskReader(Queue<std::unique_ptr<DiskReadResult>>& queue, QObject* parent = nullptr);
 
     public slots:
-        void Start(const std::unique_ptr<std::list<ImageFileMetaData>>& files);
+        void Start(const std::list<ImageFileMetaData>& files);
         void Cancel();
 
     signals:

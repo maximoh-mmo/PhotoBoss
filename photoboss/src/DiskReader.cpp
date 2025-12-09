@@ -12,17 +12,17 @@ namespace photoboss {
         m_cancelled_.store(true);
     }
 
-    void DiskReader::Start(const std::unique_ptr<std::list<ImageFileMetaData>>& files) {
-        if (!files) {
+    void DiskReader::Start(const std::list<ImageFileMetaData>& files) {
+        if (files.empty()) {
             emit Finished();
             return;
         }
 
         m_cancelled_.store(false);
-        int total = static_cast<int>(files->size());
+        int total = static_cast<int>(files.size());
         int current = 0;
 
-        for (const auto& meta : *files) {
+        for (const auto& meta : files) {
             if (m_cancelled_) break;
 
             QFile file(meta.path);
@@ -38,7 +38,7 @@ namespace photoboss {
             if (current % 50 == 0 || current == total)
                 emit ReadProgress(current, total);
 
-            QThread::msleep(1); // Small sleep to avoid hammering disk
+            QThread::yieldCurrentThread();
         }
         emit Finished();
     }
