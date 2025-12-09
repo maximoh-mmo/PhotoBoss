@@ -2,21 +2,25 @@
 #include <qdatetime.h>
 
 namespace photoboss {
-    typedef struct
+    struct ImageFileMetaData
     {
         QString path;
         quint64 size;
         QDateTime lastModified;
         QString suffix;
-    } ImageFileMetaData;
+    };
     
-    typedef struct {
+    struct DiskReadResult {
         ImageFileMetaData meta;
         QByteArray imageBytes;
-    } DiskReadResult;
+    };
 
-    typedef struct {
+    struct HashedImageResult {
         ImageFileMetaData meta;
         std::map<QString, QString> hashes;  // SHA256, pHash, etc.
-    } HashedImageResult;
+    };
+    struct Group {
+        QString name;
+        QString path;
+    };
 }
