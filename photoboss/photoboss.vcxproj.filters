@@ -33,13 +33,16 @@
     <ClCompile Include="src\HashWorker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Md5.cpp">
+    <ClCompile Include="src\Md5.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SettingsSelection.cpp">
+    <ClCompile Include="src\SettingsSelection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ResultProcessor.cpp">
+    <ClCompile Include="src\ResultProcessor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PipelineController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -60,10 +63,13 @@
     <QtMoc Include="inc\photoboss\HashWorker.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="SettingsSelection.h">
+    <QtMoc Include="inc\photoboss\SettingsSelection.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="ResultProcessor.h">
+    <QtMoc Include="inc\photoboss\ResultProcessor.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="inc\photoboss\PipelineController.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

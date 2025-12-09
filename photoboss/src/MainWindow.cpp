@@ -15,7 +15,6 @@ namespace photoboss
         , m_scanner_(new ImageScanner())
         , m_disk_reader_(new DiskReader(m_disk_read_queue_))
         , m_file_list(new std::list<ImageFileMetaData>)
-        , m_hash_methods()
         , m_result_processor_(new ResultProcessor(m_resultQueue_))
     {
         ui_->setupUi(this);
@@ -80,8 +79,7 @@ namespace photoboss
 
     void MainWindow::OnFilePathsCollected(const std::list<ImageFileMetaData>& meta_data)
     {
-        m_file_list = std::make_unique<std::list<ImageFileMetaData>>(std::move(meta_data));
-        m_disk_reader_->Start(m_file_list);
+        m_disk_reader_->Start(meta_data);
     }
 
     void MainWindow::WireConnections()

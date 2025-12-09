@@ -19,11 +19,7 @@ namespace photoboss {
         while (!b_cancelled)
         {
             std::unique_ptr<DiskReadResult> input;
-            if (!m_queue.try_pop(input))
-            {
-                QThread::msleep(10);
-                continue;
-            }
+			m_queue.pop(input);
             compute_hash(input);
         }
     }

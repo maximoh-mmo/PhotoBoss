@@ -17,17 +17,13 @@ namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 namespace photoboss {
     class HashWorker;
-
-    typedef struct {
-    QString name;
-    QString path;
-} Group;
+	class PipelineController;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
     // MainWindow interface
@@ -44,6 +40,7 @@ public:
 	    
 private:
     Ui::MainWindow *ui_ = nullptr;
+	PipelineController* m_pipeline_controller_ = nullptr;
 
     QString m_current_folder_;
     QPushButton* m_browse_button_ = nullptr;

@@ -156,9 +156,10 @@
     <QtMoc Include="inc\photoboss\MainWindow.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Md5.cpp" />
-    <ClCompile Include="ResultProcessor.cpp" />
-    <ClCompile Include="SettingsSelection.cpp" />
+    <ClCompile Include="src\PipelineController.cpp" />
+    <ClCompile Include="src\Md5.cpp" />
+    <ClCompile Include="src\ResultProcessor.cpp" />
+    <ClCompile Include="src\SettingsSelection.cpp" />
     <ClCompile Include="src\DiskReader.cpp" />
     <ClCompile Include="src\HashWorker.cpp" />
     <ClCompile Include="src\perceptualhash.cpp" />
@@ -167,8 +168,9 @@
     <ClCompile Include="src\MainWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="ResultProcessor.h" />
-    <QtMoc Include="SettingsSelection.h" />
+    <QtMoc Include="inc\photoboss\PipelineController.h" />
+    <QtMoc Include="inc\photoboss\ResultProcessor.h" />
+    <QtMoc Include="inc\photoboss\SettingsSelection.h" />
     <QtMoc Include="inc\photoboss\ImageScanner.h" />
     <QtMoc Include="inc\photoboss\DiskReader.h" />
     <QtMoc Include="inc\photoboss\HashWorker.h" />
