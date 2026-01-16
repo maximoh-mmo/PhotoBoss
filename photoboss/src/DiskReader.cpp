@@ -1,45 +1,52 @@
 #include "DiskReader.h"
 #include <QFile>
 #include <QThread>
+#include <QCryptographicHash>
+#include "DataTypes.h"
 
 namespace photoboss {
 
-    DiskReader::DiskReader(Queue<std::unique_ptr<DiskReadResult>>& queue, QObject* parent)
-        : QObject(parent), m_cancelled_(false), m_output_queue(queue) {
+    DiskReader::DiskReader(
+        Queue<FileMetaListPtr>& input_queue,
+        Queue<std::unique_ptr<DiskReadResult>>& queue,
+        QObject* parent)
+        : QObject(parent), m_input_queue(input_queue), m_output_queue(queue) {
     }
 
-    void DiskReader::Cancel() {
-        m_cancelled_.store(true);
-    }
 
-    void DiskReader::Start(const std::list<ImageFileMetaData>& files) {
-        if (files.empty()) {
-            emit Finished();
-            return;
-        }
+    void DiskReader::Run() {
 
-        m_cancelled_.store(false);
-        int total = static_cast<int>(files.size());
-        int current = 0;
-
-        for (const auto& meta : files) {
-            if (m_cancelled_) break;
-
-            QFile file(meta.path);
-            if (file.open(QIODevice::ReadOnly)) {
-                QByteArray imageBytes = file.readAll();
-                auto result = std::make_unique<DiskReadResult>();
-                result->meta = meta;
-                result->imageBytes = std::move(imageBytes);
-                m_output_queue.push(std::move(result));
+        while (true) {
+            FileMetaListPtr batch;
+            if (!m_input_queue.wait_and_pop(batch)) {
+                break; // scanner finished
             }
 
-            ++current;
-            if (current % 50 == 0 || current == total)
-                emit ReadProgress(current, total);
+            int total = static_cast<int>(batch->size());
+            int current = 0;
 
-            QThread::yieldCurrentThread();
+            for (const auto& fingerprint : *batch) {
+
+                QFile file(fingerprint.path);
+                if (file.open(QIODevice::ReadOnly)) {
+                    auto result = std::make_unique<DiskReadResult>();
+                    result->fingerprint = fingerprint;
+                    result->imageBytes = file.readAll();
+                    if (!result->fingerprint.md5Computed) {
+                        // Compute MD5 if not already computed
+                        result->fingerprint.md5 = QString(QCryptographicHash::hash(
+                            result->imageBytes, QCryptographicHash::Md5).toHex());
+                        result->fingerprint.md5Computed = true;
+					}
+                    if (!m_output_queue.push(std::move(result))) {
+						qDebug() << "DiskReader: Output queue shutdown," << result->fingerprint.path << "dropped, stopping.";
+                        break;
+                    }
+                }
+
+                if (++current % 50 == 0 || current == total)
+                    emit ReadProgress(current, total);
+            }
         }
-        emit Finished();
     }
 }

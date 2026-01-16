@@ -2,7 +2,6 @@
 
 #include <list>
 #include <memory>
-#include <QImage>
 
 #include "DataTypes.h"
 #include "Queue.h"
@@ -12,18 +11,22 @@ namespace photoboss {
     class DiskReader : public QObject {
         Q_OBJECT
     public:
-        explicit DiskReader(Queue<std::unique_ptr<DiskReadResult>>& queue, QObject* parent = nullptr);
+        explicit DiskReader(
+			Queue<FileMetaListPtr>& input_queue,
+            Queue<std::unique_ptr<DiskReadResult>>& queue, 
+            QObject* parent = nullptr
+        );
 
     public slots:
-        void Start(const std::list<ImageFileMetaData>& files);
-        void Cancel();
+        void Run();
 
     signals:
         void Finished();
         void ReadProgress(int current, int total);
 
     private:
-        std::atomic<bool> m_cancelled_;
+        Queue<FileMetaListPtr>& m_input_queue; 
         Queue<std::unique_ptr<DiskReadResult>>& m_output_queue;
+
     };
 }
