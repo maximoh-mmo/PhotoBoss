@@ -10,6 +10,8 @@
 #include <unordered_map>
 #include <vector>
 #include <functional>
+#include <set>
+
 
 namespace photoboss
 {
@@ -20,77 +22,77 @@ namespace photoboss
         HashMethod() = default;
         virtual ~HashMethod() = default;
 
-        virtual QString computeHash(const QByteArray& rawBytes) const = 0;
         virtual QString computeHash(const QImage& image) const = 0;
-        virtual double compareHash(const QString& hash1, const QString& hash2) const = 0;
-        virtual QString getName() const noexcept = 0;
 
-        // Enable/disable at runtime (UI/settings). Default enabled to true.
-        bool isEnabled() const noexcept { return enabled_; }
-        void setEnabled(bool enabled) noexcept { enabled_ = enabled; }
+		// Compare two hashes, returning a similarity score in [0.0, 1.0]
+		virtual double compareHash(const QString& hash1, const QString& hash2) const = 0;
 
-    private:
-        bool enabled_ = true;
+        virtual QString key() const = 0;
     };
 
-    // Thread-safe registry that holds factories to create HashMethod instances.
+    
+    /// <summary>
+    /// Thread-safe registry that holds factories to create HashMethod instances. 
+    /// </summary>
     class HashRegistry
     {
     public:
         using Factory = std::function<std::unique_ptr<HashMethod>()>;
 
+        struct Entry {
+            QString key;
+            Factory factory;
+        };
+
         // Register a factory for a name (returns true on successful registration).
         // This is typically called from a static object in the hash implementation.
-        static bool registerFactory(const QString& name, Factory factory)
+        static bool registerFactory(QString key, Factory factory)
         {
-            auto& reg = getMutableRegistry();
-            std::lock_guard<std::mutex> lk(getMutex());
-            if (reg.count(name) != 0) {
+            auto& registry = getMutableRegistry();
+            std::lock_guard<std::mutex> lock(getMutex());
+            if (registry.count(key) != 0) {
                 return false; // duplicate registration
             }
-            reg.emplace(name, std::move(factory));
+            registry.emplace(key, std::move(factory));
             return true;
         }
 
         // Convenience template to register a concrete HashMethod type.
         template <typename T>
-        static bool registerFactory(const QString& name)
+        static bool registerFactory(const char* key)
         {
             static_assert(std::is_base_of<HashMethod, T>::value, "T must derive from HashMethod");
-            return registerFactory(name, []() { return std::make_unique<T>(); });
+            return registerFactory(key, []() { return std::make_unique<T>(); });
         }
 
-        // Create an instance by name; returns nullptr if name not found.
-        static std::unique_ptr<HashMethod> create(const QString& name)
-        {
-            std::lock_guard<std::mutex> lk(getMutex());
-            auto& reg = getMutableRegistry();
-            auto it = reg.find(name);
-            if (it == reg.end()) return nullptr;
-            return it->second();
-        }
-
-        // Create one instance of every registered method.
-        static std::vector<std::unique_ptr<HashMethod>> createAll()
-        {
-            std::vector<std::unique_ptr<HashMethod>> result;
-            std::lock_guard<std::mutex> lk(getMutex());
+        // Create a snapshot of registered entries filtered by enabled keys.
+        static std::vector<Entry> createSnapshot(const std::set<QString>& enabledKeys) {
+            std::vector<Entry> snapshot;
+			std::lock_guard<std::mutex> lock(getMutex());
             for (auto& kv : getMutableRegistry()) {
-                result.push_back(kv.second());
+                if (enabledKeys.empty() || enabledKeys.count(kv.first)) {
+					snapshot.push_back(Entry{ kv.first, kv.second });
+                }
             }
-            return result;
+            return snapshot;
         }
 
-        // Get list of registered names.
-        static std::vector<QString> registeredNames()
-        {
+        static std::vector<QString> registeredNames() {
             std::vector<QString> names;
-            std::lock_guard<std::mutex> lk(getMutex());
-            names.reserve(getMutableRegistry().size());
-            for (auto& kv : getMutableRegistry()) names.push_back(kv.first);
-            return names;
+			std::lock_guard<std::mutex> lock(getMutex());
+            for (const auto& kv : getMutableRegistry()) {
+                names.push_back(kv.first);
+            }
+			return names;
         }
-
+        
+        static void initializeBuiltIns() {
+            // This empty reference forces the compiler to include the translation units
+            extern const bool ph_registered;
+            (void)ph_registered;
+        }
+		
+        
     private:
         static std::unordered_map<QString, Factory>& getMutableRegistry()
         {
@@ -100,27 +102,18 @@ namespace photoboss
 
         static std::mutex& getMutex()
         {
-            static std::mutex m;
-            return m;
+            static std::mutex mutex;
+            return mutex;
         }
     };
 
     // Concrete implementations forward declarations
-    class Md5 : public HashMethod
-    {
-    public:
-        QString computeHash(const QByteArray& rawBytes) const override;
-        QString computeHash(const QImage& image) const override;
-        double compareHash(const QString& hash1, const QString& hash2) const override;
-        QString getName() const noexcept override { return QString("MD5"); }
-    };
 
     class PerceptualHash : public HashMethod
     {
     public:
-        QString computeHash(const QByteArray& rawBytes) const override;
         QString computeHash(const QImage& image) const override;
         double compareHash(const QString& hash1, const QString& hash2) const override;
-        QString getName() const noexcept override { return QString("Perceptual Hash"); }
+		QString key() const override { return "Perceptual Hash"; }
     };
 }
