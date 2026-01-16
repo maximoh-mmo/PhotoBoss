@@ -1,7 +1,8 @@
-#pragma once
+﻿#pragma once
 #include <QDialog>
 #include "ui_SettingsSelection.h"
 #include "HashMethod.h"
+#include "DataTypes.h"
 #include <QCheckBox>
 
 
@@ -10,22 +11,37 @@ namespace Ui { class SettingsSelection; }
 QT_END_NAMESPACE
 namespace photoboss
 {
+    class SettingsSelection;
+}
+
+namespace photoboss {
+
     class SettingsSelection : public QDialog
     {
-		Q_OBJECT
+        Q_OBJECT
+    public:
+        explicit SettingsSelection(QWidget* parent = nullptr);
 
-        public:
-            SettingsSelection(const std::vector<std::shared_ptr<HashMethod>>& hashMethods, QWidget* parent = nullptr);
-            ~SettingsSelection() override;
-            void Init();
-        private:
-		Ui::SettingsSelection *ui_ = nullptr;
-		QVBoxLayout* m_layout_ = nullptr;
-		std::vector<QCheckBox*> m_checkboxes_;
-		std::vector<std::shared_ptr<HashMethod>> m_methods_;
-        signals:
-        void open(const std::vector<std::shared_ptr<HashMethod>>& methods);
-        void settingsApplied(const std::vector<std::shared_ptr<HashMethod>>& selectedMethods);
+		// Retrieve the set of enabled hash method keys
+		std::set<QString> getEnabledHashMethods() const { return m_enabled_hash_keys_; }
 
+        ~SettingsSelection() override;
+
+    signals:
+        void settingsApplied(const std::set<QString>& enabledKeys);
+
+    private slots:
+        void onApplyClicked();
+		void onCheckboxToggled(bool checked);
+
+    private:
+        void updateEnabledHashMethods();
+
+    private:
+        Ui::SettingsSelection* ui_;
+
+        // UI state only — no hashing logic
+        std::map<QString, QCheckBox*> m_checkboxes_;
+        std::set<QString> m_enabled_hash_keys_;
     };
 }

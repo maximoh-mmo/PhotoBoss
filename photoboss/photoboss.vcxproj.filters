@@ -21,9 +21,6 @@
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ImageScanner.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\perceptualhash.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -31,9 +28,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\HashWorker.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Md5.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\SettingsSelection.cpp">
@@ -45,6 +39,9 @@
     <ClCompile Include="src\PipelineController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\DirectoryScanner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="resources\MainWindow.ui" />
@@ -52,9 +49,6 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="inc\photoboss\MainWindow.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="inc\photoboss\ImageScanner.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="inc\photoboss\DiskReader.h">
@@ -70,6 +64,9 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="inc\photoboss\PipelineController.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="inc\photoboss\DirectoryScanner.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

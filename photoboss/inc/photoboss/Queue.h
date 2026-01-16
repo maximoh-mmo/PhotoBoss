@@ -18,15 +18,15 @@ class Queue
     Queue &operator= (Queue &&) = delete;
 
     // Unbounded queue
-    Queue() : capacity_(std::numeric_limits<size_t>::max()) {}
+    Queue() : m_capacity_(std::numeric_limits<size_t>::max()) {}
 
     // Bounded queue with specified capacity
-    explicit Queue(size_t capacity) : capacity_(capacity) {}
+    explicit Queue(size_t capacity) : m_capacity_(capacity) {}
 
-    // Push item into the queue, returns false if shutdown occured.
+    // Push item into the queue, returns false if shutdown occurred.
     bool push(T &&item) {
         std::unique_lock lock(m_mutex_);
-        if (!wait_for_space(lock) return false;
+        if (!wait_for_space(lock)) return false;
         m_deque_.push_back(std::move(item));
         m_not_empty_.notify_one();
 		return true;
@@ -34,17 +34,17 @@ class Queue
     // Emplace an item in-place; returns false if shutdown occurred
     template <typename... Args>
     bool emplace(Args&&... args) {
-        std::unique_lock lock(mutex_);
+        std::unique_lock lock(m_mutex_);
         if (!wait_for_space(lock)) return false;
-        deque_.emplace_back(std::forward<Args>(args)...);
-        not_empty_.notify_one();
+        m_deque_.emplace_back(std::forward<Args>(args)...);
+        m_not_empty_.notify_one();
         return true;
     }
 
     // Try to push without blocking; returns false if full or shutdown
     bool try_push(T &&item) {
         std::unique_lock lock(m_mutex_);
-        if (b_is_bounded_ && m_deque_.size() >= m_capacity_ || b_shutdown_)
+        if (m_deque_.size() >= m_capacity_ || b_shutdown_)
             return false;
         m_deque_.push_back(std::move(item));
         m_not_empty_.notify_one();
@@ -107,6 +107,12 @@ class Queue
         m_not_full_.notify_all();
     }
 
+	// Reset shutdown flag (use with caution)
+    void reset_shutdown() {
+        std::unique_lock lock(m_mutex_);
+        b_shutdown_ = false;
+	}
+
 private:
     bool b_shutdown_ = false;
     std::deque<T> m_deque_;
@@ -117,7 +123,7 @@ private:
 
     // Wait until there is space in the queue (for bounded) or shutdown
     bool wait_for_space(std::unique_lock<std::mutex>& lock) {
-        m_not_full_.wait(lock, [this]() { return deque_.size() < m_capacity_ || b_shutdown_; });
+        m_not_full_.wait(lock, [this]() { return m_deque_.size() < m_capacity_ || b_shutdown_; });
         return !b_shutdown_;
     }
 };

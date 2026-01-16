@@ -11,8 +11,8 @@ namespace photoboss {
         explicit ResultProcessor(Queue<std::shared_ptr<HashedImageResult>>& queue, QObject* parent = nullptr);
         void stop();
     public slots:
-        void run();
-        void handleResult(const std::shared_ptr<HashedImageResult>& result);
+        void Run();
+        void HandleResult(const std::shared_ptr<HashedImageResult>& result);
 
     signals:
         void hash_stored(QString path);
@@ -20,6 +20,5 @@ namespace photoboss {
 
     private:
 		Queue<std::shared_ptr<HashedImageResult>>& queue_;
-        std::atomic<bool> running_ = true;
     };
 }

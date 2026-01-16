@@ -4,39 +4,59 @@
 
 namespace photoboss {
 
-    HashWorker::HashWorker(Queue<std::unique_ptr<DiskReadResult>>& inputQueue, std::vector<std::shared_ptr<HashMethod>>& methods, QObject* parent)
-		: QObject(parent), m_queue(inputQueue), m_hash_methods(methods)
+    HashWorker::HashWorker(
+        Queue<std::unique_ptr<DiskReadResult>>& inputQueue,
+        const std::vector<HashRegistry::Entry>& activeMethods,
+        QObject* parent)
+        : QObject(parent)
+        , m_queue(inputQueue)
     {
+        for (const auto& entry : activeMethods) {
+            m_hash_methods.push_back(entry.factory());
+		}
+        
+        if (m_hash_methods.empty()) {
+            qWarning() << "HashWorker: No active hash methods provided.";
+        } else {
+            qDebug() << "HashWorker: Initialized with"
+                     << m_hash_methods.size() << "hash methods.";
+		}
     }
 
-    void HashWorker::Cancel()
+    void HashWorker::Run()
     {
-        b_cancelled = true;
-    }
-
-    void HashWorker::run()
-    {
-        while (!b_cancelled)
-        {
-            std::unique_ptr<DiskReadResult> input;
-			m_queue.pop(input);
-            compute_hash(input);
+        if (m_hash_methods.empty()) {
+            qWarning() << "HashWorker: No active hash methods, thread will exit.";
+            return;
         }
-    }
-
-    void HashWorker::compute_hash(const std::unique_ptr<DiskReadResult>& imageData)
-    {
-        auto result = std::make_shared<HashedImageResult>();
-        result->meta = imageData->meta;
-        for (auto& method : m_hash_methods)
+        while (true)
         {
-			if (!method->isEnabled()) 
-                continue;
-            QString hash = method->computeHash(imageData->imageBytes);
-            // Store the hash
-            result->hashes.emplace(method->getName(), hash);
-		}       
+            std::unique_ptr<DiskReadResult> item;
 
-        emit image_hashed(result);
+            if (!m_queue.wait_and_pop(item)) {
+				qDebug() << "HashWorker: Queue shutdown detected, exiting.";
+                break; // upstream shutdown
+            }
+
+            if (!item) { 
+				qDebug() << "HashWorker: Received null input, skipping.";
+                continue; 
+            }
+
+			qDebug() << "HashWorker: Processing image:" << item->fingerprint.path;
+            QImage img;
+            if (!img.loadFromData(item->imageBytes)) {
+                emit image_hash_error(item->fingerprint.path, "Image load failed");
+				continue;
+            }
+
+            auto result = std::make_shared<HashedImageResult>();
+            result->fingerprint = item->fingerprint;
+
+            for (auto& method : m_hash_methods) {
+				result->hashes.emplace(method->key(), method->computeHash(img));
+			}
+            emit image_hashed(result);
+        }
     }
 }

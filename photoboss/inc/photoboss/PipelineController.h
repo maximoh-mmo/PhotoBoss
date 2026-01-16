@@ -1,46 +1,67 @@
-#pragma once
-
+﻿#pragma once
 #include <QObject>
 #include <QThread>
-#include <QString>
-#include <QStringList>
+#include <memory>
+#include <vector>
+#include "Queue.h"
+#include "HashWorker.h"
 
-namespace photoboss
-{
+#include "DataTypes.h"
+#include "HashMethod.h"
+
+namespace photoboss {
     class DirectoryScanner;
-    class ImageLoader;
-    class ImageComparator;
+    class DiskReader;
+	class ResultProcessor;
+
+    struct Pipeline {
+        // Queues
+        Queue<FileMetaListPtr> scanQueue;
+        Queue<std::unique_ptr<DiskReadResult>> readQueue;
+        Queue<std::shared_ptr<HashedImageResult>> resultQueue;
+
+        // Threads
+        QThread scannerThread;
+        QThread readerThread;
+
+        // Workers
+        DirectoryScanner* scanner = nullptr;
+        DiskReader* reader = nullptr;
+        std::vector<HashWorker*> hashWorkers;
+
+		Pipeline() = default;
+        Pipeline(int scanQueueSize, int readQueueSize, int resultQueueSize)
+            : scanQueue(scanQueueSize), readQueue(readQueueSize), resultQueue(resultQueueSize) {
+		}
+    };
 
     class PipelineController : public QObject
     {
         Q_OBJECT
-
     public:
-        explicit PipelineController(QObject* parent = nullptr);
-        ~PipelineController();
+        explicit PipelineController(
+            QObject* parent = nullptr);
 
-    public slots:
-        void start(const QString& root_directory);
+        ~PipelineController() override;
+
+        void start();
+        void startScan(const QString& folder, bool recursive);
         void stop();
+		void restart();
+
+        void initializeDefaultHashes();
+        void updateActiveHashes(const std::set<QString>& enabledKeys);
 
     signals:
-        void progressUpdate(const QString& message);
-        void fileGroupReady(const QStringList& group);
-        void finished();
-
+        void imageHashed(std::shared_ptr<HashedImageResult> result);
+		void status(const QString& message);
     private:
-        void setupConnections();
-        void setupThreads();
-
+        void createPipeline();
+		void destroyPipeline();
     private:
-        QThread m_scanner_thread_;
-        QThread m_loader_thread_;
-        QThread m_compare_thread_;
+        std::unique_ptr<Pipeline> m_pipeline_;
+		PipelineState m_state_ = PipelineState::Stopped;
 
-        DirectoryScanner* m_scanner_ = nullptr;
-        ImageLoader* m_loader_ = nullptr;
-        ImageComparator* m_comparator_ = nullptr;
-
-        bool m_stop_requested_ = false;
+        std::vector<HashRegistry::Entry> m_active_hash_methods_;
     };
 }

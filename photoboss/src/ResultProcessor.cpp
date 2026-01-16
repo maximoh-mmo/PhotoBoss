@@ -7,36 +7,34 @@ namespace photoboss {
         QObject* parent)
         : QObject(parent)
         , queue_(queue)
-        , running_(true)
     {
     }
 
-    void ResultProcessor::run()
+    void ResultProcessor::Run()
     {
         while (true) {
 
             std::shared_ptr<HashedImageResult> result;
-            queue_.pop(result);
+            if (!queue_.wait_and_pop(result)) {
+                break; // queue has been shutdown
+            }
 
-            // IMPORTANT: re-check after wake-up
-            if (!running_)
-                break;
-
-            // Process result
-            emit hash_stored(result->meta.path);
+            if (result) {
+                emit hash_stored(result->fingerprint.path);
+                HandleResult(result);
+            }
         }
     }
 
-    void ResultProcessor::handleResult(
+    void ResultProcessor::HandleResult(
         const std::shared_ptr<HashedImageResult>& result)
     {
-        qDebug() << "Processing:" << result->meta.path;
+        qDebug() << "Processing:" << result->fingerprint.path;
+        // TODO: implement grouping/duplicate detection here
     }
 
     void ResultProcessor::stop()
     {
-        running_ = false;
-        queue_.notify_all(); // wake pop() so the loop can exit
+        queue_.shutdown(); // triggers wait_and_pop to return false
     }
-
 }
