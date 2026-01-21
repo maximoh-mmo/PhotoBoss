@@ -1,10 +1,11 @@
 #pragma once
 #include <QObject>
 #include "Queue.h"
-
 #include "DataTypes.h"
+#include "PipelineStage.h"
+
 namespace photoboss {
-    class ResultProcessor : public QObject
+    class ResultProcessor : public PipelineStage
     {
         Q_OBJECT
     public:

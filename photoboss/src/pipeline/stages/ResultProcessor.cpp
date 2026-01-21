@@ -5,7 +5,7 @@ namespace photoboss {
     ResultProcessor::ResultProcessor(
         Queue<std::shared_ptr<HashedImageResult>>& queue,
         QObject* parent)
-        : QObject(parent)
+        : PipelineStage(parent)
         , m_input(queue)
     {
     }

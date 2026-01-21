@@ -59,4 +59,5 @@ namespace photoboss {
     };
 
     using FingerprintBatchPtr = std::shared_ptr<std::vector<Fingerprint>>;
+
 }

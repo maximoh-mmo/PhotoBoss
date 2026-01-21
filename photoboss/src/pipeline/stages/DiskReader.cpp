@@ -10,7 +10,7 @@ namespace photoboss {
         Queue<FingerprintBatchPtr>& input_queue,
         Queue<std::unique_ptr<DiskReadResult>>& queue,
         QObject* parent)
-        : QObject(parent), m_input_queue(input_queue), m_output_queue(queue) {
+        : PipelineStage(parent), m_input_queue(input_queue), m_output_queue(queue) {
     }
 
 

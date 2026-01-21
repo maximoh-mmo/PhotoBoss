@@ -2,13 +2,13 @@
 
 #include <list>
 #include <memory>
-
 #include "DataTypes.h"
 #include "Queue.h"
+#include "PipelineStage.h"
 
 namespace photoboss {
 
-    class DiskReader : public QObject {
+    class DiskReader : public PipelineStage {
         Q_OBJECT
     public:
         explicit DiskReader(

@@ -4,7 +4,7 @@
 #include "DiskReader.h"
 #include "HashWorker.h"
 #include "ResultProcessor.h"
-
+#include "CacheLookup.h"
 #include <QDebug>
 #include <QThread>
 
@@ -86,10 +86,10 @@ namespace photoboss {
 
     void PipelineController::createPipeline()
     {
-        m_pipeline_ = std::make_unique<Pipeline>(100,50,200, 50);
+        m_pipeline_ = std::make_unique<Pipeline>(100,50,200,50);
         
         // ---- Scanner ----
-        m_pipeline_->scanner = new DirectoryScanner(this);
+        m_pipeline_->scanner = new DirectoryScanner();
         m_pipeline_->scanner->moveToThread(&m_pipeline_->scannerThread);
 
         connect(&m_pipeline_->scannerThread, &QThread::finished,
@@ -106,16 +106,34 @@ namespace photoboss {
             });
 
         m_pipeline_->scannerThread.start();
+        
+		// ---- Cache Lookup ----
+		m_cache_ = std::make_unique<NullHashCache>();
+        m_pipeline_->cacheLookup = new CacheLookup(
+            m_pipeline_->scanQueue,
+            m_pipeline_->diskQueue,
+            m_pipeline_->resultQueue,
+            *m_cache_,
+            m_active_hash_methods_);
+		m_pipeline_->cacheLookup->moveToThread(&m_pipeline_->cacheThread);
+
+		connect(&m_pipeline_->cacheThread, &QThread::started,
+			m_pipeline_->cacheLookup, &PipelineStage::Run);
+
+		connect(&m_pipeline_->cacheThread, &QThread::finished,
+			m_pipeline_->cacheLookup, &QObject::deleteLater);
+
+		m_pipeline_->cacheThread.start();
 
         // ---- Disk Reader ----
-        m_pipeline_->reader = new DiskReader(m_pipeline_->scanQueue, m_pipeline_->readQueue);
+        m_pipeline_->reader = new DiskReader(m_pipeline_->diskQueue, m_pipeline_->readQueue);
         m_pipeline_->reader->moveToThread(&m_pipeline_->readerThread);
 
         connect(m_pipeline_->reader, &DiskReader::ReadProgress,
             this, &PipelineController::diskReadProgress);
 
         connect(&m_pipeline_->readerThread, &QThread::started,
-            m_pipeline_->reader, &DiskReader::Run);
+            m_pipeline_->reader, &PipelineStage::Run);
 
         connect(&m_pipeline_->readerThread, &QThread::finished,
             m_pipeline_->reader, &QObject::deleteLater);
@@ -132,7 +150,7 @@ namespace photoboss {
             worker->moveToThread(thread);
 
             connect(thread, &QThread::started,
-                worker, &HashWorker::Run);
+                worker, &PipelineStage::Run);
 
             connect(thread, &QThread::finished,
                 worker, &QObject::deleteLater);
@@ -150,7 +168,7 @@ namespace photoboss {
 		m_pipeline_->resultProcessor->moveToThread(&m_pipeline_->resultThread);
 
 		connect(&m_pipeline_->resultThread, &QThread::started,
-			m_pipeline_->resultProcessor, &ResultProcessor::Run);
+			m_pipeline_->resultProcessor, &PipelineStage::Run);
 
 		connect(&m_pipeline_->resultThread, &QThread::finished,
 			m_pipeline_->resultProcessor, &QObject::deleteLater);
@@ -167,6 +185,9 @@ namespace photoboss {
 
         m_pipeline_->scannerThread.quit();
         m_pipeline_->scannerThread.wait();
+
+        m_pipeline_->cacheThread.quit();
+        m_pipeline_->cacheThread.wait();
 
         m_pipeline_->readerThread.quit();
         m_pipeline_->readerThread.wait();

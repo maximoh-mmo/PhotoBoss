@@ -1,10 +1,12 @@
 #pragma once
-#include "DiskReader.h"  // For DiskReadResult
+
 #include "HashMethod.h"
+#include "PipelineStage.h"
+#include "DataTypes.h"
+#include "Queue.h"
 
 namespace photoboss {
-
-    class HashWorker : public QObject {
+    class HashWorker : public PipelineStage {
         Q_OBJECT
     public:
         explicit HashWorker(

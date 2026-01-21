@@ -5,38 +5,12 @@
 #include <vector>
 #include "Queue.h"
 #include "HashWorker.h"
-
 #include "DataTypes.h"
 #include "HashMethod.h"
+#include "Pipeline.h"
+#include "NullHashCache.h"
 
 namespace photoboss {
-    class DirectoryScanner;
-    class DiskReader;
-	class ResultProcessor;
-
-    struct Pipeline {
-        // Queues
-        Queue<FingerprintBatchPtr> scanQueue;
-        Queue<FingerprintBatchPtr> diskQueue;
-        Queue<std::unique_ptr<DiskReadResult>> readQueue;
-        Queue<std::shared_ptr<HashedImageResult>> resultQueue;
-
-        // Threads
-        QThread scannerThread;
-        QThread readerThread;
-		QThread resultThread;
-
-        // Workers
-        DirectoryScanner* scanner = nullptr;
-        DiskReader* reader = nullptr;
-		ResultProcessor* resultProcessor = nullptr;
-        std::vector<HashWorker*> hashWorkers;
-
-		Pipeline() = default;
-        Pipeline(int scanQueueSize, int diskQueueSize, int readQueueSize, int resultQueueSize)
-            : scanQueue(scanQueueSize), diskQueue(diskQueueSize), readQueue(readQueueSize), resultQueue(resultQueueSize){
-		}
-    };
 
     class PipelineController : public QObject
     {
@@ -66,6 +40,7 @@ namespace photoboss {
 		void destroyPipeline();
     private:
         std::unique_ptr<Pipeline> m_pipeline_;
+        std::unique_ptr <NullHashCache> m_cache_;
 		PipelineState m_state_ = PipelineState::Stopped;
 		void SetPipelineState(PipelineState state);
 

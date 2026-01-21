@@ -9,7 +9,7 @@ namespace photoboss {
 		Queue<std::shared_ptr<HashedImageResult>>& outputQueue,
         const std::vector<HashRegistry::Entry>& activeMethods,
         QObject* parent)
-        : QObject(parent)
+        : PipelineStage(parent)
         , m_input(inputQueue)
 		, m_output(outputQueue)
     {
