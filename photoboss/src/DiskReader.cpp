@@ -7,7 +7,7 @@
 namespace photoboss {
 
     DiskReader::DiskReader(
-        Queue<FileMetaListPtr>& input_queue,
+        Queue<FingerprintBatchPtr>& input_queue,
         Queue<std::unique_ptr<DiskReadResult>>& queue,
         QObject* parent)
         : QObject(parent), m_input_queue(input_queue), m_output_queue(queue) {
@@ -17,7 +17,7 @@ namespace photoboss {
     void DiskReader::Run() {
 
         while (true) {
-            FileMetaListPtr batch;
+            FingerprintBatchPtr batch;
             if (!m_input_queue.wait_and_pop(batch)) {
                 break; // scanner finished
             }
@@ -40,7 +40,7 @@ namespace photoboss {
 					}
                     if (!m_output_queue.push(std::move(result))) {
 						qDebug() << "DiskReader: Output queue shutdown," << result->fingerprint.path << "dropped, stopping.";
-                        break;
+                        return;
                     }
                 }
 

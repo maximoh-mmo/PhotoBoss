@@ -16,7 +16,8 @@ namespace photoboss {
 
     struct Pipeline {
         // Queues
-        Queue<FileMetaListPtr> scanQueue;
+        Queue<FingerprintBatchPtr> scanQueue;
+        Queue<FingerprintBatchPtr> diskQueue;
         Queue<std::unique_ptr<DiskReadResult>> readQueue;
         Queue<std::shared_ptr<HashedImageResult>> resultQueue;
 
@@ -30,8 +31,8 @@ namespace photoboss {
         std::vector<HashWorker*> hashWorkers;
 
 		Pipeline() = default;
-        Pipeline(int scanQueueSize, int readQueueSize, int resultQueueSize)
-            : scanQueue(scanQueueSize), readQueue(readQueueSize), resultQueue(resultQueueSize) {
+        Pipeline(int scanQueueSize, int readQueueSize, int resultQueueSize, int diskQueueSize)
+            : scanQueue(scanQueueSize), readQueue(readQueueSize), resultQueue(resultQueueSize), diskQueue(diskQueueSize){
 		}
     };
 
@@ -55,13 +56,18 @@ namespace photoboss {
     signals:
         void imageHashed(std::shared_ptr<HashedImageResult> result);
 		void status(const QString& message);
+		void diskReadProgress(int current, int total);
+        void pipelineStateChanged(PipelineState state);
+
     private:
         void createPipeline();
 		void destroyPipeline();
     private:
         std::unique_ptr<Pipeline> m_pipeline_;
 		PipelineState m_state_ = PipelineState::Stopped;
+		void SetPipelineState(PipelineState state);
 
         std::vector<HashRegistry::Entry> m_active_hash_methods_;
+		std::vector<QThread*> m_hash_worker_threads_;
     };
 }

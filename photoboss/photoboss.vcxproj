@@ -56,15 +56,19 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="$(QtMsBuild)\qt_defaults.props" Condition="Exists('$(QtMsBuild)\qt_defaults.props')" />
-  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
-  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <QtModules>core;sql;</QtModules>
+  </PropertyGroup>
+  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <QtModules>core;sql;</QtModules>
+  </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <QtToolsDesignTime>false</QtToolsDesignTime>
-    <QtModules>core;widgets</QtModules>
+    <QtModules>core;sql;widgets</QtModules>
   </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <QtToolsDesignTime>false</QtToolsDesignTime>
-    <QtModules>core;widgets</QtModules>
+    <QtModules>core;sql;widgets</QtModules>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') OR !Exists('$(QtMsBuild)\Qt.props')">
     <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
@@ -156,6 +160,8 @@
     <QtMoc Include="inc\photoboss\MainWindow.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\SqliteHashCache.cpp" />
+    <ClCompile Include="src\CacheLookup.cpp" />
     <ClCompile Include="src\DirectoryScanner.cpp" />
     <ClCompile Include="src\PipelineController.cpp" />
     <ClCompile Include="src\ResultProcessor.cpp" />
@@ -167,14 +173,18 @@
     <ClCompile Include="src\MainWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="inc\photoboss\NullHashCache.h" />
+    <ClInclude Include="inc\photoboss\SqliteHashCache.h" />
     <QtMoc Include="inc\photoboss\PipelineController.h" />
     <QtMoc Include="inc\photoboss\ResultProcessor.h" />
     <QtMoc Include="inc\photoboss\SettingsSelection.h" />
     <QtMoc Include="inc\photoboss\DiskReader.h" />
     <QtMoc Include="inc\photoboss\HashWorker.h" />
     <QtMoc Include="inc\photoboss\DirectoryScanner.h" />
+    <QtMoc Include="inc\photoboss\CacheLookup.h" />
     <ClInclude Include="inc\photoboss\HashMethod.h" />
     <ClInclude Include="inc\photoboss\DataTypes.h" />
+    <ClInclude Include="inc\photoboss\IHashCache.h" />
     <ClInclude Include="inc\photoboss\Queue.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

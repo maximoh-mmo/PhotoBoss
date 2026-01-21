@@ -8,10 +8,6 @@ namespace photoboss {
 
     DirectoryScanner::~DirectoryScanner() {}
 
-    void DirectoryScanner::RequestStop() {
-        m_cancelled_.store(true);
-    }
-
     void DirectoryScanner::StartScan(const QString& directory, bool recursive) {
         m_cancelled_.store(false);
         emit status(QStringLiteral("Scanner: starting"));

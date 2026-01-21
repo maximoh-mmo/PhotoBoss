@@ -24,7 +24,6 @@ public:
     void WireConnections();
     void Init();
     void OnCurrentFolderChanged();
-    void OnGroupFound(Group group);
     void SetCurrentFolder(const QString& folder);
     void OnImageHashed(std::shared_ptr<HashedImageResult> result);
     QString GetCurrentFolder() const { return m_current_folder_; }
@@ -39,12 +38,8 @@ private:
     QString m_current_folder_;
     QPushButton* m_browse_button_ = nullptr;
     QPushButton* m_scan_button_ = nullptr;
-    QFileDialog* m_file_dialog_ = nullptr;
     QProgressBar* m_progress_bar_ = nullptr;
-    QCheckBox* m_include_subfolders_ = nullptr;
     QStatusBar* m_status_bar_ = nullptr;
-	SettingsSelection* m_settings_dialog_ = nullptr;
-    bool b_include_subfolders_ = false;
 
 private slots:
 	void openSettings();

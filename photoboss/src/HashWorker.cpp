@@ -46,7 +46,7 @@ namespace photoboss {
 			qDebug() << "HashWorker: Processing image:" << item->fingerprint.path;
             QImage img;
             if (!img.loadFromData(item->imageBytes)) {
-                emit image_hash_error(item->fingerprint.path, "Image load failed");
+                emit imageHashError(item->fingerprint.path, "Image load failed");
 				continue;
             }
 
@@ -54,9 +54,17 @@ namespace photoboss {
             result->fingerprint = item->fingerprint;
 
             for (auto& method : m_hash_methods) {
-				result->hashes.emplace(method->key(), method->computeHash(img));
+                try {
+                    result->hashes.emplace(method->key(), method->computeHash(img));
+                }
+                catch (const std::exception& e) {
+                    emit imageHashError(item->fingerprint.path,
+                        QString("Hash computation failed for method %1: %2")
+                        .arg(method->key(), e.what()));
+                    continue;
+                }
 			}
-            emit image_hashed(result);
+            emit imageHashed(result);
         }
     }
 }

@@ -42,6 +42,12 @@
     <ClCompile Include="src\DirectoryScanner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\CacheLookup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SqliteHashCache.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="resources\MainWindow.ui" />
@@ -69,6 +75,9 @@
     <QtMoc Include="inc\photoboss\DirectoryScanner.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="inc\photoboss\CacheLookup.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\photoboss\Queue.h">
@@ -78,6 +87,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\photoboss\DataTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\IHashCache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\NullHashCache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\SqliteHashCache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

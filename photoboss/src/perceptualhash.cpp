@@ -76,6 +76,7 @@ namespace photoboss
             }
         }
 
+
         std::vector<double> sorted_copy = flat;
         // Use 1 to skip the first element (DC coefficient) for the median
         auto median_it = sorted_copy.begin() + 32;

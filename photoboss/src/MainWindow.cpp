@@ -69,6 +69,9 @@ namespace photoboss
             });
 
         connect(ui_->actionSettings, &QAction::triggered, this, &MainWindow::openSettings);
+        connect(m_pipeline_controller_.get(), &PipelineController::status, this, [this](const QString& message) {
+            m_status_bar_->showMessage(message);
+			});
     }
 
     void MainWindow::OnCurrentFolderChanged()
@@ -83,13 +86,6 @@ namespace photoboss
         m_status_bar_->showMessage(tr("%1 Files Scanned...").arg(fileCount));
     }
 
-    void MainWindow::OnGroupFound(Group group)
-    {
-        // Handle the group found event, e.g., update UI or store the group
-        // This is a placeholder for actual logic to handle the found group.
-        qDebug() << "Group found: " << group.name << " at path: " << group.path;
-    }
-
     void MainWindow::SetCurrentFolder(const QString& folder)
     {
         if (folder != m_current_folder_) {
@@ -100,15 +96,12 @@ namespace photoboss
 
     void MainWindow::openSettings()
     {
-        auto settingsDialog = new SettingsSelection(this);
-
-        connect(settingsDialog, &SettingsSelection::settingsApplied,
+        SettingsSelection settingsDialog(this);
+        connect(&settingsDialog, &SettingsSelection::settingsApplied,
             this, [this](const std::set<QString>& hashes) {
                 m_pipeline_controller_->updateActiveHashes(hashes);
             });
-
-        settingsDialog->exec();
-        settingsDialog->deleteLater();
+        settingsDialog.exec();
     }
 
     void MainWindow::OnImageHashed(std::shared_ptr<HashedImageResult> result)
@@ -125,7 +118,5 @@ namespace photoboss
                 qDebug() << "Hashed: <not found>";
             }
         }
-
-        // TODO: integrate grouping logic if needed
     }
 }

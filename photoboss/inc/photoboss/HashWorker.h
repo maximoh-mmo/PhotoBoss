@@ -16,8 +16,8 @@ namespace photoboss {
         void Run();
 
     signals:
-        void image_hashed(std::shared_ptr<HashedImageResult> result);
-		void image_hash_error(const QString& path, const QString& error);
+        void imageHashed(std::shared_ptr<HashedImageResult> result);
+		void imageHashError(const QString& path, const QString& error);
 
     private:
         Queue<std::unique_ptr<DiskReadResult>>& m_queue;

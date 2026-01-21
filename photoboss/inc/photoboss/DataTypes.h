@@ -2,6 +2,20 @@
 #include <qdatetime.h>
 
 namespace photoboss {
+
+    enum class PipelineState {
+        Stopped,
+        Starting,
+        Idle,
+        Scanning,
+        Stopping
+    };
+
+    enum class HashSource {
+        Fresh,
+        Cache
+    };
+
     struct Fingerprint
     {
     public:
@@ -23,12 +37,19 @@ namespace photoboss {
 
     struct HashedImageResult {
         Fingerprint fingerprint;
+        HashSource source;
+        QDateTime cachedAt;
         std::map<QString, QString> hashes;  // SHA256, pHash, etc.
     };
-    
-    struct Group {
-        QString name;
-        QString path;
+
+    struct CacheLookupResult {
+        bool hit;
+        HashedImageResult hashedImage; // valid only if hit == true
+    };
+
+    struct CacheQuery {
+        Fingerprint fingerprint;
+        QList<QString> requiredMethods; // e.g. ["md5", "phash"]
     };
 
     struct HashConfig {
@@ -36,15 +57,5 @@ namespace photoboss {
         bool enabled;
     };
 
-    enum class PipelineState {
-        Stopped,
-        Starting,
-        Idle,
-        Scanning,
-        Stopping
-    };
-
-    using LoadedImagePtr = std::shared_ptr<DiskReadResult>;
-    using HashResultPtr = std::shared_ptr<HashedImageResult>;
-    using FileMetaListPtr = std::shared_ptr<std::vector<Fingerprint>>;
+    using FingerprintBatchPtr = std::shared_ptr<std::vector<Fingerprint>>;
 }

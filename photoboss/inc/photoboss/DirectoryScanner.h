@@ -15,11 +15,9 @@ namespace photoboss {
     public slots:
         void StartScan(const QString& directory, bool recursive);
 
-        void RequestStop();
-
     signals:
         void fileFound(const Fingerprint& meta);
-        void fileBatchFound(FileMetaListPtr batch);
+        void fileBatchFound(FingerprintBatchPtr batch);
         void status(const QString& message);
         void finished();
 

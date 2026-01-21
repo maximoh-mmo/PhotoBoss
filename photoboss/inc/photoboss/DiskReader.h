@@ -12,7 +12,7 @@ namespace photoboss {
         Q_OBJECT
     public:
         explicit DiskReader(
-			Queue<FileMetaListPtr>& input_queue,
+			Queue<FingerprintBatchPtr>& input_queue,
             Queue<std::unique_ptr<DiskReadResult>>& queue, 
             QObject* parent = nullptr
         );
@@ -25,7 +25,7 @@ namespace photoboss {
         void ReadProgress(int current, int total);
 
     private:
-        Queue<FileMetaListPtr>& m_input_queue; 
+        Queue<FingerprintBatchPtr>& m_input_queue; 
         Queue<std::unique_ptr<DiskReadResult>>& m_output_queue;
 
     };

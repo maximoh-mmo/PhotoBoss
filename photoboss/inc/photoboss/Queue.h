@@ -5,6 +5,10 @@
 
 /// <summary>
 /// A Thread-safe queue supporting bounded and unbounded modes, with proper shutdown handling.
+/// 
+/// NOTE:
+/// Queue shutdown is the ONLY supported stop mechanism.
+/// Consumers and producers must exit when wait_and_pop or push return false.
 /// </summary>
 /// <typeparam name="T"></typeparam>
 

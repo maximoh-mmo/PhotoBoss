@@ -42,15 +42,20 @@ namespace photoboss {
         if (m_state_ != PipelineState::Stopped)
             return;
 
-        m_state_ = PipelineState::Starting;
+        SetPipelineState(PipelineState::Starting);
         createPipeline();
-        m_state_ = PipelineState::Idle;
+        SetPipelineState(PipelineState::Idle);
 
     }
 
     void PipelineController::startScan(const QString& folder, bool recursive)
     {
         if (!m_pipeline_) return;
+
+        if (m_state_ != PipelineState::Idle)
+            return;
+
+        SetPipelineState(PipelineState::Scanning);
 
         QMetaObject::invokeMethod(
             m_pipeline_->scanner,
@@ -66,10 +71,10 @@ namespace photoboss {
         if (m_state_ == PipelineState::Stopped)
             return;
 
-        m_state_ = PipelineState::Stopping;
+        SetPipelineState(PipelineState::Stopping);
 
         if (m_pipeline_ && m_pipeline_->scanner)
-            m_pipeline_->scanner->RequestStop();
+			m_pipeline_->scanQueue.shutdown();
 
         if (m_pipeline_) {
             m_pipeline_->scanQueue.shutdown();
@@ -78,22 +83,22 @@ namespace photoboss {
         }
 
         destroyPipeline();
-        m_state_ = PipelineState::Stopped;
+        SetPipelineState(PipelineState::Stopped);
     }
 
     void PipelineController::createPipeline()
     {
-        m_pipeline_ = std::make_unique<Pipeline>(100,50,200);
+        m_pipeline_ = std::make_unique<Pipeline>(100,50,200, 50);
         
         // ---- Scanner ----
-        m_pipeline_->scanner = new DirectoryScanner();
+        m_pipeline_->scanner = new DirectoryScanner(this);
         m_pipeline_->scanner->moveToThread(&m_pipeline_->scannerThread);
 
         connect(&m_pipeline_->scannerThread, &QThread::finished,
             m_pipeline_->scanner, &QObject::deleteLater);
 
         connect(m_pipeline_->scanner, &DirectoryScanner::fileBatchFound,
-            this, [this](FileMetaListPtr batch) {
+            this, [this](FingerprintBatchPtr batch) {
                 m_pipeline_->scanQueue.push(std::move(batch));
             });
 
@@ -108,6 +113,9 @@ namespace photoboss {
         m_pipeline_->reader = new DiskReader(
             m_pipeline_->scanQueue,
             m_pipeline_->readQueue);
+
+        connect(m_pipeline_->reader, &DiskReader::ReadProgress,
+            this, &PipelineController::diskReadProgress);
 
         m_pipeline_->reader->moveToThread(&m_pipeline_->readerThread);
 
@@ -125,13 +133,14 @@ namespace photoboss {
         for (int i = 0; i < workers; ++i) {
             auto* worker = new HashWorker(m_pipeline_->readQueue, m_active_hash_methods_);
             auto thread = new QThread(this);
+			m_hash_worker_threads_.push_back(thread);
 
             worker->moveToThread(thread);
 
             connect(thread, &QThread::started,
                 worker, &HashWorker::Run);
 
-            connect(worker, &HashWorker::image_hashed,
+            connect(worker, &HashWorker::imageHashed,
                 this, &PipelineController::imageHashed);
 
             connect(thread, &QThread::finished,
@@ -156,7 +165,18 @@ namespace photoboss {
         m_pipeline_->readerThread.quit();
         m_pipeline_->readerThread.wait();
 
+        for (auto* thread : m_hash_worker_threads_) {
+            thread->quit();
+            thread->wait();
+		}
+
         m_pipeline_.reset(); // queues + workers destroyed cleanly
+    }
+
+    void PipelineController::SetPipelineState(PipelineState state)
+    {
+		m_state_ = state;
+		emit pipelineStateChanged(state);
     }
 
     void PipelineController::restart()
@@ -166,7 +186,7 @@ namespace photoboss {
     }
     void PipelineController::updateActiveHashes(const std::set<QString>& enabledKeys)
     {
-        m_active_hash_methods_ = HashRegistry().createSnapshot(enabledKeys);
+        m_active_hash_methods_ = HashRegistry::createSnapshot(enabledKeys);
 
         if (m_active_hash_methods_.empty()) {
             emit status("Please enable at least one hash method");
