@@ -8,19 +8,17 @@ namespace photoboss {
         Q_OBJECT
     public:
         explicit HashWorker(
-            Queue<std::unique_ptr<DiskReadResult>>& queue,
+            Queue<std::unique_ptr<DiskReadResult>>& inputQueue,
+            Queue<std::shared_ptr<HashedImageResult>>& outputQueue,
             const std::vector<HashRegistry::Entry>& activeMethods,
             QObject* parent = nullptr);
 
     public slots:
         void Run();
 
-    signals:
-        void imageHashed(std::shared_ptr<HashedImageResult> result);
-		void imageHashError(const QString& path, const QString& error);
-
     private:
-        Queue<std::unique_ptr<DiskReadResult>>& m_queue;
+        Queue<std::unique_ptr<DiskReadResult>>& m_input;
+        Queue<std::shared_ptr<HashedImageResult>>& m_output;
         std::vector<std::unique_ptr<HashMethod>> m_hash_methods; 
     };
 }

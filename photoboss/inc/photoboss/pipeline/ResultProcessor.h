@@ -12,13 +12,11 @@ namespace photoboss {
         void stop();
     public slots:
         void Run();
-        void HandleResult(const std::shared_ptr<HashedImageResult>& result);
 
     signals:
-        void hash_stored(QString path);
-        void duplicate_found(QString a, QString b);
+        void imageHashed(std::shared_ptr <HashedImageResult> imageHash);
 
     private:
-		Queue<std::shared_ptr<HashedImageResult>>& queue_;
+		Queue<std::shared_ptr<HashedImageResult>>& m_input;
     };
 }

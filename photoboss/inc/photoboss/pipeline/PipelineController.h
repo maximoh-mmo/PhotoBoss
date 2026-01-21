@@ -24,15 +24,17 @@ namespace photoboss {
         // Threads
         QThread scannerThread;
         QThread readerThread;
+		QThread resultThread;
 
         // Workers
         DirectoryScanner* scanner = nullptr;
         DiskReader* reader = nullptr;
+		ResultProcessor* resultProcessor = nullptr;
         std::vector<HashWorker*> hashWorkers;
 
 		Pipeline() = default;
-        Pipeline(int scanQueueSize, int readQueueSize, int resultQueueSize, int diskQueueSize)
-            : scanQueue(scanQueueSize), readQueue(readQueueSize), resultQueue(resultQueueSize), diskQueue(diskQueueSize){
+        Pipeline(int scanQueueSize, int diskQueueSize, int readQueueSize, int resultQueueSize)
+            : scanQueue(scanQueueSize), diskQueue(diskQueueSize), readQueue(readQueueSize), resultQueue(resultQueueSize){
 		}
     };
 

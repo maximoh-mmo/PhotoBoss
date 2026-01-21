@@ -73,11 +73,9 @@ namespace photoboss {
 
         SetPipelineState(PipelineState::Stopping);
 
-        if (m_pipeline_ && m_pipeline_->scanner)
-			m_pipeline_->scanQueue.shutdown();
-
         if (m_pipeline_) {
             m_pipeline_->scanQueue.shutdown();
+			m_pipeline_->diskQueue.shutdown();
             m_pipeline_->readQueue.shutdown();
             m_pipeline_->resultQueue.shutdown();
         }
@@ -110,14 +108,11 @@ namespace photoboss {
         m_pipeline_->scannerThread.start();
 
         // ---- Disk Reader ----
-        m_pipeline_->reader = new DiskReader(
-            m_pipeline_->scanQueue,
-            m_pipeline_->readQueue);
+        m_pipeline_->reader = new DiskReader(m_pipeline_->scanQueue, m_pipeline_->readQueue);
+        m_pipeline_->reader->moveToThread(&m_pipeline_->readerThread);
 
         connect(m_pipeline_->reader, &DiskReader::ReadProgress,
             this, &PipelineController::diskReadProgress);
-
-        m_pipeline_->reader->moveToThread(&m_pipeline_->readerThread);
 
         connect(&m_pipeline_->readerThread, &QThread::started,
             m_pipeline_->reader, &DiskReader::Run);
@@ -131,17 +126,13 @@ namespace photoboss {
         const int workers = std::max(1, QThread::idealThreadCount() - 1);
 
         for (int i = 0; i < workers; ++i) {
-            auto* worker = new HashWorker(m_pipeline_->readQueue, m_active_hash_methods_);
-            auto thread = new QThread(this);
+            HashWorker* worker = new HashWorker(m_pipeline_->readQueue, m_pipeline_->resultQueue, m_active_hash_methods_);
+            QThread* thread = new QThread(this);
 			m_hash_worker_threads_.push_back(thread);
-
             worker->moveToThread(thread);
 
             connect(thread, &QThread::started,
                 worker, &HashWorker::Run);
-
-            connect(worker, &HashWorker::imageHashed,
-                this, &PipelineController::imageHashed);
 
             connect(thread, &QThread::finished,
                 worker, &QObject::deleteLater);
@@ -153,6 +144,21 @@ namespace photoboss {
 
             m_pipeline_->hashWorkers.push_back(worker);
         }
+
+		// ---- Result Processor ----
+		m_pipeline_->resultProcessor = new ResultProcessor(m_pipeline_->resultQueue);
+		m_pipeline_->resultProcessor->moveToThread(&m_pipeline_->resultThread);
+
+		connect(&m_pipeline_->resultThread, &QThread::started,
+			m_pipeline_->resultProcessor, &ResultProcessor::Run);
+
+		connect(&m_pipeline_->resultThread, &QThread::finished,
+			m_pipeline_->resultProcessor, &QObject::deleteLater);
+
+		connect(m_pipeline_->resultProcessor, &ResultProcessor::imageHashed,
+			this, &PipelineController::imageHashed);
+
+        m_pipeline_->resultThread.start();
     }
 
     void PipelineController::destroyPipeline()
@@ -169,6 +175,9 @@ namespace photoboss {
             thread->quit();
             thread->wait();
 		}
+
+		m_pipeline_->resultThread.quit();
+		m_pipeline_->resultThread.wait();
 
         m_pipeline_.reset(); // queues + workers destroyed cleanly
     }

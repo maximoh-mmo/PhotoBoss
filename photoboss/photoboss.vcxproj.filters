@@ -15,37 +15,37 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\MainWindow.cpp">
+    <ClCompile Include="src\ui\MainWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\perceptualhash.cpp">
+    <ClCompile Include="src\pipeline\perceptualhash.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\DiskReader.cpp">
+    <ClCompile Include="src\pipeline\DiskReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\HashWorker.cpp">
+    <ClCompile Include="src\pipeline\HashWorker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\SettingsSelection.cpp">
+    <ClCompile Include="src\ui\SettingsSelection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ResultProcessor.cpp">
+    <ClCompile Include="src\pipeline\ResultProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\PipelineController.cpp">
+    <ClCompile Include="src\pipeline\PipelineController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\DirectoryScanner.cpp">
+    <ClCompile Include="src\pipeline\DirectoryScanner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\CacheLookup.cpp">
+    <ClCompile Include="src\pipeline\CacheLookup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\SqliteHashCache.cpp">
+    <ClCompile Include="src\pipeline\SqliteHashCache.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -54,48 +54,48 @@
     <QtUic Include="resources\SettingsSelection.ui" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="inc\photoboss\MainWindow.h">
+    <QtMoc Include="inc\photoboss\ui\MainWindow.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\DiskReader.h">
+    <QtMoc Include="inc\photoboss\pipeline\DiskReader.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\HashWorker.h">
+    <QtMoc Include="inc\photoboss\pipeline\HashWorker.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\SettingsSelection.h">
+    <QtMoc Include="inc\photoboss\ui\SettingsSelection.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\ResultProcessor.h">
+    <QtMoc Include="inc\photoboss\pipeline\ResultProcessor.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\PipelineController.h">
+    <QtMoc Include="inc\photoboss\pipeline\PipelineController.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\DirectoryScanner.h">
+    <QtMoc Include="inc\photoboss\pipeline\DirectoryScanner.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\CacheLookup.h">
+    <QtMoc Include="inc\photoboss\pipeline\CacheLookup.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="inc\photoboss\Queue.h">
+    <ClInclude Include="inc\photoboss\pipeline\Queue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\photoboss\HashMethod.h">
+    <ClInclude Include="inc\photoboss\pipeline\HashMethod.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\photoboss\DataTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\photoboss\IHashCache.h">
+    <ClInclude Include="inc\photoboss\pipeline\IHashCache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\photoboss\NullHashCache.h">
+    <ClInclude Include="inc\photoboss\pipeline\NullHashCache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\photoboss\SqliteHashCache.h">
+    <ClInclude Include="inc\photoboss\pipeline\SqliteHashCache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

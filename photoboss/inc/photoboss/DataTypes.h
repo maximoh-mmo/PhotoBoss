@@ -13,7 +13,8 @@ namespace photoboss {
 
     enum class HashSource {
         Fresh,
-        Cache
+        Cache,
+        Error
     };
 
     struct Fingerprint

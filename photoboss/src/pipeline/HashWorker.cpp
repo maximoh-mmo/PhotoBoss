@@ -6,10 +6,12 @@ namespace photoboss {
 
     HashWorker::HashWorker(
         Queue<std::unique_ptr<DiskReadResult>>& inputQueue,
+		Queue<std::shared_ptr<HashedImageResult>>& outputQueue,
         const std::vector<HashRegistry::Entry>& activeMethods,
         QObject* parent)
         : QObject(parent)
-        , m_queue(inputQueue)
+        , m_input(inputQueue)
+		, m_output(outputQueue)
     {
         for (const auto& entry : activeMethods) {
             m_hash_methods.push_back(entry.factory());
@@ -33,7 +35,7 @@ namespace photoboss {
         {
             std::unique_ptr<DiskReadResult> item;
 
-            if (!m_queue.wait_and_pop(item)) {
+            if (!m_input.wait_and_pop(item)) {
 				qDebug() << "HashWorker: Queue shutdown detected, exiting.";
                 break; // upstream shutdown
             }
@@ -46,11 +48,12 @@ namespace photoboss {
 			qDebug() << "HashWorker: Processing image:" << item->fingerprint.path;
             QImage img;
             if (!img.loadFromData(item->imageBytes)) {
-                emit imageHashError(item->fingerprint.path, "Image load failed");
+                qDebug() << "Image load failed" << item->fingerprint.path;
 				continue;
             }
 
             auto result = std::make_shared<HashedImageResult>();
+            result->source = HashSource::Fresh;
             result->fingerprint = item->fingerprint;
 
             for (auto& method : m_hash_methods) {
@@ -58,13 +61,12 @@ namespace photoboss {
                     result->hashes.emplace(method->key(), method->computeHash(img));
                 }
                 catch (const std::exception& e) {
-                    emit imageHashError(item->fingerprint.path,
-                        QString("Hash computation failed for method %1: %2")
-                        .arg(method->key(), e.what()));
+                    result->hashes.emplace(method->key(), e.what());
+					result->source = HashSource::Error;
                     continue;
                 }
 			}
-            emit imageHashed(result);
+			m_output.emplace(result);
         }
     }
 }
