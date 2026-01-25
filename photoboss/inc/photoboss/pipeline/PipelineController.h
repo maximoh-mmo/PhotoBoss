@@ -1,19 +1,62 @@
 ﻿#pragma once
+
 #include <QObject>
-#include <QThread>
 #include <memory>
+#include <set>
 #include <vector>
-#include "Queue.h"
-#include "HashWorker.h"
-#include "DataTypes.h"
-#include "HashMethod.h"
-#include "Pipeline.h"
-#include "NullHashCache.h"
+#include <QThread>
+#include "pipeline/Pipeline.h"
+#include "util/PipelineTypes.h"
+#include "util/FileTypes.h"
+#include "util/CacheTypes.h"
+#include "util/HashTypes.h"
+#include "hashing/HashRegistry.h"
+#include "stages/DirectoryScanner.h"
+#include "stages/CacheLookup.h"
+#include "stages/HashWorker.h"
+#include "stages/DiskReader.h"
+#include "stages/ResultProcessor.h"
 
 namespace photoboss {
+    struct Pipeline {
+        // Queues
+        Queue<std::shared_ptr<Queue<FingerprintBatchPtr>>> scanQueue;
+        Queue<std::shared_ptr<Queue<FingerprintBatchPtr>>> diskQueue;
+        Queue<std::shared_ptr<Queue<CacheLookupResult>>> routerQueue;
+        Queue<std::shared_ptr<Queue<DiskReadResult>>> readQueue;
+        Queue<std::shared_ptr<HashedImageResult>> resultQueue;
+
+        // Threads
+        QThread scannerThread;
+        QThread readerThread;
+        QThread resultThread;
+        QThread cacheThread;
+
+        // Workers
+        DirectoryScanner* scanner = nullptr;
+        DiskReader* reader = nullptr;
+        ResultProcessor* resultProcessor = nullptr;
+        CacheLookup* cacheLookup = nullptr;
+        std::vector<HashWorker*> hashWorkers;
+
+        Pipeline() = default;
+        Pipeline(size_t scanCap,
+            size_t diskCap,
+            size_t readCap,
+            size_t resultCap)
+            : scanQueue(scanCap)
+            , diskQueue(diskCap)
+			, routerQueue(diskCap)
+            , readQueue(readCap)
+            , resultQueue(resultCap)
+
+        {
+        }
+    };
 
     class PipelineController : public QObject
     {
+        class NullHashCache;
         Q_OBJECT
     public:
         explicit PipelineController(

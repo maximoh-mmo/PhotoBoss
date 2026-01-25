@@ -2,7 +2,7 @@
 #include <QObject>
 #include <QString>
 #include <memory>
-#include "DataTypes.h"
+#include "util/FileTypes.h"
 
 namespace photoboss {
 

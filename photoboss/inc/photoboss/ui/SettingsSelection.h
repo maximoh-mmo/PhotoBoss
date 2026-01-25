@@ -1,8 +1,7 @@
 ﻿#pragma once
 #include <QDialog>
 #include "ui_SettingsSelection.h"
-#include "HashMethod.h"
-#include "DataTypes.h"
+#include "util/FileTypes.h"
 #include <QCheckBox>
 
 

@@ -129,7 +129,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>$(ProjectDir)inc\$(ProjectName);$(ProjectDir)inc\$(ProjectName)\ui;$(ProjectDir)inc\$(ProjectName)\pipeline\stages;$(ProjectDir)inc\$(ProjectName)\pipeline;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)inc\$(ProjectName);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -145,7 +145,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>$(ProjectDir)inc\$(ProjectName);$(ProjectDir)inc\$(ProjectName)\ui;$(ProjectDir)inc\$(ProjectName)\pipeline\stages;$(ProjectDir)inc\$(ProjectName)\pipeline;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)inc\$(ProjectName);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -160,6 +160,7 @@
     <QtMoc Include="inc\photoboss\ui\MainWindow.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="inc\photoboss\hashing\HashRegistry.h" />
     <ClCompile Include="src\pipeline\SqliteHashCache.cpp" />
     <ClCompile Include="src\pipeline\stages\CacheLookup.cpp" />
     <ClCompile Include="src\pipeline\stages\DirectoryScanner.cpp" />
@@ -173,21 +174,28 @@
     <ClCompile Include="src\ui\MainWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="inc\photoboss\pipeline\NullHashCache.h" />
+    <ClInclude Include="inc\photoboss\caching\NullHashCache.h" />
     <ClInclude Include="inc\photoboss\pipeline\Pipeline.h" />
+    <ClInclude Include="inc\photoboss\pipeline\RouterStage.h" />
+    <ClInclude Include="inc\photoboss\pipeline\SinkStage.h" />
+    <ClInclude Include="inc\photoboss\pipeline\SourceStage.h" />
+    <ClInclude Include="inc\photoboss\pipeline\TransformStage.h" />
+    <ClInclude Include="inc\photoboss\util\FileTypes.h" />
+    <ClInclude Include="inc\photoboss\util\HashTypes.h" />
+    <ClInclude Include="inc\photoboss\util\PipelineTypes.h" />
     <QtMoc Include="inc\photoboss\pipeline\PipelineStage.h" />
-    <ClInclude Include="inc\photoboss\pipeline\SqliteHashCache.h" />
+    <ClInclude Include="inc\photoboss\caching\SqliteHashCache.h" />
     <QtMoc Include="inc\photoboss\pipeline\PipelineController.h" />
-    <QtMoc Include="inc\photoboss\pipeline\stages\ResultProcessor.h" />
+    <QtMoc Include="inc\photoboss\stages\ResultProcessor.h" />
     <QtMoc Include="inc\photoboss\ui\SettingsSelection.h" />
-    <QtMoc Include="inc\photoboss\pipeline\stages\DiskReader.h" />
-    <QtMoc Include="inc\photoboss\pipeline\stages\HashWorker.h" />
-    <QtMoc Include="inc\photoboss\pipeline\DirectoryScanner.h" />
-    <QtMoc Include="inc\photoboss\pipeline\stages\CacheLookup.h" />
-    <ClInclude Include="inc\photoboss\pipeline\HashMethod.h" />
-    <ClInclude Include="inc\photoboss\DataTypes.h" />
-    <ClInclude Include="inc\photoboss\pipeline\IHashCache.h" />
-    <ClInclude Include="inc\photoboss\pipeline\Queue.h" />
+    <QtMoc Include="inc\photoboss\stages\DiskReader.h" />
+    <QtMoc Include="inc\photoboss\stages\HashWorker.h" />
+    <QtMoc Include="inc\photoboss\stages\DirectoryScanner.h" />
+    <QtMoc Include="inc\photoboss\stages\CacheLookup.h" />
+    <ClInclude Include="inc\photoboss\hashing\HashMethod.h" />
+    <ClInclude Include="inc\photoboss\util\CacheTypes.h" />
+    <ClInclude Include="inc\photoboss\caching\IHashCache.h" />
+    <ClInclude Include="inc\photoboss\util\Queue.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="$(QtMsBuild)\qt.targets" Condition="Exists('$(QtMsBuild)\qt.targets')" />
