@@ -1,10 +1,10 @@
-﻿#include "PipelineController.h"
+﻿#include "pipeline/PipelineController.h"
 
-#include "DirectoryScanner.h"
-#include "DiskReader.h"
-#include "HashWorker.h"
-#include "ResultProcessor.h"
-#include "CacheLookup.h"
+#include "stages/DirectoryScanner.h"
+#include "stages/DiskReader.h"
+#include "stages/HashWorker.h"
+#include "stages/ResultProcessor.h"
+#include "stages/CacheLookup.h"
 #include <QDebug>
 #include <QThread>
 
@@ -86,7 +86,7 @@ namespace photoboss {
 
     void PipelineController::createPipeline()
     {
-        m_pipeline_ = std::make_unique<Pipeline>(100,50,200,50);
+        m_pipeline_ = std::make_unique<Pipeline>(100,50,100,200,50);
         
         // ---- Scanner ----
         m_pipeline_->scanner = new DirectoryScanner();
@@ -97,7 +97,7 @@ namespace photoboss {
 
         connect(m_pipeline_->scanner, &DirectoryScanner::fileBatchFound,
             this, [this](FingerprintBatchPtr batch) {
-                m_pipeline_->scanQueue.push(std::move(batch));
+                m_pipeline_->scanQueue.emplace(batch);
             });
 
         connect(m_pipeline_->scanner, &DirectoryScanner::finished,
@@ -109,12 +109,14 @@ namespace photoboss {
         
 		// ---- Cache Lookup ----
 		m_cache_ = std::make_unique<NullHashCache>();
-        m_pipeline_->cacheLookup = new CacheLookup(
+		m_pipeline_->cacheLookup = new CacheLookup(
             m_pipeline_->scanQueue,
-            m_pipeline_->diskQueue,
-            m_pipeline_->resultQueue,
+            m_pipeline_->routerQueue,
             *m_cache_,
-            m_active_hash_methods_);
+            m_active_hash_methods_
+		);
+
+
 		m_pipeline_->cacheLookup->moveToThread(&m_pipeline_->cacheThread);
 
 		connect(&m_pipeline_->cacheThread, &QThread::started,

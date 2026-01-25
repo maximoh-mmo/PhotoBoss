@@ -1,8 +1,8 @@
-#include "mainwindow.h"
+#include "ui/mainwindow.h"
 #include "ui_mainwindow.h"
-#include "SettingsSelection.h"
-#include "PipelineController.h"
-#include "HashMethod.h"
+#include "ui/SettingsSelection.h"
+#include "pipeline/PipelineController.h"
+#include "hashing/HashMethod.h"
 
 #include <QFileDialog>
 #include <QDebug>

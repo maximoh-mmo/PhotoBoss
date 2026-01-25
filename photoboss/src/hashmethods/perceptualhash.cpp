@@ -2,7 +2,7 @@
 #include <QtMath>
 #include <vector>
 #include <algorithm>
-#include "HashMethod.h"
+#include "hashing/HashRegistry.h"
 
 namespace photoboss
 {

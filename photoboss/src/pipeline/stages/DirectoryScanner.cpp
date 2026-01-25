@@ -1,6 +1,6 @@
 #include <QDirIterator>
 #include <QFileInfo>
-#include "DirectoryScanner.h"
+#include "stages/DirectoryScanner.h"
 
 namespace photoboss {
 

@@ -1,8 +1,8 @@
-#include "DiskReader.h"
+#include "stages/DiskReader.h"
 #include <QFile>
 #include <QThread>
 #include <QCryptographicHash>
-#include "DataTypes.h"
+#include "util/FileTypes.h"
 
 namespace photoboss {
 
