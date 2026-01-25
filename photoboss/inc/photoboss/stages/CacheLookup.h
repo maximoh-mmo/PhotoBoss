@@ -25,7 +25,6 @@ namespace photoboss
         std::shared_ptr<Queue<FingerprintBatchPtr>>& m_input;
         std::shared_ptr<Queue<CacheLookupResult>>& m_output;
         IHashCache& m_cache;
-        QList<QString> m_activeHashMethods;
-        
+        QList<QString> m_activeHashMethods;        
 	};
 }
