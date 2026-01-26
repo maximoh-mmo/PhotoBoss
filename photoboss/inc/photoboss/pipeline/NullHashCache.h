@@ -1,6 +1,6 @@
 #pragma once
 #include "IHashCache.h"
-#include "DataTypes.h"
+#include "util/DataTypes.h"
 namespace photoboss
 {
     class NullHashCache : public IHashCache {

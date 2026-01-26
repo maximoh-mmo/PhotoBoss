@@ -1,10 +1,15 @@
 #pragma once
 #include <vector>
 #include <QThread>
-#include "Queue.h"
+#include "util/Queue.h"
 #include "HashWorker.h"
-#include "DataTypes.h"
+#include "util/DataTypes.h"
 #include "HashMethod.h"
+#include "pipeline/PipelineStage.h"
+#include "pipeline/RouterStage.h"
+#include "pipeline/SourceStage.h"
+#include "pipeline/SinkStage.h"
+#include "pipeline/TransformStage.h"
 
 namespace photoboss {
     class DirectoryScanner;
@@ -40,8 +45,7 @@ namespace photoboss {
             : scanQueue(scanCap)
             , diskQueue(diskCap)
             , readQueue(readCap)
-            , resultQueue(resultCap)
-        
+            , resultQueue(resultCap)        
         { 
         }
     };

@@ -1,6 +1,11 @@
 #pragma once
 #include <QObject>
-
+/// <summary>
+/// 
+/// Base for a stage in the processing pipeline.
+/// All stages should inherit from this class and implement the Run() method.
+/// 
+/// </summary>
 namespace photoboss {
 
     class PipelineStage : public QObject {
@@ -17,5 +22,4 @@ namespace photoboss {
         // Must exit when its input queue is shut down.
         virtual void Run() = 0;
     };
-
-} // namespace photoboss#pragma once
+}

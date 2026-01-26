@@ -48,6 +48,12 @@
     <ClCompile Include="src\pipeline\SqliteHashCache.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="inc\photoboss\pipeline\SinkStage.h">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="inc\photoboss\util\CacheTypes.h">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="resources\MainWindow.ui" />
@@ -83,13 +89,13 @@
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="inc\photoboss\pipeline\Queue.h">
+    <ClInclude Include="inc\photoboss\util\Queue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\photoboss\pipeline\HashMethod.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\photoboss\DataTypes.h">
+    <ClInclude Include="inc\photoboss\util\DataTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\photoboss\pipeline\IHashCache.h">
@@ -102,6 +108,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\photoboss\pipeline\Pipeline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\pipeline\RouterStage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\pipeline\SourceStage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\pipeline\TransformStage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

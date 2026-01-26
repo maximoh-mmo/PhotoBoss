@@ -2,8 +2,8 @@
 
 #include "HashMethod.h"
 #include "PipelineStage.h"
-#include "DataTypes.h"
-#include "Queue.h"
+#include "util/DataTypes.h"
+#include "util/Queue.h"
 
 namespace photoboss {
     class HashWorker : public PipelineStage {

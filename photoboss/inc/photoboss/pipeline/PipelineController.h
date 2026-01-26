@@ -3,9 +3,9 @@
 #include <QThread>
 #include <memory>
 #include <vector>
-#include "Queue.h"
+#include "util/Queue.h"
 #include "HashWorker.h"
-#include "DataTypes.h"
+#include "util/DataTypes.h"
 #include "HashMethod.h"
 #include "Pipeline.h"
 #include "NullHashCache.h"

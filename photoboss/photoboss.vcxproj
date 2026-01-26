@@ -160,6 +160,8 @@
     <QtMoc Include="inc\photoboss\ui\MainWindow.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="inc\photoboss\pipeline\SinkStage.h" />
+    <ClCompile Include="inc\photoboss\util\CacheTypes.h" />
     <ClCompile Include="src\pipeline\SqliteHashCache.cpp" />
     <ClCompile Include="src\pipeline\stages\CacheLookup.cpp" />
     <ClCompile Include="src\pipeline\stages\DirectoryScanner.cpp" />
@@ -175,7 +177,10 @@
   <ItemGroup>
     <ClInclude Include="inc\photoboss\pipeline\NullHashCache.h" />
     <ClInclude Include="inc\photoboss\pipeline\Pipeline.h" />
+    <ClInclude Include="inc\photoboss\pipeline\TransformStage.h" />
     <QtMoc Include="inc\photoboss\pipeline\PipelineStage.h" />
+    <ClInclude Include="inc\photoboss\pipeline\RouterStage.h" />
+    <ClInclude Include="inc\photoboss\pipeline\SourceStage.h" />
     <ClInclude Include="inc\photoboss\pipeline\SqliteHashCache.h" />
     <QtMoc Include="inc\photoboss\pipeline\PipelineController.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\ResultProcessor.h" />
@@ -185,9 +190,9 @@
     <QtMoc Include="inc\photoboss\pipeline\DirectoryScanner.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\CacheLookup.h" />
     <ClInclude Include="inc\photoboss\pipeline\HashMethod.h" />
-    <ClInclude Include="inc\photoboss\DataTypes.h" />
+    <ClInclude Include="inc\photoboss\util\DataTypes.h" />
     <ClInclude Include="inc\photoboss\pipeline\IHashCache.h" />
-    <ClInclude Include="inc\photoboss\pipeline\Queue.h" />
+    <ClInclude Include="inc\photoboss\util\Queue.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="$(QtMsBuild)\qt.targets" Condition="Exists('$(QtMsBuild)\qt.targets')" />

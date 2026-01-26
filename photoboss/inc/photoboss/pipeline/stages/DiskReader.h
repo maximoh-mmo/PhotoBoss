@@ -2,8 +2,8 @@
 
 #include <list>
 #include <memory>
-#include "DataTypes.h"
-#include "Queue.h"
+#include "util/DataTypes.h"
+#include "util/Queue.h"
 #include "PipelineStage.h"
 
 namespace photoboss {

@@ -2,7 +2,7 @@
 #include <QDialog>
 #include "ui_SettingsSelection.h"
 #include "HashMethod.h"
-#include "DataTypes.h"
+#include "util/DataTypes.h"
 #include <QCheckBox>
 
 
