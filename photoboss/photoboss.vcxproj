@@ -129,7 +129,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>$(ProjectDir)inc\$(ProjectName);$(ProjectDir)inc\$(ProjectName)\ui;$(ProjectDir)inc\$(ProjectName)\pipeline\stages;$(ProjectDir)inc\$(ProjectName)\pipeline;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)inc\$(ProjectName);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -145,7 +145,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>$(ProjectDir)inc\$(ProjectName);$(ProjectDir)inc\$(ProjectName)\ui;$(ProjectDir)inc\$(ProjectName)\pipeline\stages;$(ProjectDir)inc\$(ProjectName)\pipeline;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)inc\$(ProjectName);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -160,7 +160,7 @@
     <QtMoc Include="inc\photoboss\ui\MainWindow.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="inc\photoboss\pipeline\SinkStage.h" />
+    <ClCompile Include="inc\photoboss\pipeline\stages\Sink.h" />
     <ClCompile Include="inc\photoboss\util\CacheTypes.h" />
     <ClCompile Include="src\pipeline\SqliteHashCache.cpp" />
     <ClCompile Include="src\pipeline\stages\CacheLookup.cpp" />
@@ -176,19 +176,19 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\photoboss\pipeline\NullHashCache.h" />
-    <ClInclude Include="inc\photoboss\pipeline\Pipeline.h" />
-    <ClInclude Include="inc\photoboss\pipeline\TransformStage.h" />
-    <QtMoc Include="inc\photoboss\pipeline\PipelineStage.h" />
-    <ClInclude Include="inc\photoboss\pipeline\RouterStage.h" />
-    <ClInclude Include="inc\photoboss\pipeline\SourceStage.h" />
+    <ClInclude Include="inc\photoboss\pipeline\stages\Pipeline.h" />
+    <ClInclude Include="inc\photoboss\pipeline\stages\Transform.h" />
+    <QtMoc Include="inc\photoboss\pipeline\stages\PipelineStage.h" />
+    <ClInclude Include="inc\photoboss\pipeline\stages\Router.h" />
+    <ClInclude Include="inc\photoboss\pipeline\stages\Source.h" />
     <ClInclude Include="inc\photoboss\pipeline\SqliteHashCache.h" />
     <QtMoc Include="inc\photoboss\pipeline\PipelineController.h" />
-    <QtMoc Include="inc\photoboss\pipeline\stages\ResultProcessor.h" />
+    <QtMoc Include="inc\photoboss\pipeline\ResultProcessor.h" />
     <QtMoc Include="inc\photoboss\ui\SettingsSelection.h" />
-    <QtMoc Include="inc\photoboss\pipeline\stages\DiskReader.h" />
-    <QtMoc Include="inc\photoboss\pipeline\stages\HashWorker.h" />
+    <QtMoc Include="inc\photoboss\pipeline\DiskReader.h" />
+    <QtMoc Include="inc\photoboss\pipeline\HashWorker.h" />
     <QtMoc Include="inc\photoboss\pipeline\DirectoryScanner.h" />
-    <QtMoc Include="inc\photoboss\pipeline\stages\CacheLookup.h" />
+    <QtMoc Include="inc\photoboss\pipeline\CacheLookup.h" />
     <ClInclude Include="inc\photoboss\pipeline\HashMethod.h" />
     <ClInclude Include="inc\photoboss\util\DataTypes.h" />
     <ClInclude Include="inc\photoboss\pipeline\IHashCache.h" />

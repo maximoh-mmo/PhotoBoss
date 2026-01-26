@@ -1,7 +1,7 @@
 #pragma once
 
 #include "HashMethod.h"
-#include "PipelineStage.h"
+#include "pipeline/stages/Pipeline.h"
 #include "util/DataTypes.h"
 #include "util/Queue.h"
 

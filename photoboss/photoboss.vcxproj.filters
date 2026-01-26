@@ -48,7 +48,7 @@
     <ClCompile Include="src\pipeline\SqliteHashCache.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="inc\photoboss\pipeline\SinkStage.h">
+    <ClCompile Include="inc\photoboss\pipeline\stages\Sink.h">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="inc\photoboss\util\CacheTypes.h">
@@ -63,16 +63,16 @@
     <QtMoc Include="inc\photoboss\ui\MainWindow.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\pipeline\stages\DiskReader.h">
+    <QtMoc Include="inc\photoboss\pipeline\DiskReader.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\pipeline\stages\HashWorker.h">
+    <QtMoc Include="inc\photoboss\pipeline\HashWorker.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="inc\photoboss\ui\SettingsSelection.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\pipeline\stages\ResultProcessor.h">
+    <QtMoc Include="inc\photoboss\pipeline\ResultProcessor.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="inc\photoboss\pipeline\PipelineController.h">
@@ -81,10 +81,10 @@
     <QtMoc Include="inc\photoboss\pipeline\DirectoryScanner.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\pipeline\stages\CacheLookup.h">
+    <QtMoc Include="inc\photoboss\pipeline\CacheLookup.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\pipeline\PipelineStage.h">
+    <QtMoc Include="inc\photoboss\pipeline\stages\PipelineStage.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
@@ -107,16 +107,16 @@
     <ClInclude Include="inc\photoboss\pipeline\SqliteHashCache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\photoboss\pipeline\Pipeline.h">
+    <ClInclude Include="inc\photoboss\pipeline\stages\Pipeline.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\photoboss\pipeline\RouterStage.h">
+    <ClInclude Include="inc\photoboss\pipeline\stages\Router.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\photoboss\pipeline\SourceStage.h">
+    <ClInclude Include="inc\photoboss\pipeline\stages\Source.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\photoboss\pipeline\TransformStage.h">
+    <ClInclude Include="inc\photoboss\pipeline\stages\Transform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

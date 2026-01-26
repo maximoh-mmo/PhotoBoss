@@ -2,7 +2,7 @@
 #include <QObject>
 #include "util/Queue.h"
 #include "util/DataTypes.h"
-#include "PipelineStage.h"
+#include "pipeline/stages/Pipeline.h"
 #include "IHashCache.h"
 #include "HashMethod.h"
 

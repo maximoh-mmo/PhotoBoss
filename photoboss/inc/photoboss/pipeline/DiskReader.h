@@ -4,7 +4,7 @@
 #include <memory>
 #include "util/DataTypes.h"
 #include "util/Queue.h"
-#include "PipelineStage.h"
+#include "pipeline/stages/Pipeline.h"
 
 namespace photoboss {
 

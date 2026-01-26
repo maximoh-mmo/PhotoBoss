@@ -11,10 +11,10 @@ namespace photoboss {
     /// <typeparam name="In"></typeparam>
     
     template<typename In>
-    class SinkStage : public PipelineStage
+    class Sink : public PipelineStage
     {
     public:
-        explicit SinkStage(Queue<In>& input)
+        explicit Sink(Queue<In>& input)
             : m_input(input) {
         }
 

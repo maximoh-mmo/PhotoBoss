@@ -1,4 +1,6 @@
 #pragma once
+#include "Pipeline.h"
+
 namespace photoboss {
     /// <summary>
     /// 
@@ -10,10 +12,10 @@ namespace photoboss {
     /// <typeparam name="Out"></typeparam>
     
     template<typename In, typename Out>
-    class TransformStage : public PipelineStage
+    class Transform : public PipelineStage
     {
     public:
-        explicit TransformStage(Queue<In>& input, Queue<Out>& output, QObject* parent = nullptr)
+        explicit Transform(Queue<In>& input, Queue<Out>& output, QObject* parent = nullptr)
             : PipelineStage(parent),
             m_input(input),
             m_output(output) {

@@ -1,4 +1,6 @@
 #pragma once
+#include "Pipeline.h"
+
 namespace photoboss {
 
     /// <summary>
@@ -13,10 +15,10 @@ namespace photoboss {
     /// <typeparam name="In"></typeparam>
     /// <typeparam name="Out"></typeparam>
     template<typename In, typename Out>
-    class RouterStage : public PipelineStage
+    class Router : public PipelineStage
     {
     public:
-        explicit RouterStage(Queue<In>& input, const std::vector<Queue<Out>*>& outputs,
+        explicit Router(Queue<In>& input, const std::vector<Queue<Out>*>& outputs,
             std::function<int(const In&)> routeFunc)
             : m_input(input), m_outputs(outputs), m_route(routeFunc) {
         }
