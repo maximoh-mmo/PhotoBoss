@@ -1,36 +1,10 @@
 #pragma once
-
-#include <QByteArray>
-#include <QImage>
-#include <QString>
-
-#include <memory>
+#include "hashing/HashMethod.h"
 #include <mutex>
-#include <string>
-#include <unordered_map>
-#include <vector>
-#include <functional>
-#include <set>
+#include <memory>
 
+namespace photoboss {
 
-namespace photoboss
-{
-    // Base class for hash / fingerprint algorithms
-    class HashMethod
-    {
-    public:
-        HashMethod() = default;
-        virtual ~HashMethod() = default;
-
-        virtual QString computeHash(const QImage& image) const = 0;
-
-		// Compare two hashes, returning a similarity score in [0.0, 1.0]
-		virtual double compareHash(const QString& hash1, const QString& hash2) const = 0;
-
-        virtual QString key() const = 0;
-    };
-
-    
     /// <summary>
     /// Thread-safe registry that holds factories to create HashMethod instances. 
     /// </summary>
@@ -68,10 +42,10 @@ namespace photoboss
         // Create a snapshot of registered entries filtered by enabled keys.
         static std::vector<Entry> createSnapshot(const std::set<QString>& enabledKeys) {
             std::vector<Entry> snapshot;
-			std::lock_guard<std::mutex> lock(getMutex());
+            std::lock_guard<std::mutex> lock(getMutex());
             for (auto& kv : getMutableRegistry()) {
                 if (enabledKeys.empty() || enabledKeys.count(kv.first)) {
-					snapshot.push_back(Entry{ kv.first, kv.second });
+                    snapshot.push_back(Entry{ kv.first, kv.second });
                 }
             }
             return snapshot;
@@ -79,20 +53,20 @@ namespace photoboss
 
         static std::vector<QString> registeredNames() {
             std::vector<QString> names;
-			std::lock_guard<std::mutex> lock(getMutex());
+            std::lock_guard<std::mutex> lock(getMutex());
             for (const auto& kv : getMutableRegistry()) {
                 names.push_back(kv.first);
             }
-			return names;
+            return names;
         }
-        
+
         static void initializeBuiltIns() {
             // This empty reference forces the compiler to include the translation units
             extern const bool ph_registered;
             (void)ph_registered;
         }
-		
-        
+
+
     private:
         static std::unordered_map<QString, Factory>& getMutableRegistry()
         {
@@ -105,15 +79,5 @@ namespace photoboss
             static std::mutex mutex;
             return mutex;
         }
-    };
-
-    // Concrete implementations forward declarations
-
-    class PerceptualHash : public HashMethod
-    {
-    public:
-        QString computeHash(const QImage& image) const override;
-        double compareHash(const QString& hash1, const QString& hash2) const override;
-		QString key() const override { return "Perceptual Hash"; }
     };
 }

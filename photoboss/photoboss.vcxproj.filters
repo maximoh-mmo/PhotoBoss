@@ -54,6 +54,12 @@
     <ClCompile Include="inc\photoboss\util\CacheTypes.h">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\pipeline\stages\CacheStore.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="inc\photoboss\hashing\PerceptualHash.h">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="resources\MainWindow.ui" />
@@ -84,7 +90,10 @@
     <QtMoc Include="inc\photoboss\pipeline\CacheLookup.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\pipeline\stages\PipelineStage.h">
+    <QtMoc Include="inc\photoboss\pipeline\stages\StageBase.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="inc\photoboss\pipeline\CacheStore.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
@@ -92,19 +101,19 @@
     <ClInclude Include="inc\photoboss\util\Queue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\photoboss\pipeline\HashMethod.h">
+    <ClInclude Include="inc\photoboss\hashing\HashMethod.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\photoboss\util\DataTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\photoboss\pipeline\IHashCache.h">
+    <ClInclude Include="inc\photoboss\caching\IHashCache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\photoboss\pipeline\NullHashCache.h">
+    <ClInclude Include="inc\photoboss\caching\NullHashCache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\photoboss\pipeline\SqliteHashCache.h">
+    <ClInclude Include="inc\photoboss\caching\SqliteHashCache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\photoboss\pipeline\stages\Pipeline.h">
@@ -117,6 +126,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\photoboss\pipeline\stages\Transform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\util\FileIdentity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\hashing\HashRegistry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,10 +1,11 @@
-﻿#include "PipelineController.h"
-
-#include "DirectoryScanner.h"
-#include "DiskReader.h"
-#include "HashWorker.h"
-#include "ResultProcessor.h"
-#include "CacheLookup.h"
+﻿#include "pipeline/PipelineController.h"
+#include "pipeline/DirectoryScanner.h"
+#include "pipeline/DiskReader.h"
+#include "pipeline/HashWorker.h"
+#include "pipeline/ResultProcessor.h"
+#include "pipeline/CacheLookup.h"
+#include "pipeline/CacheStore.h"
+#include "caching/SqliteHashCache.h"
 #include <QDebug>
 #include <QThread>
 
@@ -37,33 +38,15 @@ namespace photoboss {
             << m_active_hash_methods_.size();
     }
 
-    void PipelineController::start()
+    void PipelineController::start(const ScanRequest& request)
     {
         if (m_state_ != PipelineState::Stopped)
             return;
 
         SetPipelineState(PipelineState::Starting);
-        createPipeline();
+        createPipeline(request);
         SetPipelineState(PipelineState::Idle);
 
-    }
-
-    void PipelineController::startScan(const QString& folder, bool recursive)
-    {
-        if (!m_pipeline_) return;
-
-        if (m_state_ != PipelineState::Idle)
-            return;
-
-        SetPipelineState(PipelineState::Scanning);
-
-        QMetaObject::invokeMethod(
-            m_pipeline_->scanner,
-            "StartScan",
-            Qt::QueuedConnection,
-            Q_ARG(QString, folder),
-            Q_ARG(bool, recursive)
-        );
     }
 
     void PipelineController::stop()
@@ -74,8 +57,8 @@ namespace photoboss {
         SetPipelineState(PipelineState::Stopping);
 
         if (m_pipeline_) {
-            m_pipeline_->scanQueue.shutdown();
-			m_pipeline_->diskQueue.shutdown();
+            m_pipeline_->scan.shutdown();
+			m_pipeline_->disk.shutdown();
             m_pipeline_->readQueue.shutdown();
             m_pipeline_->resultQueue.shutdown();
         }
@@ -84,56 +67,52 @@ namespace photoboss {
         SetPipelineState(PipelineState::Stopped);
     }
 
-    void PipelineController::createPipeline()
+    void PipelineController::createPipeline(const ScanRequest& request)
     {
-        m_pipeline_ = std::make_unique<Pipeline>(100,50,200,50);
-        
+        m_current_request_ = request;
+        m_pipeline_ = std::make_unique<Pipeline>(100, 50, 200, 50);
+
         // ---- Scanner ----
-        m_pipeline_->scanner = new DirectoryScanner();
+        m_pipeline_->scanner = new DirectoryScanner(request, m_pipeline_->scan);
         m_pipeline_->scanner->moveToThread(&m_pipeline_->scannerThread);
+
+        connect(&m_pipeline_->scannerThread, &QThread::started,
+            m_pipeline_->scanner, &StageBase::Run);
 
         connect(&m_pipeline_->scannerThread, &QThread::finished,
             m_pipeline_->scanner, &QObject::deleteLater);
 
-        connect(m_pipeline_->scanner, &DirectoryScanner::fileBatchFound,
-            this, [this](FingerprintBatchPtr batch) {
-                m_pipeline_->scanQueue.push(std::move(batch));
-            });
-
-        connect(m_pipeline_->scanner, &DirectoryScanner::finished,
-            this, [this]() {
-                m_pipeline_->scanQueue.shutdown();
-            });
-
         m_pipeline_->scannerThread.start();
-        
-		// ---- Cache Lookup ----
-		m_cache_ = std::make_unique<NullHashCache>();
+
+        // ---- Cache Lookup ----
+        m_cache_ = std::make_unique<SqliteHashCache>();
+
         m_pipeline_->cacheLookup = new CacheLookup(
-            m_pipeline_->scanQueue,
-            m_pipeline_->diskQueue,
-            m_pipeline_->resultQueue,
+            m_pipeline_->scan,
+			m_pipeline_->disk,
+			m_pipeline_->resultQueue,
             *m_cache_,
-            m_active_hash_methods_);
-		m_pipeline_->cacheLookup->moveToThread(&m_pipeline_->cacheThread);
+            m_active_hash_methods_,
+			"CacheLookup"
+        );
 
-		connect(&m_pipeline_->cacheThread, &QThread::started,
-			m_pipeline_->cacheLookup, &PipelineStage::Run);
+        m_pipeline_->cacheLookup->moveToThread(&m_pipeline_->cacheThread);
 
-		connect(&m_pipeline_->cacheThread, &QThread::finished,
-			m_pipeline_->cacheLookup, &QObject::deleteLater);
+        connect(&m_pipeline_->cacheThread, &QThread::started,
+            m_pipeline_->cacheLookup, &StageBase::Run);
 
-		m_pipeline_->cacheThread.start();
+        connect(&m_pipeline_->cacheThread, &QThread::finished,
+            m_pipeline_->cacheLookup, &QObject::deleteLater);
 
         // ---- Disk Reader ----
-        m_pipeline_->reader = new DiskReader(m_pipeline_->diskQueue, m_pipeline_->readQueue);
+        m_pipeline_->reader = new DiskReader(m_pipeline_->disk, m_pipeline_->readQueue);
         m_pipeline_->reader->moveToThread(&m_pipeline_->readerThread);
 
         connect(m_pipeline_->reader, &DiskReader::ReadProgress,
             this, &PipelineController::diskReadProgress);
 
         connect(&m_pipeline_->readerThread, &QThread::started,
-            m_pipeline_->reader, &PipelineStage::Run);
+            m_pipeline_->reader, &StageBase::Run);
 
         connect(&m_pipeline_->readerThread, &QThread::finished,
             m_pipeline_->reader, &QObject::deleteLater);
@@ -144,13 +123,13 @@ namespace photoboss {
         const int workers = std::max(1, QThread::idealThreadCount() - 1);
 
         for (int i = 0; i < workers; ++i) {
-            HashWorker* worker = new HashWorker(m_pipeline_->readQueue, m_pipeline_->resultQueue, m_active_hash_methods_);
+            HashWorker* worker = new HashWorker(m_pipeline_->readQueue, m_pipeline_->cacheStoreQueue, m_active_hash_methods_);
             QThread* thread = new QThread(this);
 			m_hash_worker_threads_.push_back(thread);
             worker->moveToThread(thread);
 
             connect(thread, &QThread::started,
-                worker, &PipelineStage::Run);
+                worker, &StageBase::Run);
 
             connect(thread, &QThread::finished,
                 worker, &QObject::deleteLater);
@@ -163,12 +142,31 @@ namespace photoboss {
             m_pipeline_->hashWorkers.push_back(worker);
         }
 
+		// ---- Cache Store ----
+        
+		m_pipeline_->cacheStore = new CacheStore(
+			m_pipeline_->cacheStoreQueue,
+			m_pipeline_->resultQueue,
+            *m_cache_,
+            m_active_hash_methods_,
+			"CacheStore"
+            );
+
+        m_pipeline_->cacheStore->moveToThread(&m_pipeline_->cacheThread);
+
+        connect(&m_pipeline_->cacheThread, &QThread::started,
+            m_pipeline_->cacheStore, &StageBase::Run);
+
+        connect(&m_pipeline_->cacheThread, &QThread::finished,
+            m_pipeline_->cacheStore, &QObject::deleteLater);
+        
+		m_pipeline_->cacheThread.start();
 		// ---- Result Processor ----
-		m_pipeline_->resultProcessor = new ResultProcessor(m_pipeline_->resultQueue);
+		m_pipeline_->resultProcessor = new ResultProcessor(m_pipeline_->resultQueue, "ResultProcessor");
 		m_pipeline_->resultProcessor->moveToThread(&m_pipeline_->resultThread);
 
 		connect(&m_pipeline_->resultThread, &QThread::started,
-			m_pipeline_->resultProcessor, &PipelineStage::Run);
+			m_pipeline_->resultProcessor, &StageBase::Run);
 
 		connect(&m_pipeline_->resultThread, &QThread::finished,
 			m_pipeline_->resultProcessor, &QObject::deleteLater);
@@ -212,7 +210,7 @@ namespace photoboss {
     void PipelineController::restart()
     {
         stop();
-        start();
+        start(m_current_request_);
     }
     void PipelineController::updateActiveHashes(const std::set<QString>& enabledKeys)
     {

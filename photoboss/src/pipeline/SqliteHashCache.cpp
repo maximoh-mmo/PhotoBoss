@@ -1,6 +1,8 @@
-#include "SqliteHashCache.h"
+#include "caching/SqliteHashCache.h"
 #include <QSqlError>
 #include <QSqlQuery>
+#include <qstandardpaths.h>
+#include <qdir.h>
 
 namespace photoboss
 {
@@ -16,11 +18,28 @@ namespace photoboss
         return true;
     }
 
-    SqliteHashCache::SqliteHashCache(const QString& dbPath)
+    QString SqliteHashCache::defaultDatabasePath()
     {
+        const QString baseDir =
+            QStandardPaths::writableLocation(
+                QStandardPaths::AppLocalDataLocation
+            );
+
+
+        QDir dir(baseDir);
+        if (!dir.exists()) {
+            dir.mkpath(".");
+        }
+
+        return dir.filePath("hash_cache.sqlite");
+    }
+
+    SqliteHashCache::SqliteHashCache()
+    {
+        m_dbPath_ = defaultDatabasePath();
         // NOTE: single SqliteHashCache instance per process
         m_db_ = QSqlDatabase::addDatabase("QSQLITE", "hash_cache");
-        m_db_.setDatabaseName(dbPath);
+        m_db_.setDatabaseName(m_dbPath_);
 
         if (!m_db_.open())
         {
@@ -38,15 +57,20 @@ namespace photoboss
 
     SqliteHashCache::~SqliteHashCache()
     {
+        qDebug() << "~SqliteHashCache() called";
+
         if (m_db_.isOpen()) {
+            qDebug() << "Closing database connection";
             m_db_.close();
         }
+
+        qDebug() << "~SqliteHashCache() finished";
     }
 
     CacheLookupResult SqliteHashCache::lookup(const CacheQuery& query)
     {
         if (!m_valid_)
-            return { false, {} };
+            return { Lookup::Error, query.fileIdentity };
 
         QSqlQuery q(m_db_);
 
@@ -57,12 +81,12 @@ namespace photoboss
           AND size = :size
           AND modified_time = :mtime;
     )");
-        q.bindValue(":path", query.fingerprint.path);
-        q.bindValue(":size", query.fingerprint.size);
-        q.bindValue(":mtime", query.fingerprint.modifiedTime);
+        q.bindValue(":path", query.fileIdentity.path());
+        q.bindValue(":size", query.fileIdentity.size());
+        q.bindValue(":mtime", query.fileIdentity.modifiedTime());
 
         if (!q.exec() || !q.next())
-            return { false, {} };
+            return { Lookup::Error, query.fileIdentity };
 
         const int fileId = q.value(0).toInt();
 
@@ -77,16 +101,14 @@ namespace photoboss
             mq.bindValue(":key", key);
 
             if (!mq.exec() || !mq.next())
-                return { false, {} };
+                return { Lookup::Miss, query.fileIdentity };
 
             methodIds.insert(key, mq.value(0).toInt());
         }
 
         // 3. fetch hashes
-        HashedImageResult result;
-        result.fingerprint = query.fingerprint;
-		result.source = HashSource::Cache;
-
+        auto result = HashedImageResult{query.fileIdentity,HashSource::Cache,{},{} };
+		
         for (auto it = methodIds.begin(); it != methodIds.end(); ++it) {
             QSqlQuery hq(m_db_);
             hq.prepare(R"(
@@ -98,12 +120,11 @@ namespace photoboss
             hq.bindValue(":method", it.value());
 
             if (!hq.exec() || !hq.next())
-                return { false, {} };
+                return { Lookup::Error, query.fileIdentity };
 
             result.hashes.emplace(it.key(), hq.value(0).toString());
         }
-
-        return { true, result };
+        return { Lookup::Hit, result };
     }
 
     void SqliteHashCache::store(const HashedImageResult& result, const QMap<QString, int>& methodVersions)
@@ -126,9 +147,9 @@ namespace photoboss
             modified_time = excluded.modified_time,
             format = excluded.format;)"
         );
-        q.bindValue(":path", result.fingerprint.path);
-        q.bindValue(":size", result.fingerprint.size);
-        q.bindValue(":mtime", result.fingerprint.modifiedTime);
+        q.bindValue(":path", result.fileIdentity.path());
+        q.bindValue(":size", result.fileIdentity.size());
+        q.bindValue(":mtime", result.fileIdentity.modifiedTime());
         q.bindValue(":format", QVariant());
 
         if (!execOrLog(q, "upsert file")) {
@@ -138,7 +159,7 @@ namespace photoboss
 
         // retrieve file id
         q.prepare("SELECT id FROM files WHERE path = :path;");
-        q.bindValue(":path", result.fingerprint.path);
+        q.bindValue(":path", result.fileIdentity.path());
         if (!execOrLog(q, "fetch file id") || !q.next()) {
             q.exec("ROLLBACK;");
             return;

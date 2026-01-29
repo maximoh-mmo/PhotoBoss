@@ -1,8 +1,8 @@
-#include "mainwindow.h"
+#include "ui/mainwindow.h"
 #include "ui_mainwindow.h"
-#include "SettingsSelection.h"
-#include "PipelineController.h"
-#include "HashMethod.h"
+#include "ui/SettingsSelection.h"
+#include "pipeline/PipelineController.h"
+#include "hashing/HashMethod.h"
 
 #include <QFileDialog>
 #include <QDebug>
@@ -39,8 +39,6 @@ namespace photoboss
         // Connect pipeline signals
         connect(m_pipeline_controller_.get(), &PipelineController::imageHashed,
 			this, &MainWindow::OnImageHashed);
-
-        m_pipeline_controller_->start();
     }
     void MainWindow::OnBrowse()
     {
@@ -64,7 +62,7 @@ namespace photoboss
         connect(m_scan_button_, &QPushButton::clicked, this, [this]() {
             const QString folder = GetCurrentFolder();
             if (!folder.isEmpty()) {
-                m_pipeline_controller_->startScan(folder, ui_->subfolders->isChecked());
+                m_pipeline_controller_->start({ folder, ui_->subfolders->isChecked() });
             }
             });
 

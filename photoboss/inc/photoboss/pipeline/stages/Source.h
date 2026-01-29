@@ -11,17 +11,18 @@ namespace photoboss
 	/// <typeparam name="Out"></typeparam>
 
 	template<typename Out>
-	class Source : public PipelineStage
+	class Source : public StageBase
 	{
 	public:
-		explicit Source(Queue<Out>& output)
-			: m_output(output)
+		explicit Source(Queue<Out>& output, QString id, QObject* parent = nullptr) :
+			StageBase(std::move(id), parent),
+			m_output(output)
 		{
 		}
 
 		virtual void produce() = 0;
 
-		void run() override
+		void Run() override
 		{
 			produce();
 			m_output.shutdown();

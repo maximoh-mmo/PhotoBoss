@@ -1,12 +1,13 @@
 #pragma once
 
-#include "HashMethod.h"
+#include "hashing/HashMethod.h"
+#include "hashing/HashRegistry.h"
 #include "pipeline/stages/Pipeline.h"
 #include "util/DataTypes.h"
 #include "util/Queue.h"
 
 namespace photoboss {
-    class HashWorker : public PipelineStage {
+    class HashWorker : public StageBase {
         Q_OBJECT
     public:
         explicit HashWorker(
@@ -21,6 +22,7 @@ namespace photoboss {
     private:
         Queue<std::unique_ptr<DiskReadResult>>& m_input;
         Queue<std::shared_ptr<HashedImageResult>>& m_output;
-        std::vector<std::unique_ptr<HashMethod>> m_hash_methods; 
+        std::vector<std::unique_ptr<HashMethod>> m_byte_methods;
+        std::vector<std::unique_ptr<HashMethod>> m_image_methods;
     };
 }

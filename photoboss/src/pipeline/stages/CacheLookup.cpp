@@ -1,10 +1,10 @@
-#include "CacheLookup.h"
+#include "pipeline/CacheLookup.h"
 namespace photoboss
 {
-	CacheLookup::CacheLookup(Queue<FingerprintBatchPtr>& input, Queue<FingerprintBatchPtr>& diskOut, 
+	CacheLookup::CacheLookup(Queue<FileIdentityBatchPtr>& input, Queue<FileIdentityBatchPtr>& diskOut, 
         Queue<std::shared_ptr<HashedImageResult>>& resultOut, IHashCache& cache, 
-        const std::vector<HashRegistry::Entry>& activeMethods, QObject* parent)
-		: PipelineStage(parent),
+        const std::vector<HashRegistry::Entry>& activeMethods, QString id, QObject* parent)
+		: StageBase(id, parent),
 		m_inputQueue(input),
 		m_diskReadQueue(diskOut),
 		m_resultQueue(resultOut),
@@ -16,7 +16,7 @@ namespace photoboss
 	void CacheLookup::Run()
 	{
         while (true) {
-            FingerprintBatchPtr batch;
+            FileIdentityBatchPtr batch;
 
             if (!m_inputQueue.wait_and_pop(batch))
                 break;
@@ -24,13 +24,12 @@ namespace photoboss
             if (!batch || batch->empty())
                 continue;
 
-            std::shared_ptr<std::vector<Fingerprint>> misses;
-            misses = std::make_shared<std::vector<Fingerprint>>();
+            std::shared_ptr<std::vector<FileIdentity>> misses;
+            misses = std::make_shared<std::vector<FileIdentity>>();
             misses->reserve(batch->size());
 
-            for (const auto& fingerprint : *batch) {
-                CacheQuery query;
-                query.fingerprint = fingerprint;
+            for (const auto& fileId : *batch) {
+                CacheQuery query(fileId);
                 auto requiredMethods = QList<QString>();
                 for (auto method : m_activeHashMethods) {
                     requiredMethods.append(method.key);
@@ -39,16 +38,11 @@ namespace photoboss
 
                 auto result = m_cache.lookup(query);
 
-                if (result.hit) {
-                    auto cached = std::make_shared<HashedImageResult>();
-                    cached->fingerprint = fingerprint;
-                    cached->hashes = result.hashedImage.hashes;
-                    cached->source = HashSource::Cache;
-
-                    m_resultQueue.emplace(cached);
+                if (result.hit == Lookup::Hit) {                   
+                    m_resultQueue.emplace(std::make_shared<HashedImageResult>(std::move(result.hashedImage)));
                 }
                 else {
-                    misses->push_back(fingerprint);
+                    misses->push_back(fileId);
                 }
             }
 
@@ -56,5 +50,6 @@ namespace photoboss
                 m_diskReadQueue.emplace(std::move(misses));
             }
         }
+        m_inputQueue.shutdown();
 	}
 }

@@ -2,7 +2,9 @@
 #include <QtMath>
 #include <vector>
 #include <algorithm>
-#include "HashMethod.h"
+#include <qimage.h>
+#include "hashing/HashRegistry.h"
+#include "hashing/PerceptualHash.h"
 
 namespace photoboss
 {
@@ -24,7 +26,7 @@ namespace photoboss
         }
     };
 
-    QString PerceptualHash::computeHash(const QImage& image) const
+    QString PerceptualHash::compute(const QImage& image)
     {
         static const DCTConstants dct_consts;
 
@@ -95,7 +97,7 @@ namespace photoboss
         return QString("%1").arg(hash_val, 16, 16, QChar('0'));
     }
 
-    double PerceptualHash::compareHash(const QString& hash1, const QString& hash2) const
+    double PerceptualHash::compare(const QString& hash1, const QString& hash2) const
     {
         if (hash1.length() != hash2.length() || hash1.isEmpty()) return 0.0;
 
@@ -111,5 +113,10 @@ namespace photoboss
 
         // Return similarity (1.0 = identical, 0.0 = completely different)
         return 1.0 - (static_cast<double>(distance) / 64.0);
+    }
+
+    HashInput PerceptualHash::InputType() const
+    {
+        return HashInput::Image;
     }
 }

@@ -8,29 +8,26 @@
 
 namespace photoboss
 {
-	class CacheLookup : public StageBase
+	class CacheStore : public Transform<std::shared_ptr<HashedImageResult>, std::shared_ptr<HashedImageResult>>
 	{
 		Q_OBJECT
 	public:
-		CacheLookup(
-			Queue<FileIdentityBatchPtr>& input,
-			Queue<FileIdentityBatchPtr>& diskOut,
-			Queue< std::shared_ptr<HashedImageResult>>& resultOut,
+		CacheStore(
+			Queue<std::shared_ptr<HashedImageResult>>& input,
+			Queue<std::shared_ptr<HashedImageResult>>& output,
 			IHashCache& cache,
 			const std::vector<HashRegistry::Entry>& activeMethods,
 			QString id,
 			QObject* parent = nullptr
 		);
-
-	public slots:
-		void Run();
+		~CacheStore() override = default;
 
 	private:
-		Queue<FileIdentityBatchPtr>& m_inputQueue;
-		Queue<FileIdentityBatchPtr>& m_diskReadQueue;
-		Queue< std::shared_ptr<HashedImageResult>>& m_resultQueue;
 		std::vector<HashRegistry::Entry> m_activeHashMethods;
 		IHashCache& m_cache;
+
+		// Inherited via Transform
+		std::shared_ptr<HashedImageResult> transform(const std::shared_ptr<HashedImageResult>& item) override;
 	};
 
 }

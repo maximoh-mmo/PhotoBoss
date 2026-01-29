@@ -8,12 +8,12 @@
 
 namespace photoboss {
 
-    class DiskReader : public PipelineStage {
+    class DiskReader : public StageBase {
         Q_OBJECT
     public:
         explicit DiskReader(
-			Queue<FingerprintBatchPtr>& input_queue,
-            Queue<std::unique_ptr<DiskReadResult>>& queue, 
+			Queue<FileIdentityBatchPtr>& input,
+            Queue<std::unique_ptr<DiskReadResult>>& output, 
             QObject* parent = nullptr
         );
 
@@ -25,7 +25,7 @@ namespace photoboss {
         void ReadProgress(int current, int total);
 
     private:
-        Queue<FingerprintBatchPtr>& m_input_queue; 
+        Queue<FileIdentityBatchPtr>& m_input_queue; 
         Queue<std::unique_ptr<DiskReadResult>>& m_output_queue;
 
     };

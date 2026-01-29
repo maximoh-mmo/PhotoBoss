@@ -15,12 +15,15 @@ namespace photoboss {
     /// <typeparam name="In"></typeparam>
     /// <typeparam name="Out"></typeparam>
     template<typename In, typename Out>
-    class Router : public PipelineStage
+    class Router : public StageBase
     {
     public:
         explicit Router(Queue<In>& input, const std::vector<Queue<Out>*>& outputs,
-            std::function<int(const In&)> routeFunc)
-            : m_input(input), m_outputs(outputs), m_route(routeFunc) {
+            std::function<int(const In&)> routeFunc, QString id, QObject* parent = nullptr)
+            : StageBase(id, parent)
+            , m_input(input)
+            , m_outputs(outputs)
+            , m_route(routeFunc) {
         }
 
         void Run() override {

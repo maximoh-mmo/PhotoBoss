@@ -1,11 +1,14 @@
 #pragma once
-#include "IHashCache.h"
+#include "caching/IHashCache.h"
 #include <QSqlDatabase>
 
 namespace photoboss {
     class SqliteHashCache : public IHashCache
     {
-        explicit SqliteHashCache(const QString& dbPath);
+	public:
+		static QString defaultDatabasePath();
+
+        explicit SqliteHashCache();
         ~SqliteHashCache();
 
         CacheLookupResult lookup(const CacheQuery& query) override;
@@ -15,6 +18,7 @@ namespace photoboss {
 
     private:
         QSqlDatabase m_db_;
+		QString m_dbPath_;
 		bool m_valid_ = false;
         bool initSchema();
         bool ensureMethod(const QString& key, int version, int& outMethodId);

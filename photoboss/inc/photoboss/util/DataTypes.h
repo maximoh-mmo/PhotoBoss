@@ -1,56 +1,45 @@
 #pragma once
 #include <qdatetime.h>
+#include "util/FileIdentity.h"
 
 namespace photoboss {
 
-    enum class PipelineState {
-        Stopped,
-        Starting,
-        Idle,
-        Scanning,
-        Stopping
-    };
-
-    enum class HashSource {
+   enum class HashSource {
         Fresh,
         Cache,
         Error
     };
 
-    struct Fingerprint
-    {
-    public:
-        QString path;
-        // File format (e.g., "JPEG", "PNG", etc.)
-        QString format;
-        // Fast Change Identifier (FCI) for quick change detection
-        quint64 size = 0;
-        quint64 modifiedTime = 0;
-        // MD5 hash of the file contents
-        QString md5;
-        bool md5Computed = false;
-    };
+   enum class HashInput {
+       Bytes,
+       Image
+   };
 
     struct DiskReadResult {
-        Fingerprint fingerprint;
+        FileIdentity fileIdentity;
         QByteArray imageBytes;
+
+        DiskReadResult(FileIdentity id, QByteArray bytes)
+            : fileIdentity(std::move(id)), imageBytes(std::move(bytes)) {
+        }
     };
 
     struct HashedImageResult {
-        Fingerprint fingerprint;
+        FileIdentity fileIdentity;
         HashSource source;
         QDateTime cachedAt;
         std::map<QString, QString> hashes;  // SHA256, pHash, etc.
-    };
 
-    struct CacheLookupResult {
-        bool hit;
-        HashedImageResult hashedImage; // valid only if hit == true
-    };
-
-    struct CacheQuery {
-        Fingerprint fingerprint;
-        QList<QString> requiredMethods; // e.g. ["md5", "phash"]
+		// Constructor to initialize fileIdentity
+        HashedImageResult(FileIdentity id,
+            HashSource src = HashSource::Fresh,
+            QDateTime time = QDateTime::currentDateTimeUtc(),
+            std::map<QString, QString> hashMap = {})
+            : fileIdentity(std::move(id))
+            , source(src)
+            , cachedAt(time)
+            , hashes(std::move(hashMap))
+        { }
     };
 
     struct HashConfig {
@@ -58,6 +47,13 @@ namespace photoboss {
         bool enabled;
     };
 
-    using FingerprintBatchPtr = std::shared_ptr<std::vector<Fingerprint>>;
+    struct ScanRequest {
+        QString directory;
+        bool recursive;
+        ScanRequest(QString dir = {}, bool rec = false)
+            : directory(std::move(dir)), recursive(rec) {
+        }
+	};
 
+    using FileIdentityBatchPtr = std::shared_ptr<std::vector<FileIdentity>>;
 }
