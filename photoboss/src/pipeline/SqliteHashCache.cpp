@@ -1,9 +1,11 @@
-#include "SqliteHashCache.h"
+#include "caching/SqliteHashCache.h"
 #include <QSqlError>
 #include <QSqlQuery>
 
 namespace photoboss
 {
+    CacheLookupResult result;
+
     constexpr int SCHEMA_VERSION = 1;
 
     bool execOrLog(QSqlQuery& query, const QString& context)
@@ -45,8 +47,10 @@ namespace photoboss
 
     CacheLookupResult SqliteHashCache::lookup(const CacheQuery& query)
     {
-        if (!m_valid_)
-            return { false, {} };
+        if (!m_valid_) {
+			result.hit = Route::CacheMiss;
+			return result;
+        }
 
         QSqlQuery q(m_db_);
 
@@ -62,7 +66,10 @@ namespace photoboss
         q.bindValue(":mtime", query.fingerprint.modifiedTime);
 
         if (!q.exec() || !q.next())
-            return { false, {} };
+        {
+            result.hit = Route::CacheMiss;
+            return result;
+        }
 
         const int fileId = q.value(0).toInt();
 
@@ -76,16 +83,19 @@ namespace photoboss
         )");
             mq.bindValue(":key", key);
 
-            if (!mq.exec() || !mq.next())
-                return { false, {} };
+            if (!mq.exec() || !mq.next()) {
+                CacheLookupResult result;
+                result.hit = Route::CacheMiss;
+                return result;
+            }
 
             methodIds.insert(key, mq.value(0).toInt());
         }
 
         // 3. fetch hashes
-        HashedImageResult result;
-        result.fingerprint = query.fingerprint;
-		result.source = HashSource::Cache;
+        HashedImageResult hashResult;
+        hashResult.fingerprint = query.fingerprint;
+        hashResult.source = HashedImageResult::HashSource::Cache;
 
         for (auto it = methodIds.begin(); it != methodIds.end(); ++it) {
             QSqlQuery hq(m_db_);
@@ -98,12 +108,14 @@ namespace photoboss
             hq.bindValue(":method", it.value());
 
             if (!hq.exec() || !hq.next())
-                return { false, {} };
-
-            result.hashes.emplace(it.key(), hq.value(0).toString());
+            {
+                result.hit = Route::CacheMiss;
+                return result;
+            }
+            hashResult.hashes.emplace(it.key(), hq.value(0).toString());
         }
 
-        return { true, result };
+        return result;
     }
 
     void SqliteHashCache::store(const HashedImageResult& result, const QMap<QString, int>& methodVersions)

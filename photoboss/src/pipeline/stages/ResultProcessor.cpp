@@ -1,4 +1,4 @@
-#include "ResultProcessor.h"
+#include "stages/ResultProcessor.h"
 
 namespace photoboss {
 

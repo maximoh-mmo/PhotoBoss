@@ -1,12 +1,15 @@
-#include "mainwindow.h"
+#include "ui/mainwindow.h"
+#include "hashing/HashRegistry.h"
 #include <QtWidgets/QApplication>
+namespace photoboss
+{
+    int main(int argc, char* argv[]) {
 
-int main(int argc, char *argv[]) {
-
-    // Initialize the application
-    photoboss::HashRegistry::initializeBuiltIns();
-    QApplication app(argc, argv);
-    photoboss::MainWindow window;
-    window.show();
-    return app.exec();
+        // Initialize the application
+        HashRegistry::initializeBuiltIns();
+        QApplication app(argc, argv);
+        photoboss::MainWindow window;
+        window.show();
+        return app.exec();
+    }
 }

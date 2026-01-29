@@ -1,11 +1,11 @@
-#include "HashWorker.h"
-#include "HashMethod.h"
+#include "stages/HashWorker.h"
+#include "hashing/HashRegistry.h"
 #include <QThread>
 
 namespace photoboss {
 
     HashWorker::HashWorker(
-        Queue<std::unique_ptr<DiskReadResult>>& inputQueue,
+        Queue<std::shared_ptr<DiskReadResult>>& inputQueue,
 		Queue<std::shared_ptr<HashedImageResult>>& outputQueue,
         const std::vector<HashRegistry::Entry>& activeMethods,
         QObject* parent)
@@ -53,7 +53,7 @@ namespace photoboss {
             }
 
             auto result = std::make_shared<HashedImageResult>();
-            result->source = HashSource::Fresh;
+            result->source = HashedImageResult::HashSource::Fresh;
             result->fingerprint = item->fingerprint;
 
             for (auto& method : m_hash_methods) {
@@ -62,7 +62,7 @@ namespace photoboss {
                 }
                 catch (const std::exception& e) {
                     result->hashes.emplace(method->key(), e.what());
-					result->source = HashSource::Error;
+					result->source = HashedImageResult::HashSource::Error;
                     continue;
                 }
 			}
