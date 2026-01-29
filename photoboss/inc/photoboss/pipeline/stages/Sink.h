@@ -11,11 +11,13 @@ namespace photoboss {
     /// <typeparam name="In"></typeparam>
     
     template<typename In>
-    class SinkStage : public PipelineStage
+    class Sink : public StageBase
     {
     public:
-        explicit SinkStage(Queue<In>& input)
-            : m_input(input) {
+        explicit Sink(Queue<In>& input, QString id, QObject* parent)
+            : 
+            StageBase(std::move(id),parent),
+            m_input(input) {
         }
 
         // derived classes must implement actual consume logic
@@ -26,7 +28,7 @@ namespace photoboss {
             while (m_input.wait_and_pop(item)) {
                 consume(item);
             }
-			m_input.shutdown(); // propagate shutdown to any other consumers
+            qDebug() << "Sink shutdown";
         }
 
     protected:

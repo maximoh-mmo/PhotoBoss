@@ -1,3 +1,4 @@
+
 #include "ui/SettingsSelection.h"
 #include "ui_SettingsSelection.h"
 #include "hashing/HashRegistry.h"

@@ -1,4 +1,5 @@
 #pragma once
+#include "Pipeline.h"
 
 namespace photoboss
 {
@@ -10,23 +11,24 @@ namespace photoboss
 	/// <typeparam name="Out"></typeparam>
 
 	template<typename Out>
-	class SourceStage : public PipelineStage
+	class Source : public StageBase
 	{
 	public:
-		explicit SourceStage(Queue<Out>& output)
-			: m_output(output)
+		explicit Source(Queue<Out>& output, QString id, QObject* parent = nullptr) :
+			StageBase(std::move(id), parent),
+			m_output(output)
 		{
 		}
 
 		virtual void produce() = 0;
 
-		void run() override
+		void Run() override
 		{
 			produce();
 			m_output.shutdown();
 		}
 
-		virtual ~SourceStage() = default;
+		virtual ~Source() = default;
 	protected:
 		Queue<Out>& m_output;
 	};

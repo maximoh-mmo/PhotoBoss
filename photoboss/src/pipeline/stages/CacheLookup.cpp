@@ -1,48 +1,55 @@
-#include "stages/CacheLookup.h"
-#include "util/FileTypes.h"
-
+#include "pipeline/CacheLookup.h"
 namespace photoboss
 {
-    CacheLookup::CacheLookup(std::shared_ptr<Queue<FingerprintBatchPtr>>& input, std::shared_ptr<Queue<CacheLookupResult>>& output, IHashCache& cache, const std::vector<HashRegistry::Entry>& activeMethods, QObject* parent)
-        :
-		PipelineStage(parent),
-        m_input(input),
-        m_output(output),
-        m_cache(cache),
-		m_activeHashMethods()
+	CacheLookup::CacheLookup(Queue<FileIdentityBatchPtr>& input, Queue<FileIdentityBatchPtr>& diskOut, 
+        Queue<std::shared_ptr<HashedImageResult>>& resultOut, IHashCache& cache, 
+        const std::vector<HashRegistry::Entry>& activeMethods, QString id, QObject* parent)
+		: StageBase(id, parent),
+		m_inputQueue(input),
+		m_diskReadQueue(diskOut),
+		m_resultQueue(resultOut),
+		m_cache(cache),
+		m_activeHashMethods(activeMethods)
 	{
-        for (const auto& method : activeMethods) {
-            m_activeHashMethods.push_back(method.key);
-		}
-    }
-    void CacheLookup::Run()
-    {
-        FingerprintBatchPtr batch;
-        
-        for (auto method : m_activeHashMethods) {
-            
-		}
+	}
 
-        while (m_input->wait_and_pop(batch)) {
-            for (const auto& fingerprint : *batch) {
-        
-                CacheQuery query;
-                query.fingerprint = fingerprint;
-                query.requiredMethods = m_activeHashMethods;
+	void CacheLookup::Run()
+	{
+        while (true) {
+            FileIdentityBatchPtr batch;
 
-                auto lookup = m_cache.lookup(query);
+            if (!m_inputQueue.wait_and_pop(batch))
+                break;
 
-                CacheLookupResult out;
-                out.hit = lookup.hit;
-                out.hashedImage.fingerprint = fingerprint;
+            if (!batch || batch->empty())
+                continue;
 
-                if (lookup.hit == Route::CacheHit) {
-                    out.hashedImage = std::move(lookup.hashedImage);
+            std::shared_ptr<std::vector<FileIdentity>> misses;
+            misses = std::make_shared<std::vector<FileIdentity>>();
+            misses->reserve(batch->size());
+
+            for (const auto& fileId : *batch) {
+                CacheQuery query(fileId);
+                auto requiredMethods = QList<QString>();
+                for (auto method : m_activeHashMethods) {
+                    requiredMethods.append(method.key);
                 }
+                query.requiredMethods = requiredMethods; // empty means "any"
 
-                m_output->emplace(out);
+                auto result = m_cache.lookup(query);
+
+                if (result.hit == Lookup::Hit) {                   
+                    m_resultQueue.emplace(std::make_shared<HashedImageResult>(std::move(result.hashedImage)));
+                }
+                else {
+                    misses->push_back(fileId);
+                }
+            }
+
+            if (!misses->empty()) {
+                m_diskReadQueue.emplace(std::move(misses));
             }
         }
-		m_output->shutdown();
-    }
+        m_inputQueue.shutdown();
+	}
 }

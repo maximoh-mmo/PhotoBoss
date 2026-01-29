@@ -1,53 +1,59 @@
 #include <QDirIterator>
 #include <QFileInfo>
-#include "stages/DirectoryScanner.h"
+#include "pipeline/DirectoryScanner.h"
 
 namespace photoboss {
 
-    DirectoryScanner::DirectoryScanner(QObject* parent) : QObject(parent) {}
+    DirectoryScanner::DirectoryScanner(ScanRequest request,Queue<FileIdentityBatchPtr>& outputQueue, QObject* parent) :
+        Source<FileIdentityBatchPtr>(outputQueue, "DirectoryScanner", parent),
+		m_request_(std::move(request))
+    {}
 
     DirectoryScanner::~DirectoryScanner() {}
 
-    void DirectoryScanner::StartScan(const QString& directory, bool recursive) {
-        m_cancelled_.store(false);
+    void DirectoryScanner::produce() {
+        bool cancelled = false;
+
         emit status(QStringLiteral("Scanner: starting"));
 
         QDirIterator::IteratorFlags flags = QDirIterator::NoIteratorFlags;
-        if (recursive) flags |= QDirIterator::Subdirectories;
+        if (m_request_.recursive) {
+            flags |= QDirIterator::Subdirectories;
+        }
 
         QStringList filters = { "*.jpg", "*.jpeg", "*.png", "*.bmp", "*.gif", "*.webp", "*.tiff" };
 
-        QDirIterator it(directory, filters, QDir::Files | QDir::NoSymLinks, flags);
+        QDirIterator it(m_request_.directory, filters, QDir::Files | QDir::NoSymLinks, flags);
 
-        // Send results in batches to avoid signal thrash
         constexpr int batch_size = 200;
-        auto batch = std::make_shared<std::vector<Fingerprint>>();
+        auto batch = std::make_shared<std::vector<FileIdentity>>();
         batch->reserve(batch_size);
 
         int count = 0;
+        
         while (it.hasNext()) {
             if (m_cancelled_.load()) {
-                emit status(QStringLiteral("Scanner: cancelled"));
-                emit finished();
-                return;
+                cancelled = true;
+				break;
             }
 
             QString path = it.next();
             QFileInfo file_info(path);
             if (!file_info.isFile()) continue;
 
-            Fingerprint fingerprint;
-            fingerprint.path = file_info.filePath();
-            fingerprint.size = static_cast<quint64>(file_info.size());
-            fingerprint.modifiedTime = static_cast<quint64>(file_info.lastModified().toSecsSinceEpoch());
-            fingerprint.format = file_info.suffix().toUpper();
+            FileIdentity fileIdentity(
+                path,
+                file_info.suffix().toUpper(),
+                static_cast<quint64>(file_info.size()), 
+                static_cast<quint64>(file_info.lastModified().toSecsSinceEpoch())
+            );
             
-            batch->push_back(std::move(fingerprint));
+            batch->push_back(fileIdentity);
             ++count;
 
             if (static_cast<int>(batch->size()) >= batch_size) {
-                emit fileBatchFound(batch);
-                batch = std::make_shared<std::vector<Fingerprint>>();
+				m_output.emplace(batch);
+                batch = std::make_shared<std::vector<FileIdentity>>();
                 batch->reserve(batch_size);
             }
 
@@ -57,10 +63,8 @@ namespace photoboss {
             }
         }
 
-        if (!batch->empty()) emit fileBatchFound(batch);
-
-        emit status(QStringLiteral("Scanner: finished. Total %1 files").arg(count));
-        emit finished();
+        if (!batch->empty()) {
+            m_output.emplace(batch);
+        }
     }
-
-} // namespace photoboss
+}

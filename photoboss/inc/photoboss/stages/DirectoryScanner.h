@@ -3,26 +3,26 @@
 #include <QString>
 #include <memory>
 #include "util/DataTypes.h"
+#include "pipeline/stages/Pipeline.h"
 
 namespace photoboss {
 
-    class DirectoryScanner : public QObject {
+    class DirectoryScanner : public Source<FileIdentityBatchPtr>
+    {
         Q_OBJECT
     public:
-        explicit DirectoryScanner(QObject* parent = nullptr);
+		explicit DirectoryScanner(
+            ScanRequest request,
+            Queue<FileIdentityBatchPtr>& outputQueue,
+            QObject* parent = nullptr);
+
         ~DirectoryScanner() override;
 
-    public slots:
-        void StartScan(const QString& directory, bool recursive);
-
-    signals:
-        void fileFound(const Fingerprint& meta);
-        void fileBatchFound(FingerprintBatchPtr batch);
-        void status(const QString& message);
-        void finished();
-
+        // Inherited via Source
+        void produce() override;
     private:
         std::atomic<bool> m_cancelled_{ false };
+		ScanRequest m_request_;
     };
 
 }

@@ -1,72 +1,93 @@
-#include "stages/HashWorker.h"
-#include "hashing/HashRegistry.h"
+#include "pipeline/HashWorker.h"
+#include "hashing/HashMethod.h"
 #include <QThread>
+#include <qimage.h>
 
 namespace photoboss {
 
     HashWorker::HashWorker(
-        Queue<std::shared_ptr<DiskReadResult>>& inputQueue,
+        Queue<std::unique_ptr<DiskReadResult>>& inputQueue,
 		Queue<std::shared_ptr<HashedImageResult>>& outputQueue,
         const std::vector<HashRegistry::Entry>& activeMethods,
         QObject* parent)
-        : PipelineStage(parent)
+        : StageBase("HashWorker",parent)
         , m_input(inputQueue)
 		, m_output(outputQueue)
     {
         for (const auto& entry : activeMethods) {
-            m_hash_methods.push_back(entry.factory());
+            if (entry.factory()->InputType() == HashInput::Image) {
+                m_image_methods.push_back(entry.factory());
+            }
+            else {
+                m_byte_methods.push_back(entry.factory());
+            }
 		}
         
-        if (m_hash_methods.empty()) {
+        if (m_image_methods.empty() && m_byte_methods.empty()) {
             qWarning() << "HashWorker: No active hash methods provided.";
         } else {
             qDebug() << "HashWorker: Initialized with"
-                     << m_hash_methods.size() << "hash methods.";
+                     << m_image_methods.size() + m_byte_methods.size() << "hash methods.";
 		}
     }
 
     void HashWorker::Run()
-    {
-        if (m_hash_methods.empty()) {
+    {        
+        if (m_image_methods.empty() && m_byte_methods.empty()) {
             qWarning() << "HashWorker: No active hash methods, thread will exit.";
             return;
         }
+
+        const bool decodeRequired = !m_image_methods.empty();
+
         while (true)
         {
             std::unique_ptr<DiskReadResult> item;
 
             if (!m_input.wait_and_pop(item)) {
-				qDebug() << "HashWorker: Queue shutdown detected, exiting.";
+                qDebug() << "HashWorker: Queue shutdown detected, exiting.";
                 break; // upstream shutdown
             }
 
-            if (!item) { 
-				qDebug() << "HashWorker: Received null input, skipping.";
-                continue; 
+            if (!item) {
+                qDebug() << "HashWorker: Received null input, skipping.";
+                continue;
             }
 
-			qDebug() << "HashWorker: Processing image:" << item->fingerprint.path;
-            QImage img;
-            if (!img.loadFromData(item->imageBytes)) {
-                qDebug() << "Image load failed" << item->fingerprint.path;
-				continue;
-            }
+            auto result = std::make_shared<HashedImageResult>(item->fileIdentity);
 
-            auto result = std::make_shared<HashedImageResult>();
-            result->source = HashedImageResult::HashSource::Fresh;
-            result->fingerprint = item->fingerprint;
-
-            for (auto& method : m_hash_methods) {
+            for (auto& method : m_byte_methods) {
                 try {
-                    result->hashes.emplace(method->key(), method->computeHash(img));
+                    result->hashes.emplace(method->key(), method->compute(item->imageBytes));
                 }
                 catch (const std::exception& e) {
                     result->hashes.emplace(method->key(), e.what());
-					result->source = HashedImageResult::HashSource::Error;
+                    result->source = HashSource::Error;
                     continue;
                 }
-			}
-			m_output.emplace(result);
+            }
+
+            if (decodeRequired) {
+                qDebug() << "HashWorker: Processing image:" << item->fileIdentity.path();
+                QImage img;
+                if (!img.loadFromData(item->imageBytes)) {
+                    qDebug() << "Image load failed" << item->fileIdentity.path();
+                    result->source = HashSource::Error;
+                }
+                else {
+                    for (auto& method : m_image_methods) {
+                        try {
+                            result->hashes.emplace(method->key(), method->compute(img));
+                        }
+                        catch (const std::exception& e) {
+                            result->hashes.emplace(method->key(), e.what());
+                            result->source = HashSource::Error;
+                        }
+                    }
+                }
+            }
+            m_output.emplace(std::move(result));
         }
+        m_output.shutdown();
     }
 }

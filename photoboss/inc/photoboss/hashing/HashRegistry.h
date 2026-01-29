@@ -1,18 +1,9 @@
 #pragma once
-
-#include <QMap>
-#include <QString>
-#include <memory>
-#include <mutex>
-#include <string>
-#include <unordered_map>
-#include <vector>
-#include <functional>
-#include <set>
 #include "hashing/HashMethod.h"
+#include <mutex>
+#include <memory>
 
-namespace photoboss
-{
+namespace photoboss {
 
     /// <summary>
     /// Thread-safe registry that holds factories to create HashMethod instances. 
