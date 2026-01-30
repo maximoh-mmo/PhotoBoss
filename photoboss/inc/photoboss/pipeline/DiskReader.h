@@ -17,8 +17,7 @@ namespace photoboss {
             QObject* parent = nullptr
         );
 
-    public slots:
-        void Run();
+        void run();
 
     signals:
         void Finished();
@@ -27,6 +26,12 @@ namespace photoboss {
     private:
         Queue<FileIdentityBatchPtr>& m_input_queue; 
         Queue<std::unique_ptr<DiskReadResult>>& m_output_queue;
+
+
+        // Inherited via StageBase
+        void onStart() override;
+
+        void onStop() override;
 
     };
 }

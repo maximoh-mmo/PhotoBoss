@@ -28,6 +28,17 @@ namespace photoboss
 
 		// Inherited via Transform
 		std::shared_ptr<HashedImageResult> transform(const std::shared_ptr<HashedImageResult>& item) override;
+
+		void onStart() override
+		{
+			qDebug() << "store registered";
+			m_output.register_producer();
+		}
+		void onStop() override
+		{
+			qDebug() << "store deregistered";
+			m_output.producer_done();
+		}
 	};
 
 }

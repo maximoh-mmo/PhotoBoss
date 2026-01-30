@@ -161,10 +161,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="inc\photoboss\hashing\PerceptualHash.h" />
+    <ClCompile Include="src\hashmethods\Sha256Hash.cpp" />
     <ClCompile Include="src\pipeline\stages\CacheStore.cpp" />
     <ClCompile Include="inc\photoboss\pipeline\stages\Sink.h" />
     <ClCompile Include="inc\photoboss\util\CacheTypes.h" />
-    <ClCompile Include="src\pipeline\SqliteHashCache.cpp" />
+    <ClCompile Include="src\caching\SqliteHashCache.cpp" />
     <ClCompile Include="src\pipeline\stages\CacheLookup.cpp" />
     <ClCompile Include="src\pipeline\stages\DirectoryScanner.cpp" />
     <ClCompile Include="src\pipeline\PipelineController.cpp" />
@@ -178,6 +179,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\photoboss\caching\NullHashCache.h" />
+    <ClInclude Include="inc\photoboss\util\ShutdownToken.h" />
+    <ClInclude Include="inc\photoboss\hashing\Sha256Hash.h" />
     <QtMoc Include="inc\photoboss\pipeline\CacheStore.h" />
     <ClInclude Include="inc\photoboss\hashing\HashRegistry.h" />
     <ClInclude Include="inc\photoboss\pipeline\stages\Pipeline.h" />

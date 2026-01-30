@@ -13,7 +13,20 @@ namespace photoboss
 	{
 	}
 
-	void CacheLookup::Run()
+    void CacheLookup::onStart()
+    {
+        m_resultQueue.register_producer();
+        m_diskReadQueue.register_producer();
+    }
+
+    void CacheLookup::onStop()
+    {
+
+        m_resultQueue.producer_done();
+        m_diskReadQueue.producer_done();
+    }
+
+	void CacheLookup::run()
 	{
         while (true) {
             FileIdentityBatchPtr batch;
@@ -50,6 +63,5 @@ namespace photoboss
                 m_diskReadQueue.emplace(std::move(misses));
             }
         }
-        m_inputQueue.shutdown();
 	}
 }

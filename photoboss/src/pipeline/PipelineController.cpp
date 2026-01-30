@@ -6,6 +6,7 @@
 #include "pipeline/CacheLookup.h"
 #include "pipeline/CacheStore.h"
 #include "caching/SqliteHashCache.h"
+#include "util/ShutdownToken.h"
 #include <QDebug>
 #include <QThread>
 
@@ -55,12 +56,12 @@ namespace photoboss {
             return;
 
         SetPipelineState(PipelineState::Stopping);
-
+        ShutdownToken t;
         if (m_pipeline_) {
-            m_pipeline_->scan.shutdown();
-			m_pipeline_->disk.shutdown();
-            m_pipeline_->readQueue.shutdown();
-            m_pipeline_->resultQueue.shutdown();
+            m_pipeline_->scan.request_shutdown(t);
+			m_pipeline_->disk.request_shutdown(t);
+            m_pipeline_->readQueue.request_shutdown(t);
+            m_pipeline_->resultQueue.request_shutdown(t);
         }
 
         destroyPipeline();

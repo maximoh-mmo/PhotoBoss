@@ -23,7 +23,7 @@ namespace photoboss
 		);
 
 	public slots:
-		void Run();
+		void run();
 
 	private:
 		Queue<FileIdentityBatchPtr>& m_inputQueue;
@@ -31,6 +31,10 @@ namespace photoboss
 		Queue< std::shared_ptr<HashedImageResult>>& m_resultQueue;
 		std::vector<HashRegistry::Entry> m_activeHashMethods;
 		IHashCache& m_cache;
+
+		// Inherited via StageBase
+		void onStart() override;
+		void onStop() override;
 	};
 
 }

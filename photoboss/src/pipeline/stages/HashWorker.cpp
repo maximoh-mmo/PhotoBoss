@@ -31,7 +31,7 @@ namespace photoboss {
 		}
     }
 
-    void HashWorker::Run()
+    void HashWorker::run()
     {        
         if (m_image_methods.empty() && m_byte_methods.empty()) {
             qWarning() << "HashWorker: No active hash methods, thread will exit.";
@@ -88,6 +88,13 @@ namespace photoboss {
             }
             m_output.emplace(std::move(result));
         }
-        m_output.shutdown();
+    }
+    void HashWorker::onStart()
+    {
+        m_output.register_producer();
+    }
+    void HashWorker::onStop()
+    {
+        m_output.producer_done();
     }
 }

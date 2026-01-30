@@ -22,6 +22,7 @@ namespace photoboss
         }
 
 		// Compare two hashes, returning a similarity score in [0.0, 1.0]
+        // Return similarity (1.0 = identical, 0.0 = completely different)
 		virtual double compare(const QString& hash1, const QString& hash2) const = 0;
 
     };

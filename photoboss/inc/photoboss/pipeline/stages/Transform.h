@@ -23,17 +23,26 @@ namespace photoboss {
         // derived classes must implement actual transformation logic
         virtual Out transform(const In& item) = 0;
 
-        void Run() override {
+        void run() override {
             In item;
             while (m_input.wait_and_pop(item)) {
                 Out out_item = transform(item);
                 m_output.push(std::move(out_item));
             }
-            m_output.shutdown();
         }
 
     protected:
         Queue<In>& m_input;
         Queue<Out>& m_output;
+
+        // Inherited via StageBase
+        void onStart() override
+        {
+            m_output.register_producer();
+        }
+        void onStop() override
+        {
+            m_output.producer_done();
+        }
     };
 }

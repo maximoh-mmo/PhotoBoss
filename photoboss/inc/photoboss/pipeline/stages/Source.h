@@ -22,14 +22,23 @@ namespace photoboss
 
 		virtual void produce() = 0;
 
-		void Run() override
+		void run() override
 		{
 			produce();
-			m_output.shutdown();
 		}
 
 		virtual ~Source() = default;
 	protected:
 		Queue<Out>& m_output;
+
+		// Inherited via StageBase
+		void onStart() override
+		{
+			m_output.register_producer();
+		}
+		void onStop() override
+		{
+			m_output.producer_done();
+		}
 	};
 }

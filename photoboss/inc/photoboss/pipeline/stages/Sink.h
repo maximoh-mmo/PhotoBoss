@@ -23,7 +23,7 @@ namespace photoboss {
         // derived classes must implement actual consume logic
         virtual void consume(const In& item) = 0;
 
-        void Run() override {
+        void run() override {
             In item;
             while (m_input.wait_and_pop(item)) {
                 consume(item);
@@ -33,5 +33,13 @@ namespace photoboss {
 
     protected:
         Queue<In>& m_input;
+
+        // Inherited via StageBase
+        void onStart() override
+        {
+        }
+        void onStop() override
+        {
+        }
     };
 }

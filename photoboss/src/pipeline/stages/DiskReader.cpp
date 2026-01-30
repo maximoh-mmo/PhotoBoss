@@ -14,7 +14,7 @@ namespace photoboss {
     }
 
 
-    void DiskReader::Run() {
+    void DiskReader::run() {
 
         while (true) {
             FileIdentityBatchPtr batch;
@@ -41,6 +41,18 @@ namespace photoboss {
                     emit ReadProgress(current, total);
             }
         }
-        m_input_queue.shutdown();
+    }
+
+
+    void DiskReader::onStart()
+    {
+        qDebug() << "diskreader registered";
+        m_output_queue.register_producer();
+       
+    }
+    void DiskReader::onStop()
+    {
+        qDebug() << "diskreader deregistered";
+        m_output_queue.producer_done();
     }
 }

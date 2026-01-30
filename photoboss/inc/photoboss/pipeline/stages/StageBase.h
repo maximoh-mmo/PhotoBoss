@@ -21,20 +21,33 @@ namespace photoboss {
         explicit StageBase(QString id, QObject* parent = nullptr)
             : m_id(std::move(id)), QObject(parent) {
         }
-
         ~StageBase() override = default;
     
         QString stageId() const { return m_id; }
 
-    public slots:
+        void Run() {
+            onStart();
+            try {
+                run(); // implemented by derived class
+            }
+            catch (const std::exception& e) {
+                error(e.what());
+            }
+
+            onStop();
+        }
         // Main execution loop for the stage.
         // Must exit when its input queue is shut down.
-        virtual void Run() = 0;
 
     signals:
         void status(const QString& message);
         void progress(qint64 current, qint64 total);
         void error(const QString& message);
+
+    protected:
+        virtual void run() = 0;
+        virtual void onStart() = 0;
+        virtual void onStop() = 0;
     
     private:
         QString m_id;

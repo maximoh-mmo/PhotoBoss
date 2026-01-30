@@ -16,13 +16,16 @@ namespace photoboss {
             const std::vector<HashRegistry::Entry>& activeMethods,
             QObject* parent = nullptr);
 
-    public slots:
-        void Run();
+        void run() override;
 
     private:
         Queue<std::unique_ptr<DiskReadResult>>& m_input;
         Queue<std::shared_ptr<HashedImageResult>>& m_output;
         std::vector<std::unique_ptr<HashMethod>> m_byte_methods;
         std::vector<std::unique_ptr<HashMethod>> m_image_methods;
+
+        // Inherited via StageBase
+        void onStart() override;
+        void onStop() override;
     };
 }

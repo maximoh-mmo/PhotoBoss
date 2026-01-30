@@ -45,7 +45,7 @@
     <ClCompile Include="src\pipeline\stages\CacheLookup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\pipeline\SqliteHashCache.cpp">
+    <ClCompile Include="src\caching\SqliteHashCache.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="inc\photoboss\pipeline\stages\Sink.h">
@@ -58,6 +58,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="inc\photoboss\hashing\PerceptualHash.h">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hashmethods\Sha256Hash.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -132,6 +135,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\photoboss\hashing\HashRegistry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\util\ShutdownToken.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\hashing\Sha256Hash.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
