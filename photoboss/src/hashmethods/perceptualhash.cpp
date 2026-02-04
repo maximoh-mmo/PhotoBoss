@@ -26,20 +26,15 @@ namespace photoboss
         }
     };
 
-    QString PerceptualHash::compute(const QImage& image)
+    QString PerceptualHash::compute(const PerceptualImage& image)
     {
         static const DCTConstants dct_consts;
-
-        // 1. Resize and Grayscale
-        QImage img = image.scaled(32, 32, Qt::IgnoreAspectRatio, Qt::FastTransformation)
-            .convertToFormat(QImage::Format_Grayscale8);
 
         // 2. Load pixels into double array
         double pixels[32][32];
         for (int y = 0; y < 32; ++y) {
-            const uchar* line = img.scanLine(y);
             for (int x = 0; x < 32; ++x) {
-                pixels[y][x] = static_cast<double>(line[x]);
+                pixels[y][x] = image.pixel(x, y);
             }
         }
 

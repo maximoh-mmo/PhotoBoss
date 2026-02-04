@@ -1,5 +1,6 @@
 #pragma once
 #include <qdatetime.h>
+#include <qsize.h>
 #include "util/FileIdentity.h"
 
 namespace photoboss {
@@ -28,16 +29,19 @@ namespace photoboss {
         FileIdentity fileIdentity;
         HashSource source;
         QDateTime cachedAt;
+        QSize resolution;
         std::map<QString, QString> hashes;  // SHA256, pHash, etc.
 
 		// Constructor to initialize fileIdentity
         HashedImageResult(FileIdentity id,
             HashSource src = HashSource::Fresh,
             QDateTime time = QDateTime::currentDateTimeUtc(),
+            QSize resolution = {0,0},
             std::map<QString, QString> hashMap = {})
             : fileIdentity(std::move(id))
             , source(src)
             , cachedAt(time)
+            , resolution(resolution)
             , hashes(std::move(hashMap))
         { }
     };

@@ -3,12 +3,12 @@
 
 namespace photoboss {
 
-    class PerceptualHash : public HashMethod
+    class AverageHash : public HashMethod
     {
     public:
         QString compute(const PerceptualImage& image) override;
         double compare(const QString& hash1, const QString& hash2) const override;
-        QString key() const override { return "Perceptual Hash"; }
+        QString key() const override { return "Average Hash"; }
 
         // Inherited via HashMethod
         HashInput InputType() const override;

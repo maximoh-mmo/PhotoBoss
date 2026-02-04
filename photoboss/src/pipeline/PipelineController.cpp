@@ -86,13 +86,10 @@ namespace photoboss {
         m_pipeline_->scannerThread.start();
 
         // ---- Cache Lookup ----
-        m_cache_ = std::make_unique<SqliteHashCache>();
-
         m_pipeline_->cacheLookup = new CacheLookup(
             m_pipeline_->scan,
 			m_pipeline_->disk,
 			m_pipeline_->resultQueue,
-            *m_cache_,
             m_active_hash_methods_,
 			"CacheLookup"
         );
@@ -148,7 +145,6 @@ namespace photoboss {
 		m_pipeline_->cacheStore = new CacheStore(
 			m_pipeline_->cacheStoreQueue,
 			m_pipeline_->resultQueue,
-            *m_cache_,
             m_active_hash_methods_,
 			"CacheStore"
             );
@@ -163,7 +159,7 @@ namespace photoboss {
         
 		m_pipeline_->cacheThread.start();
 		// ---- Result Processor ----
-		m_pipeline_->resultProcessor = new ResultProcessor(m_pipeline_->resultQueue, "ResultProcessor");
+		m_pipeline_->resultProcessor = new ResultProcessor(m_pipeline_->resultQueue, m_active_hash_methods_, "ResultProcessor");
 		m_pipeline_->resultProcessor->moveToThread(&m_pipeline_->resultThread);
 
 		connect(&m_pipeline_->resultThread, &QThread::started,

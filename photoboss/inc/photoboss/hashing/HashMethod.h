@@ -1,7 +1,7 @@
 #pragma once
 
 #include "util/DataTypes.h"
-
+#include "hashing/PerceptualImage.h"
 namespace photoboss
 {
     // Base class for hash / fileIdentity algorithms
@@ -17,7 +17,7 @@ namespace photoboss
             throw std::logic_error("Byte input not supported");
         }
 
-        virtual QString compute(const QImage&) {
+        virtual QString compute(const PerceptualImage&) {
             throw std::logic_error("Image input not supported");
         }
 

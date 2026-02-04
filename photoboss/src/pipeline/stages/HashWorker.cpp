@@ -1,6 +1,7 @@
 #include "pipeline/HashWorker.h"
 #include "hashing/HashMethod.h"
 #include <QThread>
+#include <qimagereader.h>
 #include <qimage.h>
 
 namespace photoboss {
@@ -53,8 +54,11 @@ namespace photoboss {
                 qDebug() << "HashWorker: Received null input, skipping.";
                 continue;
             }
+            QImageReader reader(item->fileIdentity.path());
+            qDebug() << "image resolution = " << reader.size();
 
-            auto result = std::make_shared<HashedImageResult>(item->fileIdentity);
+            auto result = std::make_shared<HashedImageResult>(item->fileIdentity, HashSource::Fresh, 
+                QDateTime::currentDateTimeUtc(), reader.size());
 
             for (auto& method : m_byte_methods) {
                 try {
@@ -74,10 +78,11 @@ namespace photoboss {
                     qDebug() << "Image load failed" << item->fileIdentity.path();
                     result->source = HashSource::Error;
                 }
+
                 else {
                     for (auto& method : m_image_methods) {
                         try {
-                            result->hashes.emplace(method->key(), method->compute(img));
+                            result->hashes.emplace(method->key(), method->compute(PerceptualImage(img)));
                         }
                         catch (const std::exception& e) {
                             result->hashes.emplace(method->key(), e.what());

@@ -130,6 +130,7 @@
       <ConformanceMode>true</ConformanceMode>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalIncludeDirectories>$(ProjectDir)inc\$(ProjectName);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -146,6 +147,7 @@
       <ConformanceMode>true</ConformanceMode>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalIncludeDirectories>$(ProjectDir)inc\$(ProjectName);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -160,7 +162,13 @@
     <QtMoc Include="inc\photoboss\ui\MainWindow.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="inc\photoboss\hashing\AverageHash.cpp" />
+    <ClCompile Include="inc\photoboss\hashing\DifferenceHash.cpp" />
+    <ClCompile Include="inc\photoboss\hashing\DifferenceHash.h" />
+    <ClCompile Include="src\exif\ExifReader.cpp" />
     <ClCompile Include="inc\photoboss\hashing\PerceptualHash.h" />
+    <ClCompile Include="src\hashmethods\PerceptualImage.cpp" />
+    <ClCompile Include="inc\photoboss\util\GroupTypes.h" />
     <ClCompile Include="src\hashmethods\Sha256Hash.cpp" />
     <ClCompile Include="src\pipeline\stages\CacheStore.cpp" />
     <ClCompile Include="inc\photoboss\pipeline\stages\Sink.h" />
@@ -173,12 +181,16 @@
     <ClCompile Include="src\ui\SettingsSelection.cpp" />
     <ClCompile Include="src\pipeline\stages\DiskReader.cpp" />
     <ClCompile Include="src\pipeline\stages\HashWorker.cpp" />
-    <ClCompile Include="src\hashmethods\perceptualhash.cpp" />
+    <ClCompile Include="src\hashmethods\PerceptualHash.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\ui\MainWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\photoboss\caching\NullHashCache.h" />
+    <ClInclude Include="inc\photoboss\exif\ExifReader.h" />
+    <ClInclude Include="inc\photoboss\hashing\AverageHash.h" />
+    <ClInclude Include="inc\photoboss\hashing\PerceptualImage.h" />
+    <ClInclude Include="inc\photoboss\util\ExifData.h" />
     <ClInclude Include="inc\photoboss\util\ShutdownToken.h" />
     <ClInclude Include="inc\photoboss\hashing\Sha256Hash.h" />
     <QtMoc Include="inc\photoboss\pipeline\CacheStore.h" />

@@ -21,7 +21,7 @@
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\hashmethods\perceptualhash.cpp">
+    <ClCompile Include="src\hashmethods\PerceptualHash.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\pipeline\stages\DiskReader.cpp">
@@ -48,19 +48,37 @@
     <ClCompile Include="src\caching\SqliteHashCache.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="inc\photoboss\pipeline\stages\Sink.h">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="inc\photoboss\util\CacheTypes.h">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\pipeline\stages\CacheStore.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="inc\photoboss\hashing\PerceptualHash.h">
+    <ClCompile Include="src\hashmethods\Sha256Hash.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\hashmethods\Sha256Hash.cpp">
+    <ClCompile Include="inc\photoboss\hashing\PerceptualHash.h">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="inc\photoboss\pipeline\stages\Sink.h">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="inc\photoboss\util\CacheTypes.h">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="inc\photoboss\util\GroupTypes.h">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hashmethods\PerceptualImage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\exif\ExifReader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="inc\photoboss\hashing\DifferenceHash.h">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="inc\photoboss\hashing\DifferenceHash.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="inc\photoboss\hashing\AverageHash.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -141,6 +159,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\photoboss\hashing\Sha256Hash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\hashing\PerceptualImage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\util\ExifData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\exif\ExifReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\hashing\AverageHash.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

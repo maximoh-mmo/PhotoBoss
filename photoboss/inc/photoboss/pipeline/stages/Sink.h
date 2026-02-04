@@ -1,6 +1,6 @@
 #pragma once
 #include "Pipeline.h"
-
+#include <QDebug>
 namespace photoboss {
     /// <summary>
 	/// 
@@ -28,7 +28,7 @@ namespace photoboss {
             while (m_input.wait_and_pop(item)) {
                 consume(item);
             }
-            qDebug() << "Sink shutdown";
+            qDebug() << QString("Sink Finished");
         }
 
     protected:

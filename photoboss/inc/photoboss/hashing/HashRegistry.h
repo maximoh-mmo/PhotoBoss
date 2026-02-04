@@ -60,13 +60,6 @@ namespace photoboss {
             return names;
         }
 
-        static void initializeBuiltIns() {
-            // This empty reference forces the compiler to include the translation units
-            extern const bool ph_registered;
-            (void)ph_registered;
-        }
-
-
     private:
         static std::unordered_map<QString, Factory>& getMutableRegistry()
         {

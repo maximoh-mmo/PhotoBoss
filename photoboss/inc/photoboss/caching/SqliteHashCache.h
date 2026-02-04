@@ -19,8 +19,11 @@ namespace photoboss {
     private:
         QSqlDatabase m_db_;
 		QString m_dbPath_;
-		bool m_valid_ = false;
+        bool m_valid_ = false;
+        bool m_initialized_ = false;
+        static QString connectionName();
         bool initSchema();
         bool ensureMethod(const QString& key, int version, int& outMethodId);
+        void ensureOpen();
     };
 }

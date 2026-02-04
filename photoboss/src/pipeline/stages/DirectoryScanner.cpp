@@ -1,6 +1,7 @@
 #include <QDirIterator>
 #include <QFileInfo>
 #include "pipeline/DirectoryScanner.h"
+#include "exif/ExifReader.h"
 
 namespace photoboss {
 
@@ -45,7 +46,8 @@ namespace photoboss {
                 path,
                 file_info.suffix().toUpper(),
                 static_cast<quint64>(file_info.size()), 
-                static_cast<quint64>(file_info.lastModified().toSecsSinceEpoch())
+                static_cast<quint64>(file_info.lastModified().toSecsSinceEpoch()),
+                exif::ExifReader::read(path)
             );
             
             batch->push_back(fileIdentity);

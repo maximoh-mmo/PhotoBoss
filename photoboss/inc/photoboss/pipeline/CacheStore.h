@@ -15,7 +15,6 @@ namespace photoboss
 		CacheStore(
 			Queue<std::shared_ptr<HashedImageResult>>& input,
 			Queue<std::shared_ptr<HashedImageResult>>& output,
-			IHashCache& cache,
 			const std::vector<HashRegistry::Entry>& activeMethods,
 			QString id,
 			QObject* parent = nullptr
@@ -24,7 +23,7 @@ namespace photoboss
 
 	private:
 		std::vector<HashRegistry::Entry> m_activeHashMethods;
-		IHashCache& m_cache;
+		std::unique_ptr<IHashCache> m_cache;
 
 		// Inherited via Transform
 		std::shared_ptr<HashedImageResult> transform(const std::shared_ptr<HashedImageResult>& item) override;

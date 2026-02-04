@@ -16,7 +16,6 @@ namespace photoboss
 			Queue<FileIdentityBatchPtr>& input,
 			Queue<FileIdentityBatchPtr>& diskOut,
 			Queue< std::shared_ptr<HashedImageResult>>& resultOut,
-			IHashCache& cache,
 			const std::vector<HashRegistry::Entry>& activeMethods,
 			QString id,
 			QObject* parent = nullptr
@@ -30,7 +29,8 @@ namespace photoboss
 		Queue<FileIdentityBatchPtr>& m_diskReadQueue;
 		Queue< std::shared_ptr<HashedImageResult>>& m_resultQueue;
 		std::vector<HashRegistry::Entry> m_activeHashMethods;
-		IHashCache& m_cache;
+		std::unique_ptr<IHashCache> m_cache;
+		QList<QString> m_requiredMethods;
 
 		// Inherited via StageBase
 		void onStart() override;
