@@ -5,7 +5,7 @@
 #include <QProgressBar>
 #include <QtCore>
 #include <QtWidgets/QMainWindow>
-#include "SettingsSelection.h"
+#include "util/DataTypes.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -41,7 +41,5 @@ private:
     QProgressBar* m_progress_bar_ = nullptr;
     QStatusBar* m_status_bar_ = nullptr;
 
-private slots:
-	void openSettings();
 };
 }

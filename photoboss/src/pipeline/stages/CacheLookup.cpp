@@ -1,19 +1,18 @@
 #include "pipeline/CacheLookup.h"
 #include "caching/SqliteHashCache.h"
+
 namespace photoboss
 {
 	CacheLookup::CacheLookup(Queue<FileIdentityBatchPtr>& input, Queue<FileIdentityBatchPtr>& diskOut, 
-        Queue<std::shared_ptr<HashedImageResult>>& resultOut,  
-        const std::vector<HashRegistry::Entry>& activeMethods, QString id, QObject* parent)
+        Queue<std::shared_ptr<HashedImageResult>>& resultOut, QString id, QObject* parent)
 		: StageBase(id, parent),
 		m_inputQueue(input),
 		m_diskReadQueue(diskOut),
 		m_resultQueue(resultOut),
-		m_cache(std::make_unique<SqliteHashCache>()),
-		m_activeHashMethods(activeMethods)
+		m_cache(std::make_unique<SqliteHashCache>())
 	{
-        for (auto method : m_activeHashMethods) {
-            m_requiredMethods.append(method.key);
+        for (HashCatalog::Entry& method : HashCatalog::createAll()) {
+            m_methods.append(method.method.get()->key());
         }
 	}
 
@@ -47,8 +46,8 @@ namespace photoboss
 
             for (const auto& fileId : *batch) {
                 CacheQuery query(fileId);
-             
-                query.requiredMethods = m_requiredMethods; // empty means "any"
+
+                query.requiredMethods = m_methods; // empty means "any"
 
                 auto result = m_cache->lookup(query);
 

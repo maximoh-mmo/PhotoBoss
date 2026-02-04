@@ -16,7 +16,6 @@ namespace photoboss {
         QObject* parent)
         : QObject(parent)
     {
-        initializeDefaultHashes();
     }
 
     PipelineController::~PipelineController()
@@ -24,26 +23,10 @@ namespace photoboss {
         stop();
     }
 
-    void PipelineController::initializeDefaultHashes()
-    {
-        const auto names = HashRegistry::registeredNames();
-
-        std::set<QString> enabledKeys;
-        for (const auto& name : names) {
-            enabledKeys.insert(name);
-        }
-
-        m_active_hash_methods_ = HashRegistry::createSnapshot(enabledKeys);
-
-        qDebug() << "Default-enabled hash methods:"
-            << m_active_hash_methods_.size();
-    }
-
     void PipelineController::start(const ScanRequest& request)
     {
         if (m_state_ != PipelineState::Stopped)
             return;
-
         SetPipelineState(PipelineState::Starting);
         createPipeline(request);
         SetPipelineState(PipelineState::Idle);
@@ -61,6 +44,7 @@ namespace photoboss {
             m_pipeline_->scan.request_shutdown(t);
 			m_pipeline_->disk.request_shutdown(t);
             m_pipeline_->readQueue.request_shutdown(t);
+            m_pipeline_->cacheStoreQueue.request_shutdown(t);
             m_pipeline_->resultQueue.request_shutdown(t);
         }
 
@@ -90,17 +74,18 @@ namespace photoboss {
             m_pipeline_->scan,
 			m_pipeline_->disk,
 			m_pipeline_->resultQueue,
-            m_active_hash_methods_,
 			"CacheLookup"
         );
 
-        m_pipeline_->cacheLookup->moveToThread(&m_pipeline_->cacheThread);
+        m_pipeline_->cacheLookup->moveToThread(&m_pipeline_->cacheLookupThread);
 
-        connect(&m_pipeline_->cacheThread, &QThread::started,
+        connect(&m_pipeline_->cacheLookupThread, &QThread::started,
             m_pipeline_->cacheLookup, &StageBase::Run);
 
-        connect(&m_pipeline_->cacheThread, &QThread::finished,
+        connect(&m_pipeline_->cacheLookupThread, &QThread::finished,
             m_pipeline_->cacheLookup, &QObject::deleteLater);
+
+        m_pipeline_->cacheLookupThread.start();
 
         // ---- Disk Reader ----
         m_pipeline_->reader = new DiskReader(m_pipeline_->disk, m_pipeline_->readQueue);
@@ -121,8 +106,8 @@ namespace photoboss {
         const int workers = std::max(1, QThread::idealThreadCount() - 1);
 
         for (int i = 0; i < workers; ++i) {
-            HashWorker* worker = new HashWorker(m_pipeline_->readQueue, m_pipeline_->cacheStoreQueue, m_active_hash_methods_);
-            QThread* thread = new QThread(this);
+            HashWorker* worker = new HashWorker(m_pipeline_->readQueue, m_pipeline_->cacheStoreQueue);
+            QThread* thread = new QThread();
 			m_hash_worker_threads_.push_back(thread);
             worker->moveToThread(thread);
 
@@ -145,21 +130,21 @@ namespace photoboss {
 		m_pipeline_->cacheStore = new CacheStore(
 			m_pipeline_->cacheStoreQueue,
 			m_pipeline_->resultQueue,
-            m_active_hash_methods_,
-			"CacheStore"
+            "CacheStore"
             );
 
-        m_pipeline_->cacheStore->moveToThread(&m_pipeline_->cacheThread);
+        m_pipeline_->cacheStore->moveToThread(&m_pipeline_->cacheStoreThread);
 
-        connect(&m_pipeline_->cacheThread, &QThread::started,
+        connect(&m_pipeline_->cacheStoreThread, &QThread::started,
             m_pipeline_->cacheStore, &StageBase::Run);
 
-        connect(&m_pipeline_->cacheThread, &QThread::finished,
+        connect(&m_pipeline_->cacheStoreThread, &QThread::finished,
             m_pipeline_->cacheStore, &QObject::deleteLater);
         
-		m_pipeline_->cacheThread.start();
+		m_pipeline_->cacheStoreThread.start();
+
 		// ---- Result Processor ----
-		m_pipeline_->resultProcessor = new ResultProcessor(m_pipeline_->resultQueue, m_active_hash_methods_, "ResultProcessor");
+		m_pipeline_->resultProcessor = new ResultProcessor(m_pipeline_->resultQueue, "ResultProcessor");
 		m_pipeline_->resultProcessor->moveToThread(&m_pipeline_->resultThread);
 
 		connect(&m_pipeline_->resultThread, &QThread::started,
@@ -168,7 +153,7 @@ namespace photoboss {
 		connect(&m_pipeline_->resultThread, &QThread::finished,
 			m_pipeline_->resultProcessor, &QObject::deleteLater);
 
-		connect(m_pipeline_->resultProcessor, &ResultProcessor::imageHashed,
+        connect(m_pipeline_->resultProcessor, &ResultProcessor::imageHashed,
 			this, &PipelineController::imageHashed);
 
         m_pipeline_->resultThread.start();
@@ -181,21 +166,28 @@ namespace photoboss {
         m_pipeline_->scannerThread.quit();
         m_pipeline_->scannerThread.wait();
 
-        m_pipeline_->cacheThread.quit();
-        m_pipeline_->cacheThread.wait();
+        m_pipeline_->cacheLookupThread.quit();
+        m_pipeline_->cacheLookupThread.wait();
+
+        m_pipeline_->cacheStoreThread.quit();
+        m_pipeline_->cacheStoreThread.wait();
 
         m_pipeline_->readerThread.quit();
         m_pipeline_->readerThread.wait();
 
         for (auto* thread : m_hash_worker_threads_) {
-            thread->quit();
-            thread->wait();
-		}
+            if (thread->isRunning()) {
+                thread->quit();
+                thread->wait();
+            }
+        }
+        m_hash_worker_threads_.clear();
 
 		m_pipeline_->resultThread.quit();
 		m_pipeline_->resultThread.wait();
 
         m_pipeline_.reset(); // queues + workers destroyed cleanly
+    
     }
 
     void PipelineController::SetPipelineState(PipelineState state)
@@ -209,21 +201,5 @@ namespace photoboss {
         stop();
         start(m_current_request_);
     }
-    void PipelineController::updateActiveHashes(const std::set<QString>& enabledKeys)
-    {
-        m_active_hash_methods_ = HashRegistry::createSnapshot(enabledKeys);
-
-        if (m_active_hash_methods_.empty()) {
-            emit status("Please enable at least one hash method");
-            return;
-        }
-        else {
-            qDebug() << "Active hash methods updated, count:"
-                << m_active_hash_methods_.size();
-        }
-
-        if (m_state_ != PipelineState::Stopped) {
-            restart(); // full teardown + rebuild
-        }
-    }
+    
 }

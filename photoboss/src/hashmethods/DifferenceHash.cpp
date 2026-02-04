@@ -1,12 +1,12 @@
-#include "DifferenceHash.h"
+#include "hashing/DifferenceHash.h"
 #include "qtypes.h"
 #include <bit>
 
 namespace photoboss {
     QString DifferenceHash::compute(const PerceptualImage& image)
     {
-        constexpr int startX = (64 - 9) / 2; // 27
-        constexpr int startY = (64 - 8) / 2; // 28
+        constexpr int startX = (32 - 9) / 2; // 27
+        constexpr int startY = (32 - 8) / 2; // 28
 
         uint64_t hash = 0;
         
@@ -28,7 +28,7 @@ namespace photoboss {
 
     double DifferenceHash::compare(const QString& hash1, const QString& hash2) const
     {
-        constexpr double maxDistance = 64.0;
+        constexpr double maxDistance = 32.0;
         uint64_t a = hash1.toULongLong(nullptr, 16);
         uint64_t b = hash2.toULongLong(nullptr, 16);
         uint64_t diff = a ^ b;

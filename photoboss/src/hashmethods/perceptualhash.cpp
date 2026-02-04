@@ -3,15 +3,11 @@
 #include <vector>
 #include <algorithm>
 #include <qimage.h>
-#include "hashing/HashRegistry.h"
+#include "hashing/HashMethod.h"
 #include "hashing/PerceptualHash.h"
 
 namespace photoboss
 {
-    // Linker trick to ensure registration
-    const bool ph_registered =
-        photoboss::HashRegistry::registerFactory<photoboss::PerceptualHash>("Perceptual Hash");
-
     struct DCTConstants {
         double matrix[32][32];
 

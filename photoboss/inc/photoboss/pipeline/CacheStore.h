@@ -4,7 +4,6 @@
 #include "util/DataTypes.h"
 #include "pipeline/stages/Pipeline.h"
 #include "caching/IHashCache.h"
-#include "hashing/HashRegistry.h"
 
 namespace photoboss
 {
@@ -15,14 +14,12 @@ namespace photoboss
 		CacheStore(
 			Queue<std::shared_ptr<HashedImageResult>>& input,
 			Queue<std::shared_ptr<HashedImageResult>>& output,
-			const std::vector<HashRegistry::Entry>& activeMethods,
 			QString id,
 			QObject* parent = nullptr
 		);
 		~CacheStore() override = default;
 
 	private:
-		std::vector<HashRegistry::Entry> m_activeHashMethods;
 		std::unique_ptr<IHashCache> m_cache;
 
 		// Inherited via Transform

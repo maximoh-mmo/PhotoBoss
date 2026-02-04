@@ -1,20 +1,21 @@
 #include "pipeline/ResultProcessor.h"
+#include "hashing/HashCatalog.h"
 
 namespace photoboss {
     ResultProcessor::ResultProcessor(Queue<std::shared_ptr<HashedImageResult>>& queue,
-        const std::vector<HashRegistry::Entry>& activeMethods,
         QString id,
         QObject* parent) :
         Sink(queue, std::move(id), parent),
         m_results_()
     {
-        for (const auto& entry : activeMethods) {
-            if (entry.key == "Perceptual Hash") {
-                m_pHash = entry.factory();
-                break;
+        auto hashes = HashCatalog::createAll();
+
+        for (auto& entry : hashes) {
+            if (entry.method.get()->key() == "Perceptual Hash") {
+                m_pHash = std::move(entry.method);
             }
         }
-
+        
         Q_ASSERT(m_pHash && "Perceptual Hash method not available");
     }
 

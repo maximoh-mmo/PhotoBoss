@@ -3,8 +3,9 @@
 #include "util/Queue.h"
 #include "util/DataTypes.h"
 #include "pipeline/stages/Pipeline.h"
+#include "pipeline/PipelineController.h"
 #include "util/GroupTypes.h"
-#include "hashing/HashRegistry.h"
+#include "hashing/HashMethod.h"
 
 namespace photoboss {
     class ResultProcessor : public Sink<std::shared_ptr<HashedImageResult>>
@@ -30,7 +31,6 @@ namespace photoboss {
      
     public:
         explicit ResultProcessor(Queue<std::shared_ptr<HashedImageResult>>& queue,
-            const std::vector<HashRegistry::Entry>& activeMethods,
             QString id, QObject* parent = nullptr);
 
         // Inherited via Sink

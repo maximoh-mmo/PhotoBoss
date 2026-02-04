@@ -30,9 +30,6 @@
     <ClCompile Include="src\pipeline\stages\HashWorker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ui\SettingsSelection.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\pipeline\stages\ResultProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -75,16 +72,18 @@
     <ClCompile Include="inc\photoboss\hashing\DifferenceHash.h">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="inc\photoboss\hashing\DifferenceHash.cpp">
+    <ClCompile Include="src\hashmethods\DifferenceHash.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="inc\photoboss\hashing\AverageHash.cpp">
+    <ClCompile Include="src\hashmethods\AverageHash.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="inc\photoboss\hashing\HashCatalog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="resources\MainWindow.ui" />
-    <QtUic Include="resources\SettingsSelection.ui" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="inc\photoboss\ui\MainWindow.h">
@@ -94,9 +93,6 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="inc\photoboss\pipeline\HashWorker.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="inc\photoboss\ui\SettingsSelection.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="inc\photoboss\pipeline\ResultProcessor.h">
@@ -152,9 +148,6 @@
     <ClInclude Include="inc\photoboss\util\FileIdentity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\photoboss\hashing\HashRegistry.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="inc\photoboss\util\ShutdownToken.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -171,6 +164,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\photoboss\hashing\AverageHash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\hashing\HashCatalog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

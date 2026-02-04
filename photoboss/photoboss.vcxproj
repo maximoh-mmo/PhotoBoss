@@ -156,15 +156,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <QtUic Include="resources\MainWindow.ui" />
-    <QtUic Include="resources\SettingsSelection.ui" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="inc\photoboss\ui\MainWindow.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="inc\photoboss\hashing\AverageHash.cpp" />
-    <ClCompile Include="inc\photoboss\hashing\DifferenceHash.cpp" />
+    <ClCompile Include="src\hashmethods\AverageHash.cpp" />
+    <ClCompile Include="src\hashmethods\DifferenceHash.cpp" />
     <ClCompile Include="inc\photoboss\hashing\DifferenceHash.h" />
+    <ClCompile Include="inc\photoboss\hashing\HashCatalog.cpp" />
     <ClCompile Include="src\exif\ExifReader.cpp" />
     <ClCompile Include="inc\photoboss\hashing\PerceptualHash.h" />
     <ClCompile Include="src\hashmethods\PerceptualImage.cpp" />
@@ -178,7 +178,6 @@
     <ClCompile Include="src\pipeline\stages\DirectoryScanner.cpp" />
     <ClCompile Include="src\pipeline\PipelineController.cpp" />
     <ClCompile Include="src\pipeline\stages\ResultProcessor.cpp" />
-    <ClCompile Include="src\ui\SettingsSelection.cpp" />
     <ClCompile Include="src\pipeline\stages\DiskReader.cpp" />
     <ClCompile Include="src\pipeline\stages\HashWorker.cpp" />
     <ClCompile Include="src\hashmethods\PerceptualHash.cpp" />
@@ -189,12 +188,12 @@
     <ClInclude Include="inc\photoboss\caching\NullHashCache.h" />
     <ClInclude Include="inc\photoboss\exif\ExifReader.h" />
     <ClInclude Include="inc\photoboss\hashing\AverageHash.h" />
+    <ClInclude Include="inc\photoboss\hashing\HashCatalog.h" />
     <ClInclude Include="inc\photoboss\hashing\PerceptualImage.h" />
     <ClInclude Include="inc\photoboss\util\ExifData.h" />
     <ClInclude Include="inc\photoboss\util\ShutdownToken.h" />
     <ClInclude Include="inc\photoboss\hashing\Sha256Hash.h" />
     <QtMoc Include="inc\photoboss\pipeline\CacheStore.h" />
-    <ClInclude Include="inc\photoboss\hashing\HashRegistry.h" />
     <ClInclude Include="inc\photoboss\pipeline\stages\Pipeline.h" />
     <ClInclude Include="inc\photoboss\pipeline\stages\Transform.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\StageBase.h" />
@@ -203,7 +202,6 @@
     <ClInclude Include="inc\photoboss\caching\SqliteHashCache.h" />
     <QtMoc Include="inc\photoboss\pipeline\PipelineController.h" />
     <QtMoc Include="inc\photoboss\pipeline\ResultProcessor.h" />
-    <QtMoc Include="inc\photoboss\ui\SettingsSelection.h" />
     <QtMoc Include="inc\photoboss\pipeline\DiskReader.h" />
     <QtMoc Include="inc\photoboss\pipeline\HashWorker.h" />
     <QtMoc Include="inc\photoboss\pipeline\DirectoryScanner.h" />

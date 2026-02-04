@@ -5,11 +5,9 @@ namespace photoboss
     CacheStore::CacheStore(
         Queue<std::shared_ptr<HashedImageResult>>& input,
         Queue<std::shared_ptr<HashedImageResult>>& output,
-        const std::vector<HashRegistry::Entry>& activeMethods,
         QString id, QObject* parent
     ) :
         Transform<std::shared_ptr<HashedImageResult>, std::shared_ptr<HashedImageResult>>(input, output, id, parent),
-        m_activeHashMethods(activeMethods),
         m_cache(std::make_unique<SqliteHashCache>())
     {
     }

@@ -28,6 +28,10 @@ namespace photoboss
 	}
     double PerceptualImage::pixel(int x, int y) const
     {
+        if (x < 0) x = 0;
+        if (y < 0) y = 0;
+        if (x >= Size) x = Size - 1;
+        if (y >= Size) y = Size - 1;
         return static_cast<double>(padded_square.constScanLine(y)[x]);
     }
 }

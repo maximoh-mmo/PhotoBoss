@@ -1,6 +1,5 @@
 #include "ui/mainwindow.h"
 #include <QtWidgets/QApplication>
-#include "hashing/HashRegistry.h"
 
 int main(int argc, char *argv[]) {
 

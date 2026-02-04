@@ -1,6 +1,5 @@
 #include "ui/mainwindow.h"
 #include "ui_mainwindow.h"
-#include "ui/SettingsSelection.h"
 #include "pipeline/PipelineController.h"
 #include "hashing/HashMethod.h"
 
@@ -66,7 +65,6 @@ namespace photoboss
             }
             });
 
-        connect(ui_->actionSettings, &QAction::triggered, this, &MainWindow::openSettings);
         connect(m_pipeline_controller_.get(), &PipelineController::status, this, [this](const QString& message) {
             m_status_bar_->showMessage(message);
 			});
@@ -90,16 +88,6 @@ namespace photoboss
             m_current_folder_ = folder;
             OnCurrentFolderChanged();
         }
-    }
-
-    void MainWindow::openSettings()
-    {
-        SettingsSelection settingsDialog(this);
-        connect(&settingsDialog, &SettingsSelection::settingsApplied,
-            this, [this](const std::set<QString>& hashes) {
-                m_pipeline_controller_->updateActiveHashes(hashes);
-            });
-        settingsDialog.exec();
     }
 
     void MainWindow::OnImageHashed(std::shared_ptr<HashedImageResult> result)

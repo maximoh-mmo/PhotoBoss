@@ -35,10 +35,10 @@ namespace photoboss {
 
         // Threads
         QThread scannerThread;
-        QThread cacheThread;
+        QThread cacheLookupThread;
+        QThread cacheStoreThread;
         QThread readerThread;
         QThread resultThread;
-		QThread cacheStoreThread;
 
         // Workers
         DirectoryScanner* scanner = nullptr;
@@ -74,15 +74,12 @@ namespace photoboss {
         void stop();
 		void restart();
 
-        void initializeDefaultHashes();
-        void updateActiveHashes(const std::set<QString>& enabledKeys);
-
     signals:
         void imageHashed(std::shared_ptr<HashedImageResult> result);
 		void status(const QString& message);
 		void diskReadProgress(int current, int total);
         void pipelineStateChanged(PipelineState state);
-
+        
     private:
         void createPipeline(const ScanRequest& request);
 		void destroyPipeline();
@@ -92,7 +89,6 @@ namespace photoboss {
 		PipelineState m_state_ = PipelineState::Stopped;
 		void SetPipelineState(PipelineState state);
 		ScanRequest m_current_request_;
-        std::vector<HashRegistry::Entry> m_active_hash_methods_;
 		std::vector<QThread*> m_hash_worker_threads_;
     };
 }
