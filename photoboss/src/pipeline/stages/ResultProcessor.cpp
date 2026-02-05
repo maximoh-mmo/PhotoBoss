@@ -1,145 +1,97 @@
-#include "pipeline/ResultProcessor.h"
+#include "pipeline/stages/ResultProcessor.h"
 #include "hashing/HashCatalog.h"
+#include "pipeline/SimilarityEngine.h"
 
 namespace photoboss {
     ResultProcessor::ResultProcessor(Queue<std::shared_ptr<HashedImageResult>>& queue,
         QString id,
         QObject* parent) :
-        Sink(queue, std::move(id), parent),
-        m_results_()
+        StageBase(std::move(id), parent),
+        m_input(queue),
+        m_items()
     {
-        auto hashes = HashCatalog::createAll();
-
-        for (auto& entry : hashes) {
-            if (entry.method.get()->key() == "Perceptual Hash") {
-                m_pHash = std::move(entry.method);
-            }
-        }
-        
-        Q_ASSERT(m_pHash && "Perceptual Hash method not available");
     }
 
-    void ResultProcessor::consume(const std::shared_ptr<HashedImageResult>& item)
+    QString humanSize(qint64 bytes)
     {
-        Q_ASSERT(!item->hashes.empty());
-        m_results_.push_back(std::move(item));
-        return;
+        constexpr double KB = 1024.0;
+        constexpr double MB = KB * 1024.0;
+        constexpr double GB = MB * 1024.0;
+
+        if (bytes >= GB) return QString::number(bytes / GB, 'f', 2) + " GB";
+        if (bytes >= MB) return QString::number(bytes / MB, 'f', 2) + " MB";
+        if (bytes >= KB) return QString::number(bytes / KB, 'f', 1) + " KB";
+        return QString::number(bytes) + " B";
     }
+
 
     void ResultProcessor::run() {
         std::shared_ptr<HashedImageResult> item;
         while (m_input.wait_and_pop(item)) {
-            consume(item);
+            Q_ASSERT(!item->hashes.empty());
+            m_items.push_back(std::move(item));
         }
-        group_items();
-    }
+        SimilarityEngine engine;
+        auto groups = engine.group(m_items);
 
-    void ResultProcessor::group_items() 
-    {
-        ExactMap exactGroups;
-        std::vector<GroupRep> perceptualGroups;
-        
-        for (auto& r : m_results_) {
-            const auto& sha = r->hashes.at("SHA256");
-            if (r->hashes.count("SHA256") <= 0)
+        // ---- DEBUG OUTPUT ----
+        qDebug().noquote() << "\n========== SIMILARITY GROUPS ==========";
+
+        int groupIndex = 1;
+        for (const auto& group : groups) {
+            if (group.images.size() <= 1)
                 continue;
+            qDebug().noquote()
+                << "\n--- Group"
+                << groupIndex++
+                << "| Images:"
+                << group.images.size()
+                << "---";
 
-            if (r->hashes.count("Perceptual Hash") <= 0)
-                continue;
-            exactGroups[sha].push_back({
-                r.get(),
-                r->resolution,
-                r->fileIdentity.size()
-                });
-        }
-
-        constexpr double SIM_THRESHOLD = 0.95;
-
-        for (auto& [sha, images] : exactGroups) {
-            QString repHash = images[0].result->hashes.at("Perceptual Hash");
-            bool merged = false;
-
-            for (auto& pg : perceptualGroups) {
-                double sim = m_pHash->compare(repHash, pg.pHash);
-                if (sim >= SIM_THRESHOLD) {
-                    pg.images.insert(pg.images.end(),
-                        images.begin(), images.end());
-                    merged = true;
-                    break;
-                }
+            if (!group.images.empty()) {
+                const auto& rep = group.images[group.bestIndex];
+                qDebug().noquote()
+                    << " Representative:"
+                    << rep.path
+                    << "|"
+                    << rep.resolution.width() << "x" << rep.resolution.height()
+                    << "|"
+                    << humanSize(rep.fileSize);
             }
 
-            if (!merged) {
-                perceptualGroups.push_back({ images, repHash });
-            }
-        }
-
-        m_groups_.clear();
-
-        for (const auto& rep : perceptualGroups) {
-            m_groups_.push_back(buildGroup(rep));
-        }
-
-        for (const auto& pg : perceptualGroups) {
-            if (pg.images.size() <= 1)
-                continue;
-
-            qDebug().noquote() << "\n=== Duplicate Group ("
-                << pg.images.size()
-                << " images ) ===";
-
-            for (const auto& img : pg.images) {
-                const auto* r = img.result;
+            for (size_t i = 0; i < group.images.size(); ++i) {
+                const auto& img = group.images[i];
 
                 qDebug().noquote()
-                    << "  "
-                    << r->fileIdentity.path()
+                    << " "
+                    << (img.isBest ? "*" : " ")
+                    << QString("[%1]").arg(i)
+                    << img.path
                     << "|"
                     << img.resolution.width() << "x" << img.resolution.height()
                     << "|"
-                    << r->fileIdentity.size();
+                    << humanSize(img.fileSize);
             }
         }
-    }
 
-    ImageGroup ResultProcessor::buildGroup(const GroupRep& rep)
-    {
-        ImageGroup group;
-        group.bestIndex = 0;
+        qDebug().noquote() << "======================================\n";
+        int duplicateGroups = 0;
+        int duplicateImages = 0;
 
-        ImageScore bestScore{ 0, 0 };
-
-        for (size_t i = 0; i < rep.images.size(); ++i) {
-            const auto& img = rep.images[i];
-
-            ImageEntry entry;
-            entry.path = img.result->fileIdentity.path();
-            entry.fileSize = img.result->fileIdentity.size();
-            entry.lastModified = img.result->fileIdentity.modifiedTime();
-            entry.resolution = img.resolution;
-            entry.format = img.result->fileIdentity.extension();
-            entry.isBest = false;
-
-            ImageScore s{
-                entry.resolution.width() * entry.resolution.height(),
-                entry.fileSize
-            };
-
-            if (i == 0 || better(s, bestScore)) {
-                bestScore = s;
-                group.bestIndex = static_cast<int>(i);
+        for (const auto& g : groups) {
+            if (g.images.size() > 1) {
+                ++duplicateGroups;
+                duplicateImages += static_cast<int>(g.images.size());
             }
-
-            group.images.push_back(std::move(entry));
         }
 
-        group.images[group.bestIndex].isBest = true;
-        return group;
+        qDebug().noquote()
+            << "\nFound"
+            << duplicateGroups
+            << "duplicate groups covering"
+            << duplicateImages
+            << "images.";
+        emit groupingFinished(std::move(groups));
     }
 
-    bool ResultProcessor::better(const ImageScore& a, const ImageScore& b)
-    {
-        if (a.pixels != b.pixels) return a.pixels > b.pixels;
-        return a.fileSize > b.fileSize;
-    }
 }

@@ -54,9 +54,6 @@
     <ClCompile Include="inc\photoboss\hashing\PerceptualHash.h">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="inc\photoboss\pipeline\stages\Sink.h">
-      <Filter>Header Files</Filter>
-    </ClCompile>
     <ClCompile Include="inc\photoboss\util\CacheTypes.h">
       <Filter>Header Files</Filter>
     </ClCompile>
@@ -81,6 +78,9 @@
     <ClCompile Include="inc\photoboss\hashing\HashCatalog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\pipeline\SimilarityEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="resources\MainWindow.ui" />
@@ -89,28 +89,28 @@
     <QtMoc Include="inc\photoboss\ui\MainWindow.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\pipeline\DiskReader.h">
+    <QtMoc Include="inc\photoboss\pipeline\stages\DiskReader.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\pipeline\HashWorker.h">
+    <QtMoc Include="inc\photoboss\pipeline\stages\HashWorker.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\pipeline\ResultProcessor.h">
+    <QtMoc Include="inc\photoboss\pipeline\stages\ResultProcessor.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="inc\photoboss\pipeline\PipelineController.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\pipeline\DirectoryScanner.h">
+    <QtMoc Include="inc\photoboss\pipeline\stages\DirectoryScanner.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\pipeline\CacheLookup.h">
+    <QtMoc Include="inc\photoboss\pipeline\stages\CacheLookup.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\pipeline\stages\StageBase.h">
+    <QtMoc Include="inc\photoboss\pipeline\StageBase.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\pipeline\CacheStore.h">
+    <QtMoc Include="inc\photoboss\pipeline\stages\CacheStore.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
@@ -133,18 +133,6 @@
     <ClInclude Include="inc\photoboss\caching\SqliteHashCache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\photoboss\pipeline\stages\Pipeline.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\photoboss\pipeline\stages\Router.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\photoboss\pipeline\stages\Source.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\photoboss\pipeline\stages\Transform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="inc\photoboss\util\FileIdentity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -157,9 +145,6 @@
     <ClInclude Include="inc\photoboss\hashing\PerceptualImage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\photoboss\util\ExifData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="inc\photoboss\exif\ExifReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -167,6 +152,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\photoboss\hashing\HashCatalog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\pipeline\SimilarityEngine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\util\ExifData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

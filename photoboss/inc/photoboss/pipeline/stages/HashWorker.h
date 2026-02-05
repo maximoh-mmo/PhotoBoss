@@ -1,7 +1,7 @@
 #pragma once
 
 #include "hashing/HashCatalog.h"
-#include "pipeline/stages/Pipeline.h"
+#include "pipeline/StageBase.h"
 #include "util/DataTypes.h"
 #include "util/Queue.h"
 
@@ -21,6 +21,7 @@ namespace photoboss {
         Queue<std::shared_ptr<HashedImageResult>>& m_output;
         std::vector<HashCatalog::Entry> m_hashMethods;
 
+        bool loadAndOrient(const QByteArray& imageBytes, int orientation, QImage& image);
         // Inherited via StageBase
         void onStart() override;
         void onStop() override;

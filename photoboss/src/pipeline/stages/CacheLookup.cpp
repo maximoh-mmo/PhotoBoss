@@ -1,4 +1,4 @@
-#include "pipeline/CacheLookup.h"
+#include "pipeline/stages/CacheLookup.h"
 #include "caching/SqliteHashCache.h"
 
 namespace photoboss

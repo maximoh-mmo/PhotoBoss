@@ -3,11 +3,12 @@
 #include <QString>
 #include <memory>
 #include "util/DataTypes.h"
-#include "pipeline/stages/Pipeline.h"
+#include "util/Queue.h"
+#include "pipeline/StageBase.h"
 
 namespace photoboss {
 
-    class DirectoryScanner : public Source<FileIdentityBatchPtr>
+    class DirectoryScanner : public StageBase
     {
         Q_OBJECT
     public:
@@ -18,11 +19,15 @@ namespace photoboss {
 
         ~DirectoryScanner() override;
 
-        // Inherited via Source
-        void produce() override;
     private:
         std::atomic<bool> m_cancelled_{ false };
 		ScanRequest m_request_;
+        Queue<FileIdentityBatchPtr>& m_output;
+
+        // Inherited via StageBase
+        void run() override;
+        void onStart() override;
+        void onStop() override;
     };
 
 }

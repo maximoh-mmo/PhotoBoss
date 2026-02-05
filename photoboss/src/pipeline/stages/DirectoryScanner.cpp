@@ -1,18 +1,19 @@
 #include <QDirIterator>
 #include <QFileInfo>
-#include "pipeline/DirectoryScanner.h"
+#include "pipeline/stages/DirectoryScanner.h"
 #include "exif/ExifReader.h"
 
 namespace photoboss {
 
     DirectoryScanner::DirectoryScanner(ScanRequest request,Queue<FileIdentityBatchPtr>& outputQueue, QObject* parent) :
-        Source<FileIdentityBatchPtr>(outputQueue, "DirectoryScanner", parent),
-		m_request_(std::move(request))
+        StageBase("DirectoryScanner", parent),
+		m_request_(std::move(request)),
+        m_output(outputQueue)
     {}
 
     DirectoryScanner::~DirectoryScanner() {}
 
-    void DirectoryScanner::produce() {
+    void DirectoryScanner::run() {
         bool cancelled = false;
 
         emit status(QStringLiteral("Scanner: starting"));
@@ -68,5 +69,13 @@ namespace photoboss {
         if (!batch->empty()) {
             m_output.emplace(batch);
         }
+    }
+    void DirectoryScanner::onStart()
+    {
+        m_output.register_producer();
+    }
+    void DirectoryScanner::onStop()
+    {
+        m_output.producer_done();
     }
 }

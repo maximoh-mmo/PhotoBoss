@@ -161,6 +161,7 @@
     <QtMoc Include="inc\photoboss\ui\MainWindow.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\pipeline\SimilarityEngine.cpp" />
     <ClCompile Include="src\hashmethods\AverageHash.cpp" />
     <ClCompile Include="src\hashmethods\DifferenceHash.cpp" />
     <ClCompile Include="inc\photoboss\hashing\DifferenceHash.h" />
@@ -171,7 +172,6 @@
     <ClCompile Include="inc\photoboss\util\GroupTypes.h" />
     <ClCompile Include="src\hashmethods\Sha256Hash.cpp" />
     <ClCompile Include="src\pipeline\stages\CacheStore.cpp" />
-    <ClCompile Include="inc\photoboss\pipeline\stages\Sink.h" />
     <ClCompile Include="inc\photoboss\util\CacheTypes.h" />
     <ClCompile Include="src\caching\SqliteHashCache.cpp" />
     <ClCompile Include="src\pipeline\stages\CacheLookup.cpp" />
@@ -190,22 +190,19 @@
     <ClInclude Include="inc\photoboss\hashing\AverageHash.h" />
     <ClInclude Include="inc\photoboss\hashing\HashCatalog.h" />
     <ClInclude Include="inc\photoboss\hashing\PerceptualImage.h" />
+    <ClInclude Include="inc\photoboss\pipeline\SimilarityEngine.h" />
     <ClInclude Include="inc\photoboss\util\ExifData.h" />
     <ClInclude Include="inc\photoboss\util\ShutdownToken.h" />
     <ClInclude Include="inc\photoboss\hashing\Sha256Hash.h" />
-    <QtMoc Include="inc\photoboss\pipeline\CacheStore.h" />
-    <ClInclude Include="inc\photoboss\pipeline\stages\Pipeline.h" />
-    <ClInclude Include="inc\photoboss\pipeline\stages\Transform.h" />
-    <QtMoc Include="inc\photoboss\pipeline\stages\StageBase.h" />
-    <ClInclude Include="inc\photoboss\pipeline\stages\Router.h" />
-    <ClInclude Include="inc\photoboss\pipeline\stages\Source.h" />
+    <QtMoc Include="inc\photoboss\pipeline\stages\CacheStore.h" />
+    <QtMoc Include="inc\photoboss\pipeline\StageBase.h" />
     <ClInclude Include="inc\photoboss\caching\SqliteHashCache.h" />
     <QtMoc Include="inc\photoboss\pipeline\PipelineController.h" />
-    <QtMoc Include="inc\photoboss\pipeline\ResultProcessor.h" />
-    <QtMoc Include="inc\photoboss\pipeline\DiskReader.h" />
-    <QtMoc Include="inc\photoboss\pipeline\HashWorker.h" />
-    <QtMoc Include="inc\photoboss\pipeline\DirectoryScanner.h" />
-    <QtMoc Include="inc\photoboss\pipeline\CacheLookup.h" />
+    <QtMoc Include="inc\photoboss\pipeline\stages\ResultProcessor.h" />
+    <QtMoc Include="inc\photoboss\pipeline\stages\DiskReader.h" />
+    <QtMoc Include="inc\photoboss\pipeline\stages\HashWorker.h" />
+    <QtMoc Include="inc\photoboss\pipeline\stages\DirectoryScanner.h" />
+    <QtMoc Include="inc\photoboss\pipeline\stages\CacheLookup.h" />
     <ClInclude Include="inc\photoboss\hashing\HashMethod.h" />
     <ClInclude Include="inc\photoboss\util\DataTypes.h" />
     <ClInclude Include="inc\photoboss\caching\IHashCache.h" />

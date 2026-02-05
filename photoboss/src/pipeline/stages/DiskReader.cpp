@@ -1,4 +1,4 @@
-#include "pipeline/DiskReader.h"
+#include "pipeline/stages/DiskReader.h"
 #include <QFile>
 #include <QThread>
 #include <QCryptographicHash>

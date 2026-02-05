@@ -1,10 +1,10 @@
 ﻿#include "pipeline/PipelineController.h"
-#include "pipeline/DirectoryScanner.h"
-#include "pipeline/DiskReader.h"
-#include "pipeline/HashWorker.h"
-#include "pipeline/ResultProcessor.h"
-#include "pipeline/CacheLookup.h"
-#include "pipeline/CacheStore.h"
+#include "pipeline/stages/DirectoryScanner.h"
+#include "pipeline/stages/DiskReader.h"
+#include "pipeline/stages/HashWorker.h"
+#include "pipeline/stages/ResultProcessor.h"
+#include "pipeline/stages/CacheLookup.h"
+#include "pipeline/stages/CacheStore.h"
 #include "caching/SqliteHashCache.h"
 #include "util/ShutdownToken.h"
 #include <QDebug>
@@ -152,9 +152,6 @@ namespace photoboss {
 
 		connect(&m_pipeline_->resultThread, &QThread::finished,
 			m_pipeline_->resultProcessor, &QObject::deleteLater);
-
-        connect(m_pipeline_->resultProcessor, &ResultProcessor::imageHashed,
-			this, &PipelineController::imageHashed);
 
         m_pipeline_->resultThread.start();
     }

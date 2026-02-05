@@ -4,11 +4,9 @@
 #include <memory>
 #include <vector>
 #include "util/Queue.h"
-#include "HashWorker.h"
 #include "util/DataTypes.h"
 #include "hashing/HashMethod.h"
-#include "pipeline/stages/Pipeline.h"
-#include "caching/NullHashCache.h"
+#include "caching/IHashCache.h"
 
 namespace photoboss {
 	class DirectoryScanner;
@@ -16,6 +14,7 @@ namespace photoboss {
 	class ResultProcessor;
 	class CacheLookup;
     class CacheStore;
+    class HashWorker;
 
     enum class PipelineState {
         Stopped,

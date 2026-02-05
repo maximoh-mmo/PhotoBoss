@@ -2,9 +2,9 @@
 #include <QObject>
 #include "util/Queue.h"
 #include "util/DataTypes.h"
-#include "pipeline/stages/Pipeline.h"
 #include "caching/IHashCache.h"
 #include "hashing/HashCatalog.h"
+#include "pipeline/StageBase.h"
 
 namespace photoboss
 {

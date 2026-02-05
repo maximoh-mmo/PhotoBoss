@@ -1,4 +1,4 @@
-#include "pipeline/HashWorker.h"
+#include "pipeline/stages/HashWorker.h"
 #include "hashing/HashMethod.h"
 #include "hashing/HashCatalog.h"
 #include <QThread>
@@ -60,8 +60,10 @@ namespace photoboss {
             }
 
                 qDebug() << "HashWorker: Processing image:" << item->fileIdentity.path();
+                
                 QImage img;
-                if (!img.loadFromData(item->imageBytes)) {
+
+                if (!loadAndOrient(item->imageBytes, item->fileIdentity.exif().orientation.value_or(1), img)) {
                     qDebug() << "Image load failed" << item->fileIdentity.path();
                     result->source = HashSource::Error;
                 }
@@ -81,10 +83,65 @@ namespace photoboss {
             m_output.emplace(std::move(result));
         }
     }
+    bool HashWorker::loadAndOrient(const QByteArray& imageBytes, int orientation, QImage& image)
+    {
+        QImage img;
+        if (!img.loadFromData(imageBytes))
+            return false;
+        QTransform t;
+
+        switch (orientation) {
+        case 2: // Mirror horizontal
+            t.scale(-1, 1);
+            t.translate(-img.width(), 0);
+            break;
+
+        case 3: // Rotate 180
+            t.rotate(180);
+            t.translate(-img.width(), -img.height());
+            break;
+
+        case 4: // Mirror vertical
+            t.scale(1, -1);
+            t.translate(0, -img.height());
+            break;
+
+        case 5: // Mirror horizontal + rotate 90 CCW
+            t.rotate(90);       
+            t.translate(0, -img.height());
+            t.scale(-1, 1);
+            break;
+
+        case 6: // Rotate 90 CW
+            t.rotate(90);
+            t.translate(0, -img.height());
+            break;
+
+        case 7: // Mirror horizontal + rotate 90 CW
+            t.rotate(-90);
+            t.translate(-img.width(), 0);
+            t.scale(-1, 1);
+            break;
+
+        case 8: // Rotate 270
+            t.rotate(270);
+            t.translate(-img.width(), 0);
+            break;
+
+        default: // 1 or unknown
+            image = img;
+            return true;
+        }
+
+        image = img.transformed(t, Qt::SmoothTransformation);
+        return !image.isNull();
+    }
+
     void HashWorker::onStart()
     {
         m_output.register_producer();
     }
+
     void HashWorker::onStop()
     {
         m_output.producer_done();
