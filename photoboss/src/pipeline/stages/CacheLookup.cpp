@@ -47,7 +47,7 @@ namespace photoboss
             for (const auto& fileId : *batch) {
                 CacheQuery query(fileId);
 
-                query.requiredMethods = m_methods; // empty means "any"
+                query.hashMethods = m_methods; // empty means "any"
 
                 auto result = m_cache->lookup(query);
 

@@ -37,7 +37,7 @@ namespace photoboss {
         );
 
     signals:
-        void groupingFinished(std::vector<ImageGroup> groups);
+        void groupingFinished(const std::vector<ImageGroup> groups);
     
     protected:
         void run() override;

@@ -30,5 +30,4 @@ namespace photoboss {
         double aHash = 0.20;
         double ratio = 0.10;
     };
-
 }

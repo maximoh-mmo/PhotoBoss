@@ -42,15 +42,16 @@ namespace photoboss {
             QString path = it.next();
             QFileInfo file_info(path);
             if (!file_info.isFile()) continue;
+            auto exif = exif::ExifReader::read(path);
 
             FileIdentity fileIdentity(
                 path,
                 file_info.suffix().toUpper(),
                 static_cast<quint64>(file_info.size()), 
                 static_cast<quint64>(file_info.lastModified().toSecsSinceEpoch()),
-                exif::ExifReader::read(path)
+                exif
             );
-            
+
             batch->push_back(fileIdentity);
             ++count;
 

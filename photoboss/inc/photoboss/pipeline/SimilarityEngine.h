@@ -83,11 +83,5 @@ namespace photoboss {
             const ImageNode& a,
             const ImageNode& b
         );
-
-        static bool worse(const ImageNode& a, const ImageNode& b)
-        {
-            return better(b, a);
-        }
-
     };
 }

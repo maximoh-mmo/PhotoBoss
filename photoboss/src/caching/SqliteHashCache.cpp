@@ -9,7 +9,7 @@
 
 namespace photoboss
 {
-    constexpr int SCHEMA_VERSION = 1;
+    constexpr int SCHEMA_VERSION = 2;
 
     static bool execOrLog(QSqlQuery& query, const QString& context)
     {
@@ -65,68 +65,107 @@ namespace photoboss
     // Public API
     // ------------------------------------------------------------
 
-    CacheLookupResult SqliteHashCache::lookup(const CacheQuery& query)
+    CacheLookupResult SqliteHashCache::lookup(const CacheQuery& cacheQuery)
     {
         ensureOpen();
         if (!m_valid_)
-            return { Lookup::Error, query.fileIdentity };
+            return { Lookup::Error, cacheQuery.fileIdentity };
 
-        QSqlQuery q(m_db_);
+        QSqlQuery query(m_db_);
 
         // 1) find file
-        q.prepare(R"(
+        query.prepare(R"(
             SELECT id
             FROM files
             WHERE path = :path
               AND size = :size
-              AND modified_time = :mtime;
+              AND modified_time = :mtime
         )");
-        q.bindValue(":path", query.fileIdentity.path());
-        q.bindValue(":size", query.fileIdentity.size());
-        q.bindValue(":mtime", query.fileIdentity.modifiedTime());
+        query.bindValue(":path", cacheQuery.fileIdentity.path());
+        query.bindValue(":size", cacheQuery.fileIdentity.size());
+        query.bindValue(":mtime", cacheQuery.fileIdentity.modifiedTime());
 
-        if (!q.exec() || !q.next())
-            return { Lookup::Miss, query.fileIdentity };
+        if (!query.exec() || !query.next())
+            return { Lookup::Miss, cacheQuery.fileIdentity };
 
-        const int fileId = q.value(0).toInt();
+        const int fileId = query.value(0).toInt();
 
-        // 2) resolve method IDs
         QMap<QString, int> methodIds;
-        for (const QString& key : query.requiredMethods) {
-            QSqlQuery mq(m_db_);
-            mq.prepare("SELECT id FROM hash_methods WHERE key = :key;");
-            mq.bindValue(":key", key);
+        for (const QString& key : cacheQuery.hashMethods) {
+            QSqlQuery methodQuery(m_db_);
+            methodQuery.prepare("SELECT id FROM hash_methods WHERE key = :key;");
+            methodQuery.bindValue(":key", key);
 
-            if (!mq.exec() || !mq.next())
-                return { Lookup::Miss, query.fileIdentity };
+            if (!methodQuery.exec() || !methodQuery.next())
+                return { Lookup::Miss, cacheQuery.fileIdentity };
 
-            methodIds.insert(key, mq.value(0).toInt());
+            methodIds.insert(key, methodQuery.value(0).toInt());
+        }
+
+        QSqlQuery exifQuery(m_db_);
+
+        exifQuery.prepare(R"(
+            SELECT
+            orientation,
+            datetime_original,
+            camera_make,
+            camera_model
+            FROM file_exif
+            WHERE file_id = :file;
+        )");
+        exifQuery.bindValue(":file", fileId);
+
+        ExifData cachedExif;
+
+        if (exifQuery.exec() && exifQuery.next()) {
+            if (!exifQuery.isNull(0)) cachedExif.orientation = exifQuery.value(0).toInt();
+            if (!exifQuery.isNull(1)) cachedExif.dateTimeOriginal = exifQuery.value(1).toULongLong();
+            if (!exifQuery.isNull(2)) cachedExif.cameraMake = exifQuery.value(2).toString();
+            if (!exifQuery.isNull(3)) cachedExif.cameraModel = exifQuery.value(3).toString();
+        }
+
+        if (!(cachedExif == cacheQuery.fileIdentity.exif())) {
+            return { Lookup::Miss, cacheQuery.fileIdentity };
         }
 
         // 3) fetch hashes
         HashedImageResult result{
-            query.fileIdentity,
+            cacheQuery.fileIdentity,
             HashSource::Cache,
             QDateTime{},
             QSize{},
             {}
         };
 
-        for (auto it = methodIds.begin(); it != methodIds.end(); ++it) {
-            QSqlQuery hq(m_db_);
-            hq.prepare(R"(
+        for (auto method = methodIds.begin(); method != methodIds.end(); ++method) {
+            QSqlQuery hashQuery(m_db_);
+            hashQuery.prepare(R"(
                 SELECT hash_value
                 FROM hashes
                 WHERE file_id = :file
                   AND method_id = :method;
             )");
-            hq.bindValue(":file", fileId);
-            hq.bindValue(":method", it.value());
+            hashQuery.bindValue(":file", fileId);
+            hashQuery.bindValue(":method", method.value());
 
-            if (!hq.exec() || !hq.next())
-                return { Lookup::Error, query.fileIdentity };
+            if (!hashQuery.exec() || !hashQuery.next())
+                return { Lookup::Error, cacheQuery.fileIdentity };
 
-            result.hashes.emplace(it.key(), hq.value(0).toString());
+            result.hashes.emplace(method.key(), hashQuery.value(0).toString());
+        }
+
+        QSqlQuery resolution(m_db_);
+        resolution.prepare(R"(
+                SELECT height, width
+                FROM files
+                WHERE id = :id;
+            )");
+        resolution.bindValue(":id", fileId);
+
+        if (resolution.exec() && resolution.next()) { 
+            if (!resolution.isNull(0) && !resolution.isNull(1)){
+                result.resolution = { resolution.value(0).toInt(), resolution.value(1).toInt() };
+            };
         }
 
         return { Lookup::Hit, result };
@@ -207,6 +246,51 @@ namespace photoboss
                 q.exec("ROLLBACK;");
                 return;
             }
+        }
+
+        //upsert exif data
+        const ExifData& exif = result.fileIdentity.exif();
+
+        QSqlQuery ex(m_db_);
+        ex.prepare(R"(
+            INSERT INTO file_exif (
+                file_id,
+                orientation,
+                datetime_original,
+                camera_make,
+                camera_model
+                )
+            VALUES (
+                :file,
+                :orientation,
+                :datetime,
+                :make,
+                :model
+            )
+            ON CONFLICT(file_id) DO UPDATE SET
+                orientation = excluded.orientation,
+                datetime_original = excluded.datetime_original,
+                camera_make = excluded.camera_make,
+                camera_model = excluded.camera_model;
+        )");
+
+        ex.bindValue(":file", fileId);
+
+        ex.bindValue(":orientation", exif.orientation ? 
+            QVariant(*exif.orientation) : QVariant());
+
+        ex.bindValue(":datetime", exif.dateTimeOriginal ? 
+            QVariant::fromValue<qulonglong>(*exif.dateTimeOriginal) : QVariant());
+
+        ex.bindValue(":make", exif.cameraMake ? 
+            QVariant(*exif.cameraMake) : QVariant());
+
+        ex.bindValue(":model", exif.cameraModel ? 
+            QVariant(*exif.cameraModel) : QVariant());
+
+        if (!execOrLog(ex, "upsert exif")) {
+            q.exec("ROLLBACK;");
+            return;
         }
 
         q.exec("COMMIT;");
@@ -306,6 +390,19 @@ namespace photoboss
         )");
         if (!execOrLog(q, "create hashes")) return false;
 
+        // exif
+        q.prepare(R"(
+            CREATE TABLE IF NOT EXISTS file_exif (
+                file_id INTEGER PRIMARY KEY,
+                orientation INTEGER,
+                datetime_original INTEGER,
+                camera_make TEXT,
+                camera_model TEXT,
+                FOREIGN KEY (file_id) REFERENCES files(id) ON DELETE CASCADE
+                );
+            )");
+
+        if (!execOrLog(q, "create file_exif")) return false;
         // schema version
         q.prepare(R"(
             INSERT OR IGNORE INTO meta (key, value)

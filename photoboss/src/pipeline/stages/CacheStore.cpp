@@ -25,12 +25,10 @@ namespace photoboss
 
     void CacheStore::onStart()
     {
-        qDebug() << "store registered";
         m_output.register_producer();
     }
     void CacheStore::onStop()
     {
-        qDebug() << "store deregistered";
         m_output.producer_done();
     }
 }

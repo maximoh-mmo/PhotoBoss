@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "pipeline/PipelineController.h"
 #include "hashing/HashMethod.h"
+#include "ui/GroupWidget.h"
 
 #include <QFileDialog>
 #include <QDebug>
@@ -32,12 +33,46 @@ namespace photoboss
         m_browse_button_ = ui_->browsebutton;
         m_scan_button_ = ui_->scan;
         m_progress_bar_ = ui_->progressBar;
+     
+        // Scroll area
+        m_thumbnail_scroll_ = new QScrollArea();
+        m_thumbnail_scroll_->setWidgetResizable(true);
+        m_thumbnail_scroll_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+        QWidget* container = new QWidget();
+        container->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+        m_splitter_ = new QSplitter(Qt::Horizontal, container);
+
+        m_thumbnail_container_ = new QWidget();
+        m_thumbnail_layout_ = new QVBoxLayout(m_thumbnail_container_);
+        m_thumbnail_layout_->setContentsMargins(0, 0, 0, 0);
+        m_thumbnail_layout_->setSpacing(5);
+
+        m_splitter_->addWidget(m_thumbnail_container_);
+
+        // Preview pane
+        m_preview_pane = new PreviewPane(m_splitter_);
+        m_splitter_->addWidget(m_preview_pane);
+
+        m_splitter_->setStretchFactor(0, 1);
+        m_splitter_->setStretchFactor(1, 2);
+
+        QHBoxLayout* containerLayout = new QHBoxLayout(container);
+        containerLayout->setContentsMargins(0, 0, 0, 0);
+        containerLayout->addWidget(m_splitter_);
+
+        m_thumbnail_scroll_->setWidget(container);
+
+        QVBoxLayout* bodyLayout = new QVBoxLayout(ui_->body);
+        bodyLayout->setContentsMargins(0, 0, 0, 0);
+        bodyLayout->addWidget(m_thumbnail_scroll_);
 
         WireConnections();
 
         // Connect pipeline signals
-        connect(m_pipeline_controller_.get(), &PipelineController::imageHashed,
-			this, &MainWindow::OnImageHashed);
+        connect(m_pipeline_controller_.get(), &PipelineController::finalGroups,
+            this, &MainWindow::onGroupingFinished, Qt::QueuedConnection);
     }
     void MainWindow::OnBrowse()
     {
@@ -90,19 +125,22 @@ namespace photoboss
         }
     }
 
-    void MainWindow::OnImageHashed(std::shared_ptr<HashedImageResult> result)
+    void MainWindow::onGroupingFinished(const std::vector<ImageGroup> groups)
     {
-        // Update progress bar
-        m_progress_bar_->setValue(m_progress_bar_->value() + 1);
+        this->clearResults(); // important for second runs
 
-        if (result) {
-            auto it = result->hashes.find("Perceptual Hash");
-            if (it != result->hashes.end()) {
-                qDebug() << "Hashed:" << it->second;
-            }
-            else {
-                qDebug() << "Hashed: <not found>";
-            }
+        for (const auto& group : groups) {
+            auto* widget = new GroupWidget(group, m_thumbnail_container_);
+            m_thumbnail_layout_->addWidget(widget);
+        }
+    }
+
+    void MainWindow::clearResults()
+    {
+        QLayoutItem* item;
+        while ((item = m_thumbnail_layout_->takeAt(0)) != nullptr) {
+            delete item->widget();
+            delete item;
         }
     }
 }

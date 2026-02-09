@@ -5,6 +5,7 @@
 #include <vector>
 #include "util/Queue.h"
 #include "util/DataTypes.h"
+#include "util/GroupTypes.h"
 #include "hashing/HashMethod.h"
 #include "caching/IHashCache.h"
 
@@ -15,14 +16,6 @@ namespace photoboss {
 	class CacheLookup;
     class CacheStore;
     class HashWorker;
-
-    enum class PipelineState {
-        Stopped,
-        Starting,
-        Idle,
-        Scanning,
-        Stopping
-    };
 
     struct Pipeline {
         // Queues
@@ -64,6 +57,13 @@ namespace photoboss {
     {
         Q_OBJECT
     public:
+        enum class PipelineState {
+            Stopped,
+            Running,
+            Stopping
+        };
+        Q_ENUM(PipelineState)
+
         explicit PipelineController(
             QObject* parent = nullptr);
 
@@ -74,7 +74,7 @@ namespace photoboss {
 		void restart();
 
     signals:
-        void imageHashed(std::shared_ptr<HashedImageResult> result);
+        void finalGroups(const std::vector<ImageGroup> groups);
 		void status(const QString& message);
 		void diskReadProgress(int current, int total);
         void pipelineStateChanged(PipelineState state);
@@ -82,6 +82,7 @@ namespace photoboss {
     private:
         void createPipeline(const ScanRequest& request);
 		void destroyPipeline();
+        void onGroupingFinished(const std::vector<ImageGroup> groups);
     private:
         std::unique_ptr<Pipeline> m_pipeline_;
         std::unique_ptr <IHashCache> m_cache_;

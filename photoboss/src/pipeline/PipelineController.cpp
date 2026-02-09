@@ -27,18 +27,18 @@ namespace photoboss {
     {
         if (m_state_ != PipelineState::Stopped)
             return;
-        SetPipelineState(PipelineState::Starting);
+        SetPipelineState(PipelineState::Running);
         createPipeline(request);
-        SetPipelineState(PipelineState::Idle);
-
     }
 
     void PipelineController::stop()
     {
-        if (m_state_ == PipelineState::Stopped)
+        if (m_state_ != PipelineState::Running) {
             return;
+        }
 
         SetPipelineState(PipelineState::Stopping);
+
         ShutdownToken t;
         if (m_pipeline_) {
             m_pipeline_->scan.request_shutdown(t);
@@ -49,6 +49,7 @@ namespace photoboss {
         }
 
         destroyPipeline();
+        
         SetPipelineState(PipelineState::Stopped);
     }
 
@@ -153,7 +154,17 @@ namespace photoboss {
 		connect(&m_pipeline_->resultThread, &QThread::finished,
 			m_pipeline_->resultProcessor, &QObject::deleteLater);
 
+        connect(
+            m_pipeline_->resultProcessor,
+            &ResultProcessor::groupingFinished,
+            this,
+            &PipelineController::onGroupingFinished,
+            Qt::QueuedConnection
+        );
+
         m_pipeline_->resultThread.start();
+
+        SetPipelineState(PipelineState::Running);
     }
 
     void PipelineController::destroyPipeline()
@@ -183,20 +194,33 @@ namespace photoboss {
 		m_pipeline_->resultThread.quit();
 		m_pipeline_->resultThread.wait();
 
-        m_pipeline_.reset(); // queues + workers destroyed cleanly
-    
+        m_pipeline_.reset();  
+    }
+
+    void PipelineController::onGroupingFinished(const std::vector<ImageGroup> groups)
+    {
+        emit finalGroups(groups); // UI-facing signal
+
+        if (m_state_ == PipelineState::Stopping)
+            return;
+
+        SetPipelineState(PipelineState::Stopped);
+
+        destroyPipeline();   // graceful teardown
     }
 
     void PipelineController::SetPipelineState(PipelineState state)
     {
 		m_state_ = state;
 		emit pipelineStateChanged(state);
+        qDebug() << "Pipeline state changed to " << m_state_;
     }
 
     void PipelineController::restart()
     {
-        stop();
+        if (m_state_ == PipelineState::Running)
+            stop();
+
         start(m_current_request_);
-    }
-    
+    }    
 }

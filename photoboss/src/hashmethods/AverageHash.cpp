@@ -11,27 +11,20 @@ namespace photoboss {
         constexpr int startY = (ImageSize - SampleHeight) / 2;
 
         double sum = 0.0;
-        uint64_t hash = 0;
-        int idx = 0;
-
-        for (int y = 0; y < SampleHeight; ++y) {
+                for (int y = 0; y < SampleHeight; ++y) {
             for (int x = 0; x < SampleWidth; ++x) {
                 sum += image.pixel(startX + x, startY + y);
             }
         }
-
-        // Compute average pixel
-        for (int y = 0; y < SampleHeight; ++y) {
-            for (int x = 0; x < SampleWidth; ++x) {
-                sum += image.pixel(x, y);
-            }
-        }
-        double avg = sum / SampleHeight * SampleWidth;
-
+        double avg = sum / (SampleWidth * SampleHeight);
+        
+        uint64_t hash = 0;
+        int idx = 0;
+        
         // Generate hash
         for (int y = 0; y < SampleHeight; ++y) {
             for (int x = 0; x < SampleWidth; ++x) {
-                double pix = image.pixel(x, y);
+                double pix = image.pixel(startX + x, startY + y);
                 if (pix >= avg) {
                     hash |= (1ULL << idx);
                 }

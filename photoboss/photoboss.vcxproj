@@ -161,6 +161,8 @@
     <QtMoc Include="inc\photoboss\ui\MainWindow.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\ui\GroupWidget.cpp" />
+    <ClCompile Include="src\ui\ImageThumbWidget.cpp" />
     <ClCompile Include="src\pipeline\SimilarityEngine.cpp" />
     <ClCompile Include="src\hashmethods\AverageHash.cpp" />
     <ClCompile Include="src\hashmethods\DifferenceHash.cpp" />
@@ -183,6 +185,7 @@
     <ClCompile Include="src\hashmethods\PerceptualHash.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\ui\MainWindow.cpp" />
+    <ClCompile Include="src\ui\PreviewPane.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\photoboss\caching\NullHashCache.h" />
@@ -191,7 +194,11 @@
     <ClInclude Include="inc\photoboss\hashing\HashCatalog.h" />
     <ClInclude Include="inc\photoboss\hashing\PerceptualImage.h" />
     <ClInclude Include="inc\photoboss\pipeline\SimilarityEngine.h" />
+    <QtMoc Include="inc\photoboss\ui\GroupWidget.h" />
+    <QtMoc Include="inc\photoboss\ui\ImageThumbWidget.h" />
+    <QtMoc Include="inc\photoboss\ui\PreviewPane.h" />
     <ClInclude Include="inc\photoboss\util\ExifData.h" />
+    <ClInclude Include="inc\photoboss\util\humanSize.h" />
     <ClInclude Include="inc\photoboss\util\ShutdownToken.h" />
     <ClInclude Include="inc\photoboss\hashing\Sha256Hash.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\CacheStore.h" />
@@ -208,6 +215,12 @@
     <ClInclude Include="inc\photoboss\caching\IHashCache.h" />
     <ClInclude Include="inc\photoboss\util\FileIdentity.h" />
     <ClInclude Include="inc\photoboss\util\Queue.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="resources\Resources.qrc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="resources\dark.qss" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="$(QtMsBuild)\qt.targets" Condition="Exists('$(QtMsBuild)\qt.targets')" />

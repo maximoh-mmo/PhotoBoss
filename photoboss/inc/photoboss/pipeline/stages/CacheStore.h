@@ -30,5 +30,4 @@ namespace photoboss
 		void onStart() override;
 		void onStop() override;
 	};
-
 }

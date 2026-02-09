@@ -150,7 +150,9 @@ namespace photoboss {
         auto it = std::max_element(
             images.begin(),
             images.end(),
-            &SimilarityEngine::worse
+            [](const ImageNode& a, const ImageNode& b) {
+                return SimilarityEngine::better(b, a);
+            }
         );
 
         return &(*it);

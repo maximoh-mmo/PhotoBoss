@@ -16,12 +16,12 @@ namespace photoboss {
 		, m_output(outputQueue)
         , m_hashMethods(std::move(HashCatalog::createAll()))
     {        
-        if (m_hashMethods.empty()) {
-            qWarning() << "HashWorker: No active hash methods provided.";
-        } else {
-            qDebug() << "HashWorker: Initialized with"
-                     << m_hashMethods.size() << "hash methods.";
-		}
+//        if (m_hashMethods.empty()) {
+//            qWarning() << "HashWorker: No active hash methods provided.";
+//        } else {
+//            qDebug() << "HashWorker: Initialized with"
+//                     << m_hashMethods.size() << "hash methods.";
+//		}
     }
 
     void HashWorker::run()
@@ -32,7 +32,7 @@ namespace photoboss {
             std::unique_ptr<DiskReadResult> item;
 
             if (!m_input.wait_and_pop(item)) {
-                qDebug() << "HashWorker: Queue shutdown detected, exiting.";
+//                qDebug() << "HashWorker: Queue shutdown detected, exiting.";
                 break; // upstream shutdown
             }
 
@@ -41,7 +41,6 @@ namespace photoboss {
                 continue;
             }
             QImageReader reader(item->fileIdentity.path());
-            qDebug() << "image resolution = " << reader.size();
 
             auto result = std::make_shared<HashedImageResult>(item->fileIdentity, HashSource::Fresh, 
                 QDateTime::currentDateTimeUtc(), reader.size());
@@ -58,9 +57,7 @@ namespace photoboss {
                     }
                 }
             }
-
-                qDebug() << "HashWorker: Processing image:" << item->fileIdentity.path();
-                
+              
                 QImage img;
 
                 if (!loadAndOrient(item->imageBytes, item->fileIdentity.exif().orientation.value_or(1), img)) {
@@ -88,6 +85,12 @@ namespace photoboss {
         QImage img;
         if (!img.loadFromData(imageBytes))
             return false;
+
+        if (orientation == 1) {
+            image = img;
+            return true;
+        }
+
         QTransform t;
 
         switch (orientation) {

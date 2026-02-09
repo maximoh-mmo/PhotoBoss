@@ -10,14 +10,16 @@ namespace exif {
 
 		try {
 			auto image = Exiv2::ImageFactory::open(filePath.toStdString());
-			if (!image)
+			if (!image) {
 				return result;
+			}
 
 			image->readMetadata();
 			const auto& exifData = image->exifData();
 
-			if (exifData.empty())
+			if (exifData.empty()) {
 				return result;
+			}
 
 			// -----------------------------
 			// Orientation

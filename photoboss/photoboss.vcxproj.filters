@@ -81,6 +81,15 @@
     <ClCompile Include="src\pipeline\SimilarityEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\ui\ImageThumbWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\GroupWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\PreviewPane.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="resources\MainWindow.ui" />
@@ -111,6 +120,15 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="inc\photoboss\pipeline\stages\CacheStore.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="inc\photoboss\ui\ImageThumbWidget.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="inc\photoboss\ui\GroupWidget.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="inc\photoboss\ui\PreviewPane.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
@@ -160,5 +178,14 @@
     <ClInclude Include="inc\photoboss\util\ExifData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="inc\photoboss\util\humanSize.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="resources\Resources.qrc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="resources\dark.qss" />
   </ItemGroup>
 </Project>

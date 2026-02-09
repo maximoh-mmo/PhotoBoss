@@ -46,13 +46,11 @@ namespace photoboss {
 
     void DiskReader::onStart()
     {
-        qDebug() << "diskreader registered";
         m_output_queue.register_producer();
        
     }
     void DiskReader::onStop()
     {
-        qDebug() << "diskreader deregistered";
         m_output_queue.producer_done();
     }
 }

@@ -1,0 +1,126 @@
+* {
+    font-family: "Segoe UI", "Inter", "Roboto", sans-serif;
+    font-size: 11pt;
+}
+
+QWidget {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+}
+
+QMainWindow {
+    background-color: #1e1e1e;
+}
+
+QSplitter::handle {
+    background-color: #2a2a2a;
+}
+
+QFrame {
+    background-color: #252525;
+    border: none;
+}
+
+QScrollArea {
+    background-color: #1e1e1e;
+    border: none;
+}
+
+QScrollBar:vertical {
+    width: 10px;
+    background: #1e1e1e;
+}
+
+QScrollBar::handle:vertical {
+    background: #3a3a3a;
+    border-radius: 4px;
+    min-height: 24px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #4a4a4a;
+}
+
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
+    height: 0;
+}
+
+QPushButton {
+    background-color: #2d2d2d;
+    border: 1px solid #3a3a3a;
+    border-radius: 4px;
+    padding: 6px 10px;
+}
+
+QPushButton:hover {
+    background-color: #3a3a3a;
+}
+
+QPushButton:pressed {
+    background-color: #444;
+}
+
+QLabel {
+    background: transparent;
+}
+
+QLabel#SectionHeader {
+    font-size: 13pt;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+GroupWidget {
+    background-color: #242424;
+    border: 1px solid #2f2f2f;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    padding: 8px;
+}
+
+ImageThumbWidget {
+    border: 1px solid #333;
+    border-radius: 6px;
+    background: #1e1e1e;
+}
+
+ImageThumbWidget[state="selected"] {
+    border: 2px solid #4CAF50;
+    background: #223322;
+}
+
+ImageThumbWidget[state="delete"] {
+    border: 1px dashed #C0392B;
+    background: #2a1a1a;
+    opacity: 0.65;
+}
+
+QLabel#keepBadge {
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+QLabel#deleteBadge {
+    color: #E74C3C;
+    font-weight: bold;
+}
+
+QStatusBar {
+    background-color: #1c1c1c;
+    border-top: 1px solid #2a2a2a;
+}
+
+QToolBar {
+    background-color: #202020;
+    border-bottom: 1px solid #2a2a2a;
+    spacing: 6px;
+}
+
+QToolTip {
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 6px;
+    border-radius: 4px;
+}
