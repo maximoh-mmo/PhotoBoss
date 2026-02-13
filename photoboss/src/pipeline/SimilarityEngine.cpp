@@ -194,13 +194,14 @@ namespace photoboss {
             const auto* img = g.members[i];
 
             ImageEntry e;
-            e.path = img->result->fileIdentity.path();
+            e.path = img->result->fileIdentity.path()+"/"+img->result->fileIdentity.name();
             e.fileSize = img->fileSize;
             e.lastModified = img->result->fileIdentity.modifiedTime();
             e.resolution = img->resolution;
             e.format = img->result->fileIdentity.extension();
             e.isBest = (img == best);
-
+            e.rotation = img->result->fileIdentity.exif().orientation.value_or(1);
+            
             if (e.isBest)
                 out.bestIndex = static_cast<int>(i);
 

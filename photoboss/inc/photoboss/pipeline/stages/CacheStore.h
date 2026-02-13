@@ -7,6 +7,7 @@
 
 namespace photoboss
 {
+
 	class CacheStore : public StageBase
 	{
 		Q_OBJECT
@@ -15,6 +16,7 @@ namespace photoboss
 			Queue<std::shared_ptr<HashedImageResult>>& input,
 			Queue<std::shared_ptr<HashedImageResult>>& output,
 			QString id,
+			quint64 scanId,
 			QObject* parent = nullptr
 		);
 		~CacheStore() override = default;

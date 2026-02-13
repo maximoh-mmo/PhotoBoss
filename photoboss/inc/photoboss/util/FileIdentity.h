@@ -15,13 +15,15 @@ namespace photoboss {
 	class FileIdentity final {
 	public:
 		FileIdentity(
+			QString name = {},
 			QString path = {},
 			QString extension = {},
 			quint64 size = 0,
 			quint64 modifiedTime = 0,
 			ExifData exif = {}
 		)
-			: m_path(std::move(path))
+			: m_name(std::move(name))
+			, m_path(std::move(path))
 			, m_extension(std::move(extension))
 			, m_size(size)
 			, m_modifiedTime(modifiedTime)
@@ -31,6 +33,7 @@ namespace photoboss {
 		FileIdentity& operator=(const FileIdentity&) = delete;
 
 		// Getters
+		const QString& name() const noexcept { return m_name; }
 		const QString& path() const noexcept { return m_path; }
 		quint64 size() const noexcept { return m_size; }
 		quint64 modifiedTime() const noexcept { return m_modifiedTime; }
@@ -39,7 +42,8 @@ namespace photoboss {
 
 		// Comparison
 		bool operator==(const FileIdentity& other) const noexcept {
-			return m_path == other.m_path &&
+			return m_name == other.m_name &&
+				m_path == other.m_path &&
 				m_extension == other.m_extension &&
 				m_size == other.m_size &&
 				m_modifiedTime == other.m_modifiedTime &&
@@ -51,6 +55,7 @@ namespace photoboss {
 		}
 
 	private:
+		const QString m_name;
 		const QString m_path;
 		const quint64 m_size;
 		const quint64 m_modifiedTime;

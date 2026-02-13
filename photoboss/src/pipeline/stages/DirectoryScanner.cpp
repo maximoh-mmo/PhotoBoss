@@ -2,6 +2,7 @@
 #include <QFileInfo>
 #include "pipeline/stages/DirectoryScanner.h"
 #include "exif/ExifReader.h"
+#include "util/AppSettings.h"
 
 namespace photoboss {
 
@@ -27,7 +28,7 @@ namespace photoboss {
 
         QDirIterator it(m_request_.directory, filters, QDir::Files | QDir::NoSymLinks, flags);
 
-        constexpr int batch_size = 200;
+        int batch_size = settings::DirectoryScanBatchSize;
         auto batch = std::make_shared<std::vector<FileIdentity>>();
         batch->reserve(batch_size);
 
@@ -45,7 +46,8 @@ namespace photoboss {
             auto exif = exif::ExifReader::read(path);
 
             FileIdentity fileIdentity(
-                path,
+                file_info.fileName(),
+                file_info.absolutePath(),
                 file_info.suffix().toUpper(),
                 static_cast<quint64>(file_info.size()), 
                 static_cast<quint64>(file_info.lastModified().toSecsSinceEpoch()),

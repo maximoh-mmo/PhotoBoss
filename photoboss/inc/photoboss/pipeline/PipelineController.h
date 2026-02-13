@@ -90,5 +90,6 @@ namespace photoboss {
 		void SetPipelineState(PipelineState state);
 		ScanRequest m_current_request_;
 		std::vector<QThread*> m_hash_worker_threads_;
+        quint64 m_scan_id_ = -1;
     };
 }

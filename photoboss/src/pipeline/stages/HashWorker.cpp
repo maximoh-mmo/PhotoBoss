@@ -15,13 +15,7 @@ namespace photoboss {
         , m_input(inputQueue)
 		, m_output(outputQueue)
         , m_hashMethods(std::move(HashCatalog::createAll()))
-    {        
-//        if (m_hashMethods.empty()) {
-//            qWarning() << "HashWorker: No active hash methods provided.";
-//        } else {
-//            qDebug() << "HashWorker: Initialized with"
-//                     << m_hashMethods.size() << "hash methods.";
-//		}
+    {    
     }
 
     void HashWorker::run()
@@ -32,7 +26,6 @@ namespace photoboss {
             std::unique_ptr<DiskReadResult> item;
 
             if (!m_input.wait_and_pop(item)) {
-//                qDebug() << "HashWorker: Queue shutdown detected, exiting.";
                 break; // upstream shutdown
             }
 
@@ -40,7 +33,7 @@ namespace photoboss {
                 qDebug() << "HashWorker: Received null input, skipping.";
                 continue;
             }
-            QImageReader reader(item->fileIdentity.path());
+            QImageReader reader(item->fileIdentity.path()+"/"+ item->fileIdentity.name());
 
             auto result = std::make_shared<HashedImageResult>(item->fileIdentity, HashSource::Fresh, 
                 QDateTime::currentDateTimeUtc(), reader.size());
@@ -67,12 +60,14 @@ namespace photoboss {
 
                 else {
                     for (auto& method : m_hashMethods) {
-                        try {
-                            result->hashes.emplace(method.method->key(), method.method->compute(PerceptualImage(img)));
-                        }
-                        catch (const std::exception& e) {
-                            result->hashes.emplace(method.method->key(), e.what());
-                            result->source = HashSource::Error;
+                        if (method.method->InputType() == HashInput::Image) {
+                            try {
+                                result->hashes.emplace(method.method->key(), method.method->compute(PerceptualImage(img)));
+                            }
+                            catch (const std::exception& e) {
+                                result->hashes.emplace(method.method->key(), e.what());
+                                result->source = HashSource::Error;
+                            }
                         }
                     }
                 }

@@ -6,7 +6,7 @@
 #include "pipeline/stages/CacheLookup.h"
 #include "pipeline/stages/CacheStore.h"
 #include "caching/SqliteHashCache.h"
-#include "util/ShutdownToken.h"
+#include "util/Token.h"
 #include <QDebug>
 #include <QThread>
 
@@ -28,6 +28,9 @@ namespace photoboss {
         if (m_state_ != PipelineState::Stopped)
             return;
         SetPipelineState(PipelineState::Running);
+        
+        Token t;
+        m_scan_id_ = SqliteHashCache(0).nextScanId(t);
         createPipeline(request);
     }
 
@@ -39,7 +42,7 @@ namespace photoboss {
 
         SetPipelineState(PipelineState::Stopping);
 
-        ShutdownToken t;
+        Token t;
         if (m_pipeline_) {
             m_pipeline_->scan.request_shutdown(t);
 			m_pipeline_->disk.request_shutdown(t);
@@ -75,7 +78,8 @@ namespace photoboss {
             m_pipeline_->scan,
 			m_pipeline_->disk,
 			m_pipeline_->resultQueue,
-			"CacheLookup"
+			"CacheLookup",
+            m_scan_id_
         );
 
         m_pipeline_->cacheLookup->moveToThread(&m_pipeline_->cacheLookupThread);
@@ -131,7 +135,8 @@ namespace photoboss {
 		m_pipeline_->cacheStore = new CacheStore(
 			m_pipeline_->cacheStoreQueue,
 			m_pipeline_->resultQueue,
-            "CacheStore"
+            "CacheStore",
+            m_scan_id_
             );
 
         m_pipeline_->cacheStore->moveToThread(&m_pipeline_->cacheStoreThread);

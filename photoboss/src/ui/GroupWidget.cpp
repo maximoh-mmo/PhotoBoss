@@ -1,6 +1,7 @@
+#pragma once
 #include "ui/GroupWidget.h"
 #include "ui/ImageThumbWidget.h"
-
+#include "util/AppSettings.h"
 #include <QVBoxLayout>
 #include <QGridLayout>
 #include <QLabel>
@@ -11,49 +12,51 @@ namespace photoboss {
     GroupWidget::GroupWidget(const ImageGroup& group, QWidget* parent)
         : QWidget(parent)
     {
-        auto* root = new QVBoxLayout(this);
+        auto* rootLayout = new QVBoxLayout(this);
+        rootLayout->setContentsMargins(2, 2, 2, 2);
+        rootLayout->setSpacing(6);
 
-        auto* header = new QLabel(
-            tr("Group (%1 images)").arg(group.images.size()), this);
-        root->addWidget(header);
+        // --- Header ---
+        auto* header = new QLabel(tr("Group (%1 images)").arg(group.images.size()), this);
+        rootLayout->addWidget(header);
 
-        auto* row = new QHBoxLayout();
-        row->setSpacing(8);
+        // --- Thumbnail rows ---
+        auto currentRow = new QHBoxLayout();
+        currentRow->setSpacing(6);
+        currentRow->setAlignment(Qt::AlignLeft);
+
+        rootLayout->addLayout(currentRow);
 
         for (size_t i = 0; i < group.images.size(); ++i) {
             const auto& entry = group.images[i];
-
-            auto* thumb = new ImageThumbWidget(this);
-            thumb->setImage(&entry);
-
-            if (static_cast<int>(i) == group.bestIndex)
-                thumb->setState(ImageThumbWidget::State::Selected);
-            else
-                thumb->setState(ImageThumbWidget::State::MarkedForDelete);
-
-            connect(
-                thumb,
-                &ImageThumbWidget::clicked,
-                this,
-                &GroupWidget::onThumbClicked
-            );
-
+            auto* thumb = new ImageThumbWidget(std::move(entry), this);
             m_thumbs.push_back(thumb);
-            row->addWidget(thumb);
+
+            // Determine state
+            if (static_cast<int>(i) == group.bestIndex)
+                thumb->setState(ImageThumbWidget::State::Keep);
+            else
+                thumb->setState(ImageThumbWidget::State::Delete);
+
+            connect(thumb, &ImageThumbWidget::clicked, this, &GroupWidget::onThumbClicked);
+
+            // Start new row if needed
+            if (i % settings::ThumbnailsPerRow == 0) {
+                currentRow = new QHBoxLayout();
+                currentRow->setSpacing(6);
+                currentRow->setAlignment(Qt::AlignLeft); // left-align incomplete rows
+                rootLayout->addLayout(currentRow);
+            }
+
+            currentRow->addWidget(thumb);
         }
 
-        row->addStretch();
-        root->addLayout(row);
+        rootLayout->addStretch(); // push content to top
     }
 
     void GroupWidget::onThumbClicked(ImageThumbWidget* clicked)
     {
-        for (auto* thumb : m_thumbs) {
-            thumb->setState(
-                thumb == clicked
-                ? ImageThumbWidget::State::Selected
-                : ImageThumbWidget::State::Normal);
-        }
+        emit previewImage(clicked->Image());
     }
 
 }

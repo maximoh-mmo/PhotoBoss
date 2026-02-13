@@ -4,12 +4,12 @@
 namespace photoboss
 {
 	CacheLookup::CacheLookup(Queue<FileIdentityBatchPtr>& input, Queue<FileIdentityBatchPtr>& diskOut, 
-        Queue<std::shared_ptr<HashedImageResult>>& resultOut, QString id, QObject* parent)
+        Queue<std::shared_ptr<HashedImageResult>>& resultOut, QString id, quint64 scanId, QObject* parent)
 		: StageBase(id, parent),
 		m_inputQueue(input),
 		m_diskReadQueue(diskOut),
 		m_resultQueue(resultOut),
-		m_cache(std::make_unique<SqliteHashCache>())
+		m_cache(std::make_unique<SqliteHashCache>(scanId))
 	{
         for (HashCatalog::Entry& method : HashCatalog::createAll()) {
             m_methods.append(method.method.get()->key());

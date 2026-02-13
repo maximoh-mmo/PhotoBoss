@@ -10,6 +10,7 @@ namespace photoboss {
         quint64 lastModified;
         QSize resolution;
         QString format;
+        int rotation;
 
         bool isBest;
     };

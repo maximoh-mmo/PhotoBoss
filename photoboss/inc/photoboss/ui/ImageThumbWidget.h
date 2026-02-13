@@ -13,23 +13,17 @@ namespace photoboss {
 
     public:
         enum class State {
-            Normal,
-            Selected,
-            MarkedForDelete
+            Keep,
+            Delete
         };
         Q_ENUM(State)
 
-        explicit ImageThumbWidget(QWidget* parent = nullptr);
-        ~ImageThumbWidget() override = default;
+        explicit ImageThumbWidget(const ImageEntry entry, QWidget* parent = nullptr);
 
-        // State
         void setState(State state);
         State state() const { return m_state_; }
         
-        // Content
-        void setImage(const ImageEntry* entry);
-        void setThumbnail(const QPixmap& pixmap);
-        void setMeta(QString size, QString resolution);
+        const ImageEntry& Image() { return m_entry_; }
 
     signals:
         void clicked(ImageThumbWidget*);
@@ -42,10 +36,9 @@ namespace photoboss {
 
     private:
         void buildUi();
-        void updateVisualState();
 
-        const ImageEntry* m_entry_ = nullptr;
-        State m_state_ = State::Normal;
+        ImageEntry m_entry_;
+        State m_state_ = State::Keep;
 
         QCheckBox* m_checkBox_ = nullptr;
         QLabel* m_thumbnailLabel_ = nullptr;

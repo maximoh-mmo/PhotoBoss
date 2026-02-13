@@ -2,7 +2,7 @@
 #include <deque>
 #include <mutex>
 #include <condition_variable>
-#include "util/ShutdownToken.h"
+#include "util/Token.h"
 
 /// <summary>
 /// A Thread-safe queue supporting bounded and unbounded modes, with proper shutdown handling.
@@ -125,7 +125,7 @@ public:
     }
 
     // Request Shutdown
-    void request_shutdown(const photoboss::ShutdownToken&) {
+    void request_shutdown(const photoboss::Token&) {
         shutdown();
     }
 

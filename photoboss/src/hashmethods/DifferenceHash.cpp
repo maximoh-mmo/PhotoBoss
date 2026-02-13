@@ -1,12 +1,13 @@
 #include "hashing/DifferenceHash.h"
 #include "qtypes.h"
+#include "util/AppSettings.h"
 #include <bit>
 
 namespace photoboss {
     QString DifferenceHash::compute(const PerceptualImage& image)
     {
-        constexpr int startX = (32 - 9) / 2; // 27
-        constexpr int startY = (32 - 8) / 2; // 28
+        int startX = (settings::HashSampleSize - 9) / 2;
+        int startY = (settings::HashSampleSize - 8) / 2;
 
         uint64_t hash = 0;
         

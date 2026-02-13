@@ -20,6 +20,9 @@ namespace photoboss {
 
 		QVector<const HashedImageResult*> imagesMarkedForDelete() const;
 	
+	signals:
+		void previewImage(const ImageEntry& image);
+
 	private slots:
 		void onThumbClicked(ImageThumbWidget* clicked);
 

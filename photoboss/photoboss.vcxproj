@@ -161,6 +161,8 @@
     <QtMoc Include="inc\photoboss\ui\MainWindow.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="inc\photoboss\util\AppSettings.h" />
+    <ClCompile Include="src\util\OrientImage.cpp" />
     <ClCompile Include="src\ui\GroupWidget.cpp" />
     <ClCompile Include="src\ui\ImageThumbWidget.cpp" />
     <ClCompile Include="src\pipeline\SimilarityEngine.cpp" />
@@ -188,6 +190,7 @@
     <ClCompile Include="src\ui\PreviewPane.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="inc\photoboss\caching\IHashCache.h" />
     <ClInclude Include="inc\photoboss\caching\NullHashCache.h" />
     <ClInclude Include="inc\photoboss\exif\ExifReader.h" />
     <ClInclude Include="inc\photoboss\hashing\AverageHash.h" />
@@ -197,9 +200,11 @@
     <QtMoc Include="inc\photoboss\ui\GroupWidget.h" />
     <QtMoc Include="inc\photoboss\ui\ImageThumbWidget.h" />
     <QtMoc Include="inc\photoboss\ui\PreviewPane.h" />
+    <ClInclude Include="inc\photoboss\pipeline\stages\CachePrune.h" />
     <ClInclude Include="inc\photoboss\util\ExifData.h" />
     <ClInclude Include="inc\photoboss\util\humanSize.h" />
-    <ClInclude Include="inc\photoboss\util\ShutdownToken.h" />
+    <ClInclude Include="inc\photoboss\util\OrientImage.h" />
+    <ClInclude Include="inc\photoboss\util\Token.h" />
     <ClInclude Include="inc\photoboss\hashing\Sha256Hash.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\CacheStore.h" />
     <QtMoc Include="inc\photoboss\pipeline\StageBase.h" />
@@ -212,7 +217,6 @@
     <QtMoc Include="inc\photoboss\pipeline\stages\CacheLookup.h" />
     <ClInclude Include="inc\photoboss\hashing\HashMethod.h" />
     <ClInclude Include="inc\photoboss\util\DataTypes.h" />
-    <ClInclude Include="inc\photoboss\caching\IHashCache.h" />
     <ClInclude Include="inc\photoboss\util\FileIdentity.h" />
     <ClInclude Include="inc\photoboss\util\Queue.h" />
   </ItemGroup>

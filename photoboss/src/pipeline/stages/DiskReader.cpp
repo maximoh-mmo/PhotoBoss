@@ -27,12 +27,12 @@ namespace photoboss {
 
             for (const auto& fileIdentity : *batch) {
 
-                QFile file(fileIdentity.path());
+                QFile file(fileIdentity.path()+"/" + fileIdentity.name());
                 if (file.open(QIODevice::ReadOnly)) {
                     auto result = std::make_unique<DiskReadResult>(fileIdentity, file.readAll());
                     
                     if (!m_output_queue.push(std::move(result))) {
-						qDebug() << "DiskReader: Output queue shutdown," << result->fileIdentity.path() << "dropped, stopping.";
+						qDebug() << "DiskReader: Output queue shutdown," << result->fileIdentity.name() << "dropped, stopping.";
                         return;
                     }
                 }

@@ -3,6 +3,7 @@
 #include "pipeline/PipelineController.h"
 #include "hashing/HashMethod.h"
 #include "ui/GroupWidget.h"
+#include "util/AppSettings.h"
 
 #include <QFileDialog>
 #include <QDebug>
@@ -14,7 +15,7 @@ namespace photoboss
 
     {
         m_pipeline_controller_ = std::make_unique<PipelineController>(this);
-        
+
         ui_->setupUi(this);
 
         Init();
@@ -33,46 +34,46 @@ namespace photoboss
         m_browse_button_ = ui_->browsebutton;
         m_scan_button_ = ui_->scan;
         m_progress_bar_ = ui_->progressBar;
-     
-        // Scroll area
-        m_thumbnail_scroll_ = new QScrollArea();
-        m_thumbnail_scroll_->setWidgetResizable(true);
-        m_thumbnail_scroll_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-        QWidget* container = new QWidget();
-        container->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        // Split body area
+        m_splitter_ = new QSplitter(Qt::Horizontal);
 
-        m_splitter_ = new QSplitter(Qt::Horizontal, container);
-
+        // LHS thumbnail container
         m_thumbnail_container_ = new QWidget();
         m_thumbnail_layout_ = new QVBoxLayout(m_thumbnail_container_);
-        m_thumbnail_layout_->setContentsMargins(0, 0, 0, 0);
-        m_thumbnail_layout_->setSpacing(5);
+        int spacing = m_thumbnail_layout_->spacing();
+        int margins = m_thumbnail_layout_->contentsMargins().left() +
+            m_thumbnail_layout_->contentsMargins().right();
 
-        m_splitter_->addWidget(m_thumbnail_container_);
+        int totalWidth = settings::ThumbnailsPerRow * settings::ThumbnailWidth
+            + (settings::ThumbnailsPerRow - 1) * spacing + margins;
+        
+        m_thumbnail_container_->setMinimumWidth(totalWidth); 
+        m_thumbnail_container_->setMaximumWidth(totalWidth);
+        m_thumbnail_container_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+
+        // Wrap thumbnails in scroll area
+        m_thumbnail_scroll_ = new QScrollArea();
+        m_thumbnail_scroll_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+        m_thumbnail_scroll_->setWidgetResizable(true);
+        m_thumbnail_scroll_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        m_thumbnail_scroll_->setWidget(m_thumbnail_container_);
+
+        m_splitter_->addWidget(m_thumbnail_scroll_);
 
         // Preview pane
-        m_preview_pane = new PreviewPane(m_splitter_);
+        m_preview_pane = new PreviewPane();
+
         m_splitter_->addWidget(m_preview_pane);
-
-        m_splitter_->setStretchFactor(0, 1);
-        m_splitter_->setStretchFactor(1, 2);
-
-        QHBoxLayout* containerLayout = new QHBoxLayout(container);
-        containerLayout->setContentsMargins(0, 0, 0, 0);
-        containerLayout->addWidget(m_splitter_);
-
-        m_thumbnail_scroll_->setWidget(container);
+        m_splitter_->setStretchFactor(0, 0);
+        m_splitter_->setStretchFactor(1, 1);
+        m_splitter_->setSizes({totalWidth,1});
 
         QVBoxLayout* bodyLayout = new QVBoxLayout(ui_->body);
         bodyLayout->setContentsMargins(0, 0, 0, 0);
-        bodyLayout->addWidget(m_thumbnail_scroll_);
+        bodyLayout->addWidget(m_splitter_);
 
         WireConnections();
-
-        // Connect pipeline signals
-        connect(m_pipeline_controller_.get(), &PipelineController::finalGroups,
-            this, &MainWindow::onGroupingFinished, Qt::QueuedConnection);
     }
     void MainWindow::OnBrowse()
     {
@@ -103,6 +104,9 @@ namespace photoboss
         connect(m_pipeline_controller_.get(), &PipelineController::status, this, [this](const QString& message) {
             m_status_bar_->showMessage(message);
 			});
+
+        connect(m_pipeline_controller_.get(), &PipelineController::finalGroups,
+            this, &MainWindow::onGroupingFinished, Qt::QueuedConnection);
     }
 
     void MainWindow::OnCurrentFolderChanged()
@@ -132,6 +136,7 @@ namespace photoboss
         for (const auto& group : groups) {
             auto* widget = new GroupWidget(group, m_thumbnail_container_);
             m_thumbnail_layout_->addWidget(widget);
+            connect(widget, &GroupWidget::previewImage, m_preview_pane, &PreviewPane::showImage);
         }
     }
 

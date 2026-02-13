@@ -90,6 +90,12 @@
     <ClCompile Include="src\ui\PreviewPane.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\util\OrientImage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="inc\photoboss\util\AppSettings.h">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="resources\MainWindow.ui" />
@@ -142,19 +148,13 @@
     <ClInclude Include="inc\photoboss\util\DataTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\photoboss\caching\IHashCache.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\photoboss\caching\NullHashCache.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="inc\photoboss\caching\SqliteHashCache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\photoboss\util\FileIdentity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\photoboss\util\ShutdownToken.h">
+    <ClInclude Include="inc\photoboss\util\Token.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\photoboss\hashing\Sha256Hash.h">
@@ -179,6 +179,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\photoboss\util\humanSize.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\util\OrientImage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\pipeline\stages\CachePrune.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\caching\IHashCache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\caching\NullHashCache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

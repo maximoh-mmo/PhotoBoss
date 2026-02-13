@@ -6,7 +6,6 @@ namespace photoboss {
     class PerceptualImage
     {
     public:
-        static constexpr int Size = 32;
         PerceptualImage() = delete;
 
         explicit PerceptualImage(const QImage& src);

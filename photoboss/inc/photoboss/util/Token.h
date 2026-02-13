@@ -1,9 +1,9 @@
 #pragma once
 namespace photoboss
 {
-    class ShutdownToken {
+    class Token {
     private:
         friend class PipelineController;
-        ShutdownToken() = default;
+        Token() = default;
     };
 }
