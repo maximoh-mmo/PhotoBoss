@@ -65,6 +65,11 @@ namespace photoboss {
         m_pipeline_->scanner = new DirectoryScanner(request, m_pipeline_->scan);
         m_pipeline_->scanner->moveToThread(&m_pipeline_->scannerThread);
 
+        connect(m_pipeline_->scanner, &DirectoryScanner::status,
+            this, [this](QString msg) {
+                emit status(msg);
+            });
+
         connect(&m_pipeline_->scannerThread, &QThread::started,
             m_pipeline_->scanner, &StageBase::Run);
 
@@ -97,7 +102,7 @@ namespace photoboss {
         m_pipeline_->reader->moveToThread(&m_pipeline_->readerThread);
 
         connect(m_pipeline_->reader, &DiskReader::ReadProgress,
-            this, &PipelineController::diskReadProgress);
+            this, &PipelineController::progressUpdate);
 
         connect(&m_pipeline_->readerThread, &QThread::started,
             m_pipeline_->reader, &StageBase::Run);
@@ -168,6 +173,18 @@ namespace photoboss {
         );
 
         m_pipeline_->resultThread.start();
+
+        connect(m_pipeline_->scanner, &DirectoryScanner::progress,
+            this, [this](int current, int total) {
+				m_total_ = total;
+                emit progressUpdate(m_current_, m_total_);  
+            });
+
+		connect(m_pipeline_->resultProcessor, &ResultProcessor::progress,
+			this, [this](int current, int total) {
+				m_current_ = current;
+                emit progressUpdate(m_current_, m_total_);
+			});
 
         SetPipelineState(PipelineState::Running);
     }

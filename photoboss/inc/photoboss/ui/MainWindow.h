@@ -33,9 +33,8 @@ namespace photoboss {
         void onGroupingFinished(const std::vector<ImageGroup> groups);
         void clearResults();
         QString GetCurrentFolder() const { return m_current_folder_; }
-        void OnScannedFileCount(int fileCount);
         void OnBrowse();
-        void UpdateDiskReadProgress(int current, int total);
+        void UpdateProgressBar(int current, int total);
 
     private:
         Ui::MainWindow* ui_ = nullptr;

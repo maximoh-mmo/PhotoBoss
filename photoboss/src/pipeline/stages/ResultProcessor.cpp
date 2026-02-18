@@ -13,33 +13,24 @@ namespace photoboss {
     }
 
     void ResultProcessor::run() {
+
         std::shared_ptr<HashedImageResult> item;
         while (m_input.wait_and_pop(item)) {
+			emit status(QString("Processing Hashed results..."));
             Q_ASSERT(!item->hashes.empty());
             m_items.push_back(std::move(item));
+            emit progress(static_cast<int>(m_items.size()), static_cast<int>(m_items.size()));
         }
         SimilarityEngine engine;
         auto groups = engine.group(m_items);
-
-        int duplicateGroups = 0;
-        int duplicateImages = 0;
-
+        emit status(QString("Grouping results..."));
+        
         std::vector<ImageGroup> result;
         for (const auto& g : groups) {
             if (g.images.size() > 1) {
                 result.push_back(g);
-                ++duplicateGroups;
-                duplicateImages += static_cast<int>(g.images.size());
             }
         }
-
-        qDebug().noquote()
-            << "\nFound"
-            << duplicateGroups
-            << "duplicate groups covering"
-            << duplicateImages
-            << "images.";
-
         emit groupingFinished(result);
     }
 }

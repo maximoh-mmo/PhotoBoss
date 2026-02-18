@@ -17,7 +17,7 @@ namespace photoboss {
     void DirectoryScanner::run() {
         bool cancelled = false;
 
-        emit status(QStringLiteral("Scanner: starting"));
+        emit status(QString("Scanning Directory : " + m_request_.directory));
 
         QDirIterator::IteratorFlags flags = QDirIterator::NoIteratorFlags;
         if (m_request_.recursive) {
@@ -56,22 +56,22 @@ namespace photoboss {
 
             batch->push_back(fileIdentity);
             ++count;
+            emit progress(count, count); // current files scanned. Total is unknown at this point, so using count for both.
 
             if (static_cast<int>(batch->size()) >= batch_size) {
 				m_output.emplace(batch);
                 batch = std::make_shared<std::vector<FileIdentity>>();
                 batch->reserve(batch_size);
             }
-
-            // occasional status update
-            if ((count & 0x3FF) == 0) {
-                emit status(QStringLiteral("Scanner: scanned %1 files").arg(count));
-            }
         }
+        emit status(QString("Finished Scanning files in directory : " + m_request_.directory));
 
+		emit progress(count, count); // Final update count = total for UI purposes.
+        
         if (!batch->empty()) {
             m_output.emplace(batch);
         }
+		
     }
     void DirectoryScanner::onStart()
     {

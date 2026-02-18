@@ -83,7 +83,7 @@ namespace photoboss
         }
     }
 
-    void MainWindow::UpdateDiskReadProgress(int current, int total)
+    void MainWindow::UpdateProgressBar(int current, int total)
     {
         if (m_progress_bar_) {
             m_progress_bar_->setMaximum(total);
@@ -105,6 +105,8 @@ namespace photoboss
             m_status_bar_->showMessage(message);
 			});
 
+		connect(m_pipeline_controller_.get(), &PipelineController::progressUpdate, this, &MainWindow::UpdateProgressBar);
+
         connect(m_pipeline_controller_.get(), &PipelineController::finalGroups,
             this, &MainWindow::onGroupingFinished, Qt::QueuedConnection);
     }
@@ -112,13 +114,6 @@ namespace photoboss
     void MainWindow::OnCurrentFolderChanged()
     {
         ui_->filepath->setPlainText(m_current_folder_);
-    }
-
-    void MainWindow::OnScannedFileCount(int fileCount)
-    {
-        m_progress_bar_->setMaximum(fileCount);
-        m_progress_bar_->setValue(0);
-        m_status_bar_->showMessage(tr("%1 Files Scanned...").arg(fileCount));
     }
 
     void MainWindow::SetCurrentFolder(const QString& folder)

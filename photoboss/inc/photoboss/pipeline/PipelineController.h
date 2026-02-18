@@ -76,13 +76,14 @@ namespace photoboss {
     signals:
         void finalGroups(const std::vector<ImageGroup> groups);
 		void status(const QString& message);
-		void diskReadProgress(int current, int total);
+		void progressUpdate(int current, int total);
         void pipelineStateChanged(PipelineState state);
         
     private:
         void createPipeline(const ScanRequest& request);
 		void destroyPipeline();
         void onGroupingFinished(const std::vector<ImageGroup> groups);
+
     private:
         std::unique_ptr<Pipeline> m_pipeline_;
         std::unique_ptr <IHashCache> m_cache_;
@@ -91,5 +92,7 @@ namespace photoboss {
 		ScanRequest m_current_request_;
 		std::vector<QThread*> m_hash_worker_threads_;
         quint64 m_scan_id_ = -1;
+        quint64 m_current_ = 0;
+		quint64 m_total_ = 0;
     };
 }
