@@ -66,7 +66,7 @@ namespace photoboss {
         }
         emit status(QString("Finished Scanning files in directory : " + m_request_.directory));
 
-		emit progress(count, count); // Final update count = total for UI purposes.
+        emit progress(count, count); // Final update count = total for UI purposes.
         
         if (!batch->empty()) {
             m_output.emplace(batch);

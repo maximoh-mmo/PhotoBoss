@@ -36,10 +36,11 @@ namespace photoboss
 
         // Update metadata
         m_meta_label_->setText(
-            QString("%1 x %2 | %3")
+            QString("%1 x %2 | %3 | %4")
             .arg(entry.resolution.width())
             .arg(entry.resolution.height())
             .arg(humanSize(entry.fileSize))
+            .arg(entry.path)
         );
 
         // Scale & center the pixmap

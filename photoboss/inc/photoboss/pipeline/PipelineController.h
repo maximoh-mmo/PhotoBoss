@@ -92,7 +92,7 @@ namespace photoboss {
 		ScanRequest m_current_request_;
 		std::vector<QThread*> m_hash_worker_threads_;
         quint64 m_scan_id_ = -1;
-        quint64 m_current_ = 0;
-		quint64 m_total_ = 0;
+        quint64 m_totalFiles_ = 0;
+        quint64 m_processedFiles_ = 0;
     };
 }

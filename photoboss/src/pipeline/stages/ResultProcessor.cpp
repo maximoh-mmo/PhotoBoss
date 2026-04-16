@@ -22,7 +22,11 @@ namespace photoboss {
             emit progress(static_cast<int>(m_items.size()), static_cast<int>(m_items.size()));
         }
         SimilarityEngine engine;
-        auto groups = engine.group(m_items);
+        
+        auto groups = engine.group(m_items, [this](int current, int total) {
+            emit progress(current, total); }
+        );
+
         emit status(QString("Grouping results..."));
         
         std::vector<ImageGroup> result;

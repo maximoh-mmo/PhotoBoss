@@ -174,17 +174,15 @@ namespace photoboss {
 
         m_pipeline_->resultThread.start();
 
-        connect(m_pipeline_->scanner, &DirectoryScanner::progress,
-            this, [this](int current, int total) {
-				m_total_ = total;
-                emit progressUpdate(m_current_, m_total_);  
+        connect(m_pipeline_->scanner, &StageBase::progress, this, [this](qint64 current, qint64 total) {
+            m_totalFiles_ = total;
             });
 
-		connect(m_pipeline_->resultProcessor, &ResultProcessor::progress,
-			this, [this](int current, int total) {
-				m_current_ = current;
-                emit progressUpdate(m_current_, m_total_);
-			});
+        connect(m_pipeline_->resultProcessor, &StageBase::progress, this,
+            [this](qint64 current, qint64 total) {
+                m_processedFiles_ = current;
+                emit progressUpdate(m_processedFiles_, m_totalFiles_);
+            });
 
         SetPipelineState(PipelineState::Running);
     }

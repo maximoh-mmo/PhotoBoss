@@ -19,19 +19,20 @@ namespace photoboss {
     class SimilarityEngine {
     public:
         struct Config {
-            double strongThreshold = 0.90;
-            double weakThreshold = 0.80;
+            double strongThreshold = 0.97;
+            double weakThreshold = 0.92;
 
-            double pHashWeight = 0.45;
-            double dHashWeight = 0.25;
-            double aHashWeight = 0.20;
-            double ratioWeight = 0.10;
+            double pHashWeight = 0.60;
+            double dHashWeight = 0.30;
+            double aHashWeight = 0.05;
+            double ratioWeight = 0.05;
         };
 
         explicit SimilarityEngine(Config cfg = {});
 
         std::vector<ImageGroup> group(
-            const std::vector<std::shared_ptr<HashedImageResult>>& images
+            const std::vector<std::shared_ptr<HashedImageResult>>& images,
+            std::function<void(qint64 current, qint64 total)> progressCb = nullptr
         );
 
     private:
@@ -83,5 +84,7 @@ namespace photoboss {
             const ImageNode& a,
             const ImageNode& b
         );
+
+        static double score(const ImageNode& img);
     };
 }

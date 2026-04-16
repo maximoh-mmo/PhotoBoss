@@ -30,8 +30,10 @@ namespace photoboss {
     }
 
     std::vector<ImageGroup> SimilarityEngine::group(
-        const std::vector<std::shared_ptr<HashedImageResult>>& images
+        const std::vector<std::shared_ptr<HashedImageResult>>& images, 
+        std::function<void(qint64 current, qint64 total)> progressCb
     )
+
     {
         // ---------------------------
         // 1. Exact SHA grouping
@@ -64,6 +66,9 @@ namespace photoboss {
         // ---------------------------
         std::vector<SimilarityGroup> clusters;
 
+        int total = static_cast<int>(exact.size());
+        int current = 0;
+
         for (auto& [_, eg] : exact) {
             bool placed = false;
 
@@ -91,6 +96,12 @@ namespace photoboss {
 
                 clusters.push_back(std::move(c));
             }
+
+            // progress update
+            ++current;
+            if (progressCb && (current % 10 == 0)) {
+                progressCb(current, total);
+            }
         }
 
         // ---------------------------
@@ -117,6 +128,8 @@ namespace photoboss {
     {
         double score = 0.0;
         double weightSum = 0.0;
+        double phashSim = 0.0;
+        double dhashSim = 0.0;
 
         for (const auto& h : m_hashes) {
             const QString& key = h.method->key();
@@ -129,8 +142,23 @@ namespace photoboss {
                 b.hashes.at(key)
             );
 
+            if (key == "Perceptual Hash")
+                phashSim = sim;
+
+            if (key == "Difference Hash")
+                dhashSim = sim;
+
             score += sim * h.weight;
             weightSum += h.weight;
+        }
+
+        // --------------------------------------------------
+        // Hard Gate: if either perceptual or difference hashes 
+        // are below acceptable thresholds return 0
+        // --------------------------------------------------
+
+        if (phashSim < 0.98 || dhashSim < 0.94) {
+            return 0.0;
         }
 
         return weightSum > 0.0 ? score / weightSum : 0.0;
@@ -151,7 +179,7 @@ namespace photoboss {
             images.begin(),
             images.end(),
             [](const ImageNode& a, const ImageNode& b) {
-                return SimilarityEngine::better(b, a);
+                return SimilarityEngine::better(a, b);
             }
         );
 
@@ -163,18 +191,30 @@ namespace photoboss {
         const ImageNode& b
     )
     {
-        const quint64 aPixels =
-            static_cast<quint64>(a.resolution.width()) *
-            static_cast<quint64>(a.resolution.height());
+        return score(a) > score(b);
+    }
 
-        const quint64 bPixels =
-            static_cast<quint64>(b.resolution.width()) *
-            static_cast<quint64>(b.resolution.height());
+    // ------------------------------------------------------------
+    // Image Score calculation
+    // ------------------------------------------------------------
 
-        if (aPixels != bPixels)
-            return aPixels > bPixels;
+    double SimilarityEngine::score(const ImageNode& img)
+    {
+        const double pixels =
+            static_cast<double>(img.resolution.width()) *
+            static_cast<double>(img.resolution.height());
 
-        return a.fileSize > b.fileSize;
+        double score = pixels;
+
+        score += img.fileSize * 0.001;
+
+        const QString ext = img.result->fileIdentity.extension().toLower();
+        if (ext == "png") score *= 1.05;
+
+        if (img.result->fileIdentity.exif().dateTimeOriginal)
+            score *= 1.02;
+
+        return score;
     }
 
     // ------------------------------------------------------------
@@ -210,5 +250,4 @@ namespace photoboss {
 
         return out;
     }
-
 }
