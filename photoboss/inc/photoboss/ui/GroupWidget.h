@@ -19,6 +19,7 @@ namespace photoboss {
 		explicit GroupWidget(const ImageGroup& group, QWidget* parent = nullptr);
 
 		QVector<const HashedImageResult*> imagesMarkedForDelete() const;
+		void updateGroup(const ImageGroup& group);
 	
 	signals:
 		void previewImage(const ImageEntry& image);
@@ -28,5 +29,8 @@ namespace photoboss {
 
 	private:
 		QVector<ImageThumbWidget*> m_thumbs;
+		QLabel* m_header;
+		QHBoxLayout* m_currentRow;
+		QVBoxLayout* m_rootLayout;
 	};
 }

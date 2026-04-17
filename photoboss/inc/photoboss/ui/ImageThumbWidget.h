@@ -24,6 +24,7 @@ namespace photoboss {
         State state() const { return m_state_; }
         
         const ImageEntry& Image() { return m_entry_; }
+        void setThumbnail(const QPixmap& pixmap);
 
     signals:
         void clicked(ImageThumbWidget*);

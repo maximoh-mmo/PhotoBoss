@@ -1,5 +1,4 @@
-﻿#include "ui/ImageThumbWidget.h"
-#include "util/OrientImage.h"
+#include "ui/ImageThumbWidget.h"
 #include "util/humanSize.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -56,14 +55,9 @@ namespace photoboss {
         setFixedWidth(settings::ThumbnailWidth + settings::ThumbnailSpacing);
         setFixedHeight(settings::ThumbnailWidth + settings::BadgeHeight + settings::MetaHeight + 20); // 20 = margins + checkbox
 
-        QPixmap pix = OrientImage(m_entry_.path, m_entry_.rotation);
-        if (!pix.isNull()) {
-            m_thumbnailLabel_->setPixmap(pix.scaled(
-                m_thumbnailLabel_->size(),
-                Qt::KeepAspectRatio,
-                Qt::SmoothTransformation
-            ));
-        }
+        // Placeholder logic
+        m_thumbnailLabel_->setText("Loading...");
+        m_thumbnailLabel_->setStyleSheet("background-color: #333; border-radius: 4px; color: #777;");
 
         connect(m_checkBox_, &QCheckBox::toggled, this, [this](bool checked) {
             setState(checked ? State::Delete : State::Keep);
@@ -83,6 +77,13 @@ namespace photoboss {
         style()->unpolish(this);
         style()->polish(this);
         update();
+    }
+
+    void ImageThumbWidget::setThumbnail(const QPixmap& pixmap)
+    {
+        m_thumbnailLabel_->setText("");
+        m_thumbnailLabel_->setPixmap(pixmap);
+        m_thumbnailLabel_->setStyleSheet(""); // Clear placeholder style
     }
 
     void ImageThumbWidget::mousePressEvent(QMouseEvent* event)

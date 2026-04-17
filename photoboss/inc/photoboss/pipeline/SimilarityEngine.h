@@ -30,10 +30,9 @@ namespace photoboss {
 
         explicit SimilarityEngine(Config cfg = {});
 
-        std::vector<ImageGroup> group(
-            const std::vector<std::shared_ptr<HashedImageResult>>& images,
-            std::function<void(qint64 current, qint64 total)> progressCb = nullptr
-        );
+        void addImage(const std::shared_ptr<HashedImageResult>& img);
+
+        std::vector<ImageGroup> getGroups() const;
 
     private:
         struct ImageNode {
@@ -44,17 +43,23 @@ namespace photoboss {
 
         struct ExactGroup {
             QString sha;
-            std::vector<ImageNode> images;
+            std::vector<ImageNode*> images;
             ImageNode* representative;
         };
 
         struct SimilarityGroup {
+            quint64 id = 0;
             std::vector<ImageNode*> members;
             ImageNode* representative;
         };
 
     private:
         Config m_cfg;
+        quint64 m_nextGroupId = 1;
+
+        std::list<ImageNode> m_nodes;
+        std::unordered_map<QString, ExactGroup> m_exactGroups;
+        std::vector<SimilarityGroup> m_clusters;
 
         struct WeightedHash {
             std::unique_ptr<HashMethod> method;

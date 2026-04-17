@@ -10,6 +10,10 @@
 #include <QSplitter>
 #include <qscrollarea.h>
 #include <qlayout.h>
+#include <QPixmap>
+#include <QMap>
+#include <QMultiMap>
+#include <deque>
 #include "ui/PreviewPane.h"
 
 QT_BEGIN_NAMESPACE
@@ -17,6 +21,8 @@ namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 namespace photoboss {
 	class PipelineController;
+    class GroupWidget;
+	class ImageThumbWidget;
 
     class MainWindow : public QMainWindow {
         Q_OBJECT
@@ -30,11 +36,16 @@ namespace photoboss {
         void Init();
         void OnCurrentFolderChanged();
         void SetCurrentFolder(const QString& folder);
-        void onGroupingFinished(const std::vector<ImageGroup> groups);
+        void onGroupAdded(const ImageGroup& group);
+        void onGroupUpdated(const ImageGroup& group);
+        void onThumbnailReady(const ThumbnailResult& result);
         void clearResults();
         QString GetCurrentFolder() const { return m_current_folder_; }
         void OnBrowse();
         void UpdateProgressBar(int current, int total);
+
+    private slots:
+        void processBatch();
 
     private:
         Ui::MainWindow* ui_ = nullptr;
@@ -56,7 +67,13 @@ namespace photoboss {
         QVBoxLayout* m_thumbnail_layout_ = nullptr;
 
         // Right
+        QMap<quint64, GroupWidget*> m_groupWidgets;
+        QMultiMap<QString, ImageThumbWidget*> m_thumbnailWaiters;
+        QMap<QString, QPixmap> m_thumbnailCache;
         PreviewPane* m_preview_pane = nullptr;
+
+        std::deque<ImageGroup> m_pendingGroups;
+        QTimer* m_batchTimer = nullptr;
 
     };
 }

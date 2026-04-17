@@ -1,6 +1,7 @@
 #pragma once
 #include <qdatetime.h>
 #include <qsize.h>
+#include <qimage.h>
 #include "util/FileIdentity.h"
 
 namespace photoboss {
@@ -58,6 +59,20 @@ namespace photoboss {
             : directory(std::move(dir)), recursive(rec) {
         }
 	};
+
+    struct ThumbnailRequest {
+        QString path;
+        int rotation;
+        int width;
+        int height;
+    };
+
+    using ThumbnailRequestPtr = std::shared_ptr<ThumbnailRequest>;
+
+    struct ThumbnailResult {
+        QString path;
+        QImage image;
+    };
 
     using FileIdentityBatchPtr = std::shared_ptr<std::vector<FileIdentity>>;
 }

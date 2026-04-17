@@ -4,6 +4,7 @@
 #include "hashing/HashMethod.h"
 #include "ui/GroupWidget.h"
 #include "util/AppSettings.h"
+#include "ui/ImageThumbWidget.h"
 
 #include <QFileDialog>
 #include <QDebug>
@@ -73,6 +74,11 @@ namespace photoboss
         bodyLayout->setContentsMargins(0, 0, 0, 0);
         bodyLayout->addWidget(m_splitter_);
 
+        m_batchTimer = new QTimer(this);
+        m_batchTimer->setInterval(20); // 50fps-ish
+        connect(m_batchTimer, &QTimer::timeout, this, &MainWindow::processBatch);
+        // We start it in onGroupAdded as needed
+
         WireConnections();
     }
     void MainWindow::OnBrowse()
@@ -97,6 +103,7 @@ namespace photoboss
         connect(m_scan_button_, &QPushButton::clicked, this, [this]() {
             const QString folder = GetCurrentFolder();
             if (!folder.isEmpty()) {
+                clearResults(); // Clear UI for new scan
                 m_pipeline_controller_->start({ folder, ui_->subfolders->isChecked() });
             }
             });
@@ -107,8 +114,14 @@ namespace photoboss
 
 		connect(m_pipeline_controller_.get(), &PipelineController::progressUpdate, this, &MainWindow::UpdateProgressBar);
 
-        connect(m_pipeline_controller_.get(), &PipelineController::finalGroups,
-            this, &MainWindow::onGroupingFinished, Qt::QueuedConnection);
+        connect(m_pipeline_controller_.get(), &PipelineController::groupAdded,
+            this, &MainWindow::onGroupAdded, Qt::QueuedConnection);
+
+        connect(m_pipeline_controller_.get(), &PipelineController::groupUpdated,
+            this, &MainWindow::onGroupUpdated, Qt::QueuedConnection);
+
+        connect(m_pipeline_controller_.get(), &PipelineController::thumbnailReady,
+            this, &MainWindow::onThumbnailReady, Qt::QueuedConnection);
     }
 
     void MainWindow::OnCurrentFolderChanged()
@@ -124,15 +137,91 @@ namespace photoboss
         }
     }
 
-    void MainWindow::onGroupingFinished(const std::vector<ImageGroup> groups)
+    void MainWindow::processBatch()
     {
-        this->clearResults(); // important for second runs
+        if (m_pendingGroups.empty()) return;
 
-        for (const auto& group : groups) {
+        int count = 0;
+        while (!m_pendingGroups.empty() && count < 10) { // increased batch size
+            ImageGroup group = m_pendingGroups.front();
+            m_pendingGroups.pop_front();
+
+            if (m_groupWidgets.contains(group.id)) continue;
+
             auto* widget = new GroupWidget(group, m_thumbnail_container_);
             m_thumbnail_layout_->addWidget(widget);
+            m_groupWidgets[group.id] = widget;
+
+            // Register thumbnails for async update and check cache
+            for (const auto& entry : group.images) {
+                // Find the ImageThumbWidget inside the GroupWidget
+                for (auto* thumb : widget->findChildren<ImageThumbWidget*>()) {
+                    if (thumb->Image().path == entry.path) {
+                        if (m_thumbnailCache.contains(entry.path)) {
+                            thumb->setThumbnail(m_thumbnailCache[entry.path]);
+                        } else {
+                            m_thumbnailWaiters.insert(entry.path, thumb);
+                        }
+                    }
+                }
+            }
+
             connect(widget, &GroupWidget::previewImage, m_preview_pane, &PreviewPane::showImage);
+            count++;
         }
+    }
+
+    void MainWindow::onGroupAdded(const ImageGroup& group)
+    {
+        m_pendingGroups.push_back(group);
+        if (!m_batchTimer->isActive()) {
+            m_batchTimer->start(50); // Process batch every 50ms
+        }
+    }
+
+    void MainWindow::onGroupUpdated(const ImageGroup& group)
+    {
+        if (m_groupWidgets.contains(group.id)) {
+            m_groupWidgets[group.id]->updateGroup(group);
+
+            // Also update mapping for any new images added to the group
+            auto* widget = m_groupWidgets[group.id];
+            for (const auto& entry : group.images) {
+                bool alreadyWaiting = false;
+                auto waiters = m_thumbnailWaiters.values(entry.path);
+                for (auto* w : waiters) {
+                    if (w->parentWidget()->parentWidget() == widget) { // Very hacky path to GroupWidget
+                       alreadyWaiting = true;
+                       break;
+                    }
+                }
+                
+                if (!alreadyWaiting) {
+                    for (auto* thumb : widget->findChildren<ImageThumbWidget*>()) {
+                        if (thumb->Image().path == entry.path) {
+                             if (m_thumbnailCache.contains(entry.path)) {
+                                 thumb->setThumbnail(m_thumbnailCache[entry.path]);
+                             } else {
+                                 m_thumbnailWaiters.insert(entry.path, thumb);
+                             }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    void MainWindow::onThumbnailReady(const ThumbnailResult& result)
+    {
+        QPixmap pix = QPixmap::fromImage(result.image);
+        m_thumbnailCache.insert(result.path, pix);
+
+        auto waiters = m_thumbnailWaiters.values(result.path);
+        for (auto* thumb : waiters) {
+            thumb->setThumbnail(pix);
+        }
+        
+        m_thumbnailWaiters.remove(result.path);
     }
 
     void MainWindow::clearResults()
@@ -142,5 +231,9 @@ namespace photoboss
             delete item->widget();
             delete item;
         }
+        m_groupWidgets.clear();
+        m_pendingGroups.clear();
+        m_thumbnailWaiters.clear();
+        m_thumbnailCache.clear();
     }
 }

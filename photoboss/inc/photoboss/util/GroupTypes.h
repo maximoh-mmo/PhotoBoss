@@ -16,6 +16,7 @@ namespace photoboss {
     };
 
     struct ImageGroup {
+        quint64 id = 0;
         std::vector<ImageEntry> images;
         int bestIndex; // index into images
     };

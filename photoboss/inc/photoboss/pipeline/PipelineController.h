@@ -1,8 +1,10 @@
-﻿#pragma once
+#pragma once
 #include <QObject>
 #include <QThread>
+#include <QTimer>
 #include <memory>
 #include <vector>
+#include <atomic>
 #include "util/Queue.h"
 #include "util/DataTypes.h"
 #include "util/GroupTypes.h"
@@ -16,6 +18,7 @@ namespace photoboss {
 	class CacheLookup;
     class CacheStore;
     class HashWorker;
+    class ThumbnailGenerator;
 
     struct Pipeline {
         // Queues
@@ -24,6 +27,7 @@ namespace photoboss {
         Queue<std::unique_ptr<DiskReadResult>> readQueue;
         Queue<std::shared_ptr<HashedImageResult>> cacheStoreQueue;
         Queue<std::shared_ptr<HashedImageResult>> resultQueue;
+        Queue<ThumbnailRequestPtr> thumbnailQueue;
 
         // Threads
         QThread scannerThread;
@@ -39,6 +43,7 @@ namespace photoboss {
         CacheLookup* cacheLookup = nullptr;
 		CacheStore* cacheStore = nullptr;
 		std::vector<HashWorker*> hashWorkers;
+        std::vector<ThumbnailGenerator*> thumbnailGenerators;
 
         Pipeline() = default;
         Pipeline(size_t scanCap,
@@ -49,6 +54,7 @@ namespace photoboss {
 		    , disk(diskCap)
             , readQueue(readCap)
             , resultQueue(resultCap)
+            , thumbnailQueue(1000)
         {
         }
     };
@@ -75,6 +81,9 @@ namespace photoboss {
 
     signals:
         void finalGroups(const std::vector<ImageGroup> groups);
+        void groupAdded(const ImageGroup& group);
+        void groupUpdated(const ImageGroup& group);
+        void thumbnailReady(const ThumbnailResult& result);
 		void status(const QString& message);
 		void progressUpdate(int current, int total);
         void pipelineStateChanged(PipelineState state);
@@ -91,8 +100,18 @@ namespace photoboss {
 		void SetPipelineState(PipelineState state);
 		ScanRequest m_current_request_;
 		std::vector<QThread*> m_hash_worker_threads_;
+        std::vector<QThread*> m_thumbnail_worker_threads_;
+        std::atomic<int> m_activeThumbnailWorkers_{ 0 };
+
         quint64 m_scan_id_ = -1;
         quint64 m_totalFiles_ = 0;
         quint64 m_processedFiles_ = 0;
+
+        QTimer m_progressTimer_;
+        double m_displayedFiles_ = 0.0;
+        
+    private slots:
+        void onProgressTimerTick();
+        void onThumbnailWorkerFinished();
     };
 }

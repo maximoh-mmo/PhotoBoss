@@ -23,6 +23,6 @@ namespace photoboss
     private:
         QLabel* m_image_label_;
         QLabel* m_meta_label_;
-        QPixmap m_current_pixmap_;
+        QImage m_current_image_;
     };
 }

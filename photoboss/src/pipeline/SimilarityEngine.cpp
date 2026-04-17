@@ -29,59 +29,27 @@ namespace photoboss {
         }
     }
 
-    std::vector<ImageGroup> SimilarityEngine::group(
-        const std::vector<std::shared_ptr<HashedImageResult>>& images, 
-        std::function<void(qint64 current, qint64 total)> progressCb
-    )
-
+    void SimilarityEngine::addImage(const std::shared_ptr<HashedImageResult>& img)
     {
-        // ---------------------------
-        // 1. Exact SHA grouping
-        // ---------------------------
-        std::unordered_map<QString, ExactGroup> exact;
+        if (!img || !img->hashes.count("SHA256")) return;
 
-        for (const auto& img : images) {
-            if (!img || !img->hashes.count("SHA256"))
-                continue;
+        m_nodes.push_back({img.get(), img->resolution, img->fileIdentity.size()});
+        ImageNode* node = &m_nodes.back();
 
-            const QString& sha = img->hashes.at("SHA256");
+        const QString& sha = img->hashes.at("SHA256");
+        auto it = m_exactGroups.find(sha);
 
-            auto& g = exact[sha];
-            g.sha = sha;
+        if (it == m_exactGroups.end()) {
+            ExactGroup eg;
+            eg.sha = sha;
+            eg.images.push_back(node);
+            eg.representative = node;
 
-            g.images.push_back({
-                img.get(),
-                img->resolution,
-                img->fileIdentity.size()
-                });
-        }
-
-        // Select representative for each exact group
-        for (auto& [_, g] : exact) {
-            g.representative = selectRepresentative(g.images);
-        }
-
-        // ---------------------------
-        // 2. Similarity clustering
-        // ---------------------------
-        std::vector<SimilarityGroup> clusters;
-
-        int total = static_cast<int>(exact.size());
-        int current = 0;
-
-        for (auto& [_, eg] : exact) {
             bool placed = false;
-
-            for (auto& cluster : clusters) {
-                double sim = confidence(
-                    *eg.representative->result,
-                    *cluster.representative->result
-                );
-
+            for (auto& cluster : m_clusters) {
+                double sim = confidence(*node->result, *cluster.representative->result);
                 if (sim >= m_cfg.strongThreshold) {
-                    for (auto& img : eg.images)
-                        cluster.members.push_back(&img);
-
+                    cluster.members.push_back(node);
                     placed = true;
                     break;
                 }
@@ -89,28 +57,43 @@ namespace photoboss {
 
             if (!placed) {
                 SimilarityGroup c;
-                c.representative = eg.representative;
-
-                for (auto& img : eg.images)
-                    c.members.push_back(&img);
-
-                clusters.push_back(std::move(c));
+                c.id = m_nextGroupId++;
+                c.representative = node;
+                c.members.push_back(node);
+                m_clusters.push_back(std::move(c));
             }
 
-            // progress update
-            ++current;
-            if (progressCb && (current % 10 == 0)) {
-                progressCb(current, total);
+            m_exactGroups.insert({sha, std::move(eg)});
+        } else {
+            ExactGroup& eg = it->second;
+            eg.images.push_back(node);
+
+            ImageNode* oldRep = eg.representative;
+            bool newlyBetter = better(*node, *oldRep);
+            if (newlyBetter) {
+                eg.representative = node;
+            }
+
+            for (auto& cluster : m_clusters) {
+                // Find cluster containing the ExactGroup
+                if (std::find(cluster.members.begin(), cluster.members.end(), oldRep) != cluster.members.end()) {
+                    cluster.members.push_back(node);
+                    // Update representative of cluster if needed
+                    if (newlyBetter && cluster.representative == oldRep) {
+                        cluster.representative = node;
+                    }
+                    break;
+                }
             }
         }
+    }
 
-        // ---------------------------
-        // 3. Build output groups
-        // ---------------------------
+    std::vector<ImageGroup> SimilarityEngine::getGroups() const
+    {
         std::vector<ImageGroup> out;
-        out.reserve(clusters.size());
+        out.reserve(m_clusters.size());
 
-        for (const auto& c : clusters) {
+        for (const auto& c : m_clusters) {
             out.push_back(buildGroup(c));
         }
 
@@ -168,23 +151,7 @@ namespace photoboss {
     // Representative selection
     // ------------------------------------------------------------
 
-    SimilarityEngine::ImageNode*
-        SimilarityEngine::selectRepresentative(
-            std::vector<ImageNode>& images
-        ) const
-    {
-        Q_ASSERT(!images.empty());
 
-        auto it = std::max_element(
-            images.begin(),
-            images.end(),
-            [](const ImageNode& a, const ImageNode& b) {
-                return SimilarityEngine::better(a, b);
-            }
-        );
-
-        return &(*it);
-    }
 
     bool SimilarityEngine::better(
         const ImageNode& a,
@@ -226,6 +193,7 @@ namespace photoboss {
     ) const
     {
         ImageGroup out;
+        out.id = g.id;
         out.bestIndex = 0;
 
         ImageNode* best = g.representative;

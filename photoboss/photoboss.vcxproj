@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -57,18 +57,18 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="$(QtMsBuild)\qt_defaults.props" Condition="Exists('$(QtMsBuild)\qt_defaults.props')" />
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <QtModules>core;sql;</QtModules>
+    <QtModules>core;sql;widgets;concurrent</QtModules>
   </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <QtModules>core;sql;</QtModules>
+    <QtModules>core;sql;widgets;concurrent</QtModules>
   </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <QtToolsDesignTime>false</QtToolsDesignTime>
-    <QtModules>core;sql;widgets</QtModules>
+    <QtModules>core;sql;widgets;concurrent</QtModules>
   </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <QtToolsDesignTime>false</QtToolsDesignTime>
-    <QtModules>core;sql;widgets</QtModules>
+    <QtModules>core;sql;widgets;concurrent</QtModules>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') OR !Exists('$(QtMsBuild)\Qt.props')">
     <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
@@ -161,22 +161,18 @@
     <QtMoc Include="inc\photoboss\ui\MainWindow.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="inc\photoboss\util\AppSettings.h" />
     <ClCompile Include="src\util\OrientImage.cpp" />
     <ClCompile Include="src\ui\GroupWidget.cpp" />
+    <ClCompile Include="src\pipeline\stages\ThumbnailGenerator.cpp" />
     <ClCompile Include="src\ui\ImageThumbWidget.cpp" />
     <ClCompile Include="src\pipeline\SimilarityEngine.cpp" />
     <ClCompile Include="src\hashmethods\AverageHash.cpp" />
     <ClCompile Include="src\hashmethods\DifferenceHash.cpp" />
-    <ClCompile Include="inc\photoboss\hashing\DifferenceHash.h" />
     <ClCompile Include="inc\photoboss\hashing\HashCatalog.cpp" />
     <ClCompile Include="src\exif\ExifReader.cpp" />
-    <ClCompile Include="inc\photoboss\hashing\PerceptualHash.h" />
     <ClCompile Include="src\hashmethods\PerceptualImage.cpp" />
-    <ClCompile Include="inc\photoboss\util\GroupTypes.h" />
     <ClCompile Include="src\hashmethods\Sha256Hash.cpp" />
     <ClCompile Include="src\pipeline\stages\CacheStore.cpp" />
-    <ClCompile Include="inc\photoboss\util\CacheTypes.h" />
     <ClCompile Include="src\caching\SqliteHashCache.cpp" />
     <ClCompile Include="src\pipeline\stages\CacheLookup.cpp" />
     <ClCompile Include="src\pipeline\stages\DirectoryScanner.cpp" />
@@ -198,6 +194,7 @@
     <ClInclude Include="inc\photoboss\hashing\PerceptualImage.h" />
     <ClInclude Include="inc\photoboss\pipeline\SimilarityEngine.h" />
     <QtMoc Include="inc\photoboss\ui\GroupWidget.h" />
+    <QtMoc Include="inc\photoboss\pipeline\stages\ThumbnailGenerator.h" />
     <QtMoc Include="inc\photoboss\ui\ImageThumbWidget.h" />
     <QtMoc Include="inc\photoboss\ui\PreviewPane.h" />
     <ClInclude Include="inc\photoboss\pipeline\stages\CachePrune.h" />
@@ -219,6 +216,11 @@
     <ClInclude Include="inc\photoboss\util\DataTypes.h" />
     <ClInclude Include="inc\photoboss\util\FileIdentity.h" />
     <ClInclude Include="inc\photoboss\util\Queue.h" />
+    <ClInclude Include="inc\photoboss\util\AppSettings.h" />
+    <ClInclude Include="inc\photoboss\hashing\DifferenceHash.h" />
+    <ClInclude Include="inc\photoboss\hashing\PerceptualHash.h" />
+    <ClInclude Include="inc\photoboss\util\GroupTypes.h" />
+    <ClInclude Include="inc\photoboss\util\CacheTypes.h" />
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="resources\Resources.qrc" />

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
@@ -51,22 +51,10 @@
     <ClCompile Include="src\hashmethods\Sha256Hash.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="inc\photoboss\hashing\PerceptualHash.h">
-      <Filter>Header Files</Filter>
-    </ClCompile>
-    <ClCompile Include="inc\photoboss\util\CacheTypes.h">
-      <Filter>Header Files</Filter>
-    </ClCompile>
-    <ClCompile Include="inc\photoboss\util\GroupTypes.h">
-      <Filter>Header Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\hashmethods\PerceptualImage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\exif\ExifReader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="inc\photoboss\hashing\DifferenceHash.h">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\hashmethods\DifferenceHash.cpp">
@@ -91,9 +79,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\util\OrientImage.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="inc\photoboss\util\AppSettings.h">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -191,6 +176,21 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\photoboss\caching\NullHashCache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\hashing\PerceptualHash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\util\CacheTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\util\GroupTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\hashing\DifferenceHash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\util\AppSettings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -56,7 +56,7 @@ namespace photoboss {
 
             batch->push_back(fileIdentity);
             ++count;
-            emit progress(count, count); // current files scanned. Total is unknown at this point, so using count for both.
+            emit progress(count, 0); // Indeterminate progress spinner
 
             if (static_cast<int>(batch->size()) >= batch_size) {
 				m_output.emplace(batch);

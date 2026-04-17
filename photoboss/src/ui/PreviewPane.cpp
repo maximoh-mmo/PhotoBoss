@@ -23,16 +23,17 @@ namespace photoboss
 
     void PreviewPane::showImage(const ImageEntry& entry)
     {
-        QPixmap pix = OrientImage(entry.path, entry.rotation);
+        QImage pix(entry.path);
+        pix = OrientImage(std::move(pix), entry.rotation);
         if (pix.isNull()) {
             qWarning() << "PreviewPane: failed to load image:" << entry.path;
             m_image_label_->clear();
             m_meta_label_->clear();
-            m_current_pixmap_ = QPixmap();
+            m_current_image_ = QImage();
             return;
         }
 
-        m_current_pixmap_ = pix;
+        m_current_image_ = pix;
 
         // Update metadata
         m_meta_label_->setText(
@@ -43,10 +44,10 @@ namespace photoboss
             .arg(entry.path)
         );
 
-        // Scale & center the pixmap
+        // Scale & center the image as a pixmap
         if (!m_image_label_->size().isEmpty()) {
             m_image_label_->setPixmap(
-                m_current_pixmap_.scaled(
+                QPixmap::fromImage(m_current_image_).scaled(
                     m_image_label_->size(),
                     Qt::KeepAspectRatio,
                     Qt::SmoothTransformation
@@ -59,9 +60,9 @@ namespace photoboss
     {
         QWidget::resizeEvent(event);
 
-        if (!m_current_pixmap_.isNull() && !m_image_label_->size().isEmpty()) {
+        if (!m_current_image_.isNull() && !m_image_label_->size().isEmpty()) {
             // Keep aspect ratio and center the image
-            QPixmap scaled = m_current_pixmap_.scaled(
+            QPixmap scaled = QPixmap::fromImage(m_current_image_).scaled(
                 m_image_label_->size(),
                 Qt::KeepAspectRatio,
                 Qt::SmoothTransformation

@@ -1,10 +1,11 @@
-﻿#include "pipeline/PipelineController.h"
+#include "pipeline/PipelineController.h"
 #include "pipeline/stages/DirectoryScanner.h"
 #include "pipeline/stages/DiskReader.h"
 #include "pipeline/stages/HashWorker.h"
 #include "pipeline/stages/ResultProcessor.h"
 #include "pipeline/stages/CacheLookup.h"
 #include "pipeline/stages/CacheStore.h"
+#include "pipeline/stages/ThumbnailGenerator.h"
 #include "caching/SqliteHashCache.h"
 #include "util/Token.h"
 #include <QDebug>
@@ -16,6 +17,8 @@ namespace photoboss {
         QObject* parent)
         : QObject(parent)
     {
+        connect(&m_progressTimer_, &QTimer::timeout, this, &PipelineController::onProgressTimerTick);
+        m_progressTimer_.setInterval(30);
     }
 
     PipelineController::~PipelineController()
@@ -28,6 +31,10 @@ namespace photoboss {
         if (m_state_ != PipelineState::Stopped)
             return;
         SetPipelineState(PipelineState::Running);
+        
+        m_totalFiles_ = 0;
+        m_processedFiles_ = 0;
+        m_displayedFiles_ = 0.0;
         
         Token t;
         m_scan_id_ = SqliteHashCache(0).nextScanId(t);
@@ -49,11 +56,10 @@ namespace photoboss {
             m_pipeline_->readQueue.request_shutdown(t);
             m_pipeline_->cacheStoreQueue.request_shutdown(t);
             m_pipeline_->resultQueue.request_shutdown(t);
+            m_pipeline_->thumbnailQueue.request_shutdown(t);
         }
-
-        destroyPipeline();
         
-        SetPipelineState(PipelineState::Stopped);
+        m_progressTimer_.stop();
     }
 
     void PipelineController::createPipeline(const ScanRequest& request)
@@ -100,9 +106,6 @@ namespace photoboss {
         // ---- Disk Reader ----
         m_pipeline_->reader = new DiskReader(m_pipeline_->disk, m_pipeline_->readQueue);
         m_pipeline_->reader->moveToThread(&m_pipeline_->readerThread);
-
-        connect(m_pipeline_->reader, &DiskReader::ReadProgress,
-            this, &PipelineController::progressUpdate);
 
         connect(&m_pipeline_->readerThread, &QThread::started,
             m_pipeline_->reader, &StageBase::Run);
@@ -154,8 +157,32 @@ namespace photoboss {
         
 		m_pipeline_->cacheStoreThread.start();
 
+        // ---- Thumbnail Generators ----
+        const int thumbWorkers = std::max(2, QThread::idealThreadCount() / 2);
+        m_activeThumbnailWorkers_ = thumbWorkers;
+        for (int i = 0; i < thumbWorkers; ++i) {
+            ThumbnailGenerator* worker = new ThumbnailGenerator(m_pipeline_->thumbnailQueue, "ThumbnailWorker");
+            QThread* thread = new QThread();
+            m_thumbnail_worker_threads_.push_back(thread);
+            worker->moveToThread(thread);
+
+            connect(thread, &QThread::started, worker, &StageBase::Run);
+            connect(thread, &QThread::finished, worker, &QObject::deleteLater);
+            connect(thread, &QThread::finished, thread, &QObject::deleteLater);
+
+            connect(worker, &ThumbnailGenerator::thumbnailReady, this, &PipelineController::thumbnailReady, Qt::QueuedConnection);
+            connect(worker, &ThumbnailGenerator::workerFinished, this, &PipelineController::onThumbnailWorkerFinished, Qt::QueuedConnection);
+
+            thread->start();
+            m_pipeline_->thumbnailGenerators.push_back(worker);
+        }
+
 		// ---- Result Processor ----
-		m_pipeline_->resultProcessor = new ResultProcessor(m_pipeline_->resultQueue, "ResultProcessor");
+		m_pipeline_->resultProcessor = new ResultProcessor(
+            m_pipeline_->resultQueue, 
+            m_pipeline_->thumbnailQueue,
+            "ResultProcessor"
+        );
 		m_pipeline_->resultProcessor->moveToThread(&m_pipeline_->resultThread);
 
 		connect(&m_pipeline_->resultThread, &QThread::started,
@@ -172,16 +199,39 @@ namespace photoboss {
             Qt::QueuedConnection
         );
 
+        connect(
+            m_pipeline_->resultProcessor,
+            &ResultProcessor::groupAdded,
+            this,
+            &PipelineController::groupAdded,
+            Qt::QueuedConnection
+        );
+
+        connect(
+            m_pipeline_->resultProcessor,
+            &ResultProcessor::groupUpdated,
+            this,
+            &PipelineController::groupUpdated,
+            Qt::QueuedConnection
+        );
+
         m_pipeline_->resultThread.start();
 
         connect(m_pipeline_->scanner, &StageBase::progress, this, [this](qint64 current, qint64 total) {
-            m_totalFiles_ = total;
-            });
+            if (total == 0) {
+                emit status(QString("Scanning... Discovered %1 files").arg(current));
+                emit progressUpdate(current, 0); // Spinner
+            } else {
+                m_totalFiles_ = total;
+                emit status(QString("%1 files discovered, processing files...").arg(total));
+                m_progressTimer_.start(); // Start lerping progress
+            }
+        });
 
         connect(m_pipeline_->resultProcessor, &StageBase::progress, this,
             [this](qint64 current, qint64 total) {
                 m_processedFiles_ = current;
-                emit progressUpdate(m_processedFiles_, m_totalFiles_);
+                // UI update is driven by the timer instead
             });
 
         SetPipelineState(PipelineState::Running);
@@ -211,6 +261,14 @@ namespace photoboss {
         }
         m_hash_worker_threads_.clear();
 
+        for (auto* thread : m_thumbnail_worker_threads_) {
+            if (thread->isRunning()) {
+                thread->quit();
+                thread->wait();
+            }
+        }
+        m_thumbnail_worker_threads_.clear();
+
 		m_pipeline_->resultThread.quit();
 		m_pipeline_->resultThread.wait();
 
@@ -220,13 +278,15 @@ namespace photoboss {
     void PipelineController::onGroupingFinished(const std::vector<ImageGroup> groups)
     {
         emit finalGroups(groups); // UI-facing signal
+    }
 
-        if (m_state_ == PipelineState::Stopping)
-            return;
-
-        SetPipelineState(PipelineState::Stopped);
-
-        destroyPipeline();   // graceful teardown
+    void PipelineController::onThumbnailWorkerFinished()
+    {
+        if (--m_activeThumbnailWorkers_ == 0) {
+            qDebug() << "All thumbnail workers finished. Cleaning up pipeline.";
+            SetPipelineState(PipelineState::Stopped);
+            destroyPipeline();
+        }
     }
 
     void PipelineController::SetPipelineState(PipelineState state)
@@ -243,4 +303,25 @@ namespace photoboss {
 
         start(m_current_request_);
     }    
+
+    void PipelineController::onProgressTimerTick()
+    {
+        if (m_totalFiles_ == 0) return;
+
+        if (m_displayedFiles_ < m_processedFiles_) {
+            double gap = static_cast<double>(m_processedFiles_) - m_displayedFiles_;
+            double step = qMax(gap * 0.05, 1.0); // jump 5% of the gap per 30ms
+
+            m_displayedFiles_ += step;
+            if (m_displayedFiles_ > m_processedFiles_) {
+                m_displayedFiles_ = m_processedFiles_;
+            }
+            
+            emit progressUpdate(static_cast<int>(m_displayedFiles_), m_totalFiles_);
+        }
+
+        if (m_displayedFiles_ >= m_totalFiles_) {
+            m_progressTimer_.stop();
+        }
+    }
 }

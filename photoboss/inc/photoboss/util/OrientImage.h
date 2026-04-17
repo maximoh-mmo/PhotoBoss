@@ -1,6 +1,6 @@
 #pragma once
-#include <qpixmap.h>
+#include <qimage.h>
 
 namespace photoboss {
-    QPixmap OrientImage(QString path, int rotation);
+    QImage OrientImage(QImage image, int rotation);
 }
