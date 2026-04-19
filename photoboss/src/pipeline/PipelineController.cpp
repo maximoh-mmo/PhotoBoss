@@ -285,6 +285,13 @@ namespace photoboss {
     {
         if (--m_activeThumbnailWorkers_ == 0) {
             qDebug() << "All thumbnail workers finished. Cleaning up pipeline.";
+
+            // Prune stale cache entries for this directory
+            if (!m_current_request_.directory.isEmpty()) {
+                SqliteHashCache cache(m_scan_id_);
+                cache.prune(m_current_request_.directory);
+            }
+
             SetPipelineState(PipelineState::Stopped);
             destroyPipeline();
         }
