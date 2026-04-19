@@ -13,6 +13,7 @@ namespace photoboss
         m_output(output),
         m_input(input)
     {
+        m_output.register_producer();
     }
 
     void CacheStore::run()
@@ -26,8 +27,8 @@ namespace photoboss
 
     void CacheStore::onStart()
     {
-        m_output.register_producer();
     }
+
     void CacheStore::onStop()
     {
         m_output.producer_done();

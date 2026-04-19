@@ -16,6 +16,7 @@ namespace photoboss {
 		, m_output(outputQueue)
         , m_hashMethods(std::move(HashCatalog::createAll()))
     {    
+        m_output.register_producer();
     }
 
     void HashWorker::run()
@@ -135,9 +136,9 @@ namespace photoboss {
         return !image.isNull();
     }
 
+
     void HashWorker::onStart()
     {
-        m_output.register_producer();
     }
 
     void HashWorker::onStop()

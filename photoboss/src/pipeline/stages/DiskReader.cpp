@@ -11,6 +11,7 @@ namespace photoboss {
         Queue<std::unique_ptr<DiskReadResult>>& queue,
         QObject* parent)
         : StageBase("DiskReader",parent), m_input_queue(input_queue), m_output_queue(queue) {
+        m_output_queue.register_producer();
     }
 
 
@@ -46,9 +47,8 @@ namespace photoboss {
 
     void DiskReader::onStart()
     {
-        m_output_queue.register_producer();
-       
     }
+
     void DiskReader::onStop()
     {
         m_output_queue.producer_done();

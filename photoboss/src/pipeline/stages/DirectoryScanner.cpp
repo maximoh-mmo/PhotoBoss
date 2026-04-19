@@ -10,7 +10,9 @@ namespace photoboss {
         StageBase("DirectoryScanner", parent),
 		m_request_(std::move(request)),
         m_output(outputQueue)
-    {}
+    {
+        m_output.register_producer();
+    }
 
     DirectoryScanner::~DirectoryScanner() {}
 
@@ -75,7 +77,6 @@ namespace photoboss {
     }
     void DirectoryScanner::onStart()
     {
-        m_output.register_producer();
     }
     void DirectoryScanner::onStop()
     {

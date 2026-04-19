@@ -101,12 +101,18 @@ namespace photoboss
     {
         connect(m_browse_button_, &QPushButton::clicked, this, &MainWindow::OnBrowse);
         connect(m_scan_button_, &QPushButton::clicked, this, [this]() {
-            const QString folder = GetCurrentFolder();
-            if (!folder.isEmpty()) {
-                clearResults(); // Clear UI for new scan
-                m_pipeline_controller_->start({ folder, ui_->subfolders->isChecked() });
+            auto state = m_pipeline_controller_->state();
+            if (state == PipelineController::PipelineState::Running) {
+                m_pipeline_controller_->stop();
+            } else if (state == PipelineController::PipelineState::Stopped) {
+                const QString folder = GetCurrentFolder();
+                if (!folder.isEmpty()) {
+                    clearResults();
+                    m_pipeline_controller_->start({ folder, ui_->subfolders->isChecked() });
+                }
             }
-            });
+            // If Stopping, ignore clicks (button is disabled)
+        });
 
         connect(m_pipeline_controller_.get(), &PipelineController::status, this, [this](const QString& message) {
             m_status_bar_->showMessage(message);
@@ -122,6 +128,9 @@ namespace photoboss
 
         connect(m_pipeline_controller_.get(), &PipelineController::thumbnailReady,
             this, &MainWindow::onThumbnailReady, Qt::QueuedConnection);
+
+        connect(m_pipeline_controller_.get(), &PipelineController::pipelineStateChanged,
+            this, &MainWindow::onPipelineStateChanged, Qt::QueuedConnection);
     }
 
     void MainWindow::OnCurrentFolderChanged()
@@ -236,4 +245,29 @@ namespace photoboss
         m_thumbnailWaiters.clear();
         m_thumbnailCache.clear();
     }
-}
+
+    void MainWindow::onPipelineStateChanged(PipelineController::PipelineState state)
+    {
+        switch (state) {
+        case PipelineController::PipelineState::Running:
+            m_scan_button_->setText(tr("Stop Scan"));
+            m_scan_button_->setEnabled(true);
+            m_browse_button_->setEnabled(false);
+            break;
+
+        case PipelineController::PipelineState::Stopping:
+            m_scan_button_->setText(tr("Stopping..."));
+            m_scan_button_->setEnabled(false);
+            m_browse_button_->setEnabled(false);
+            break;
+
+        case PipelineController::PipelineState::Stopped:
+            m_scan_button_->setText(tr("Start Scan"));
+            m_scan_button_->setEnabled(true);
+            m_browse_button_->setEnabled(true);
+            m_progress_bar_->setValue(0);
+            m_progress_bar_->setMaximum(0); // Reset to idle/indeterminate state
+            break;
+        }
+    }
+}

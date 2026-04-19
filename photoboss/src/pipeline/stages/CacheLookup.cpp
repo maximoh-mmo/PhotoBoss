@@ -14,12 +14,13 @@ namespace photoboss
         for (HashCatalog::Entry& method : HashCatalog::createAll()) {
             m_methods.append(method.method.get()->key());
         }
+        m_resultQueue.register_producer();
+        m_diskReadQueue.register_producer();
 	}
+
 
     void CacheLookup::onStart()
     {
-        m_resultQueue.register_producer();
-        m_diskReadQueue.register_producer();
     }
 
     void CacheLookup::onStop()

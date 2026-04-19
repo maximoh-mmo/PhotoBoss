@@ -82,7 +82,6 @@ namespace photoboss {
         connect(&m_pipeline_->scannerThread, &QThread::finished,
             m_pipeline_->scanner, &QObject::deleteLater);
 
-        m_pipeline_->scannerThread.start();
 
         // ---- Cache Lookup ----
         m_pipeline_->cacheLookup = new CacheLookup(
@@ -101,7 +100,6 @@ namespace photoboss {
         connect(&m_pipeline_->cacheLookupThread, &QThread::finished,
             m_pipeline_->cacheLookup, &QObject::deleteLater);
 
-        m_pipeline_->cacheLookupThread.start();
 
         // ---- Disk Reader ----
         m_pipeline_->reader = new DiskReader(m_pipeline_->disk, m_pipeline_->readQueue);
@@ -113,7 +111,6 @@ namespace photoboss {
         connect(&m_pipeline_->readerThread, &QThread::finished,
             m_pipeline_->reader, &QObject::deleteLater);
 
-        m_pipeline_->readerThread.start();
 
         // ---- Hash Workers ----
         const int workers = std::max(1, QThread::idealThreadCount() - 1);
@@ -132,8 +129,6 @@ namespace photoboss {
 
             connect(thread, &QThread::finished,
 				thread, &QObject::deleteLater);
-
-            thread->start();
 
             m_pipeline_->hashWorkers.push_back(worker);
         }
@@ -155,7 +150,6 @@ namespace photoboss {
         connect(&m_pipeline_->cacheStoreThread, &QThread::finished,
             m_pipeline_->cacheStore, &QObject::deleteLater);
         
-		m_pipeline_->cacheStoreThread.start();
 
         // ---- Thumbnail Generators ----
         const int thumbWorkers = std::max(2, QThread::idealThreadCount() / 2);
@@ -173,7 +167,6 @@ namespace photoboss {
             connect(worker, &ThumbnailGenerator::thumbnailReady, this, &PipelineController::thumbnailReady, Qt::QueuedConnection);
             connect(worker, &ThumbnailGenerator::workerFinished, this, &PipelineController::onThumbnailWorkerFinished, Qt::QueuedConnection);
 
-            thread->start();
             m_pipeline_->thumbnailGenerators.push_back(worker);
         }
 
@@ -215,7 +208,6 @@ namespace photoboss {
             Qt::QueuedConnection
         );
 
-        m_pipeline_->resultThread.start();
 
         connect(m_pipeline_->scanner, &StageBase::progress, this, [this](qint64 current, qint64 total) {
             if (total == 0) {
@@ -233,6 +225,15 @@ namespace photoboss {
                 m_processedFiles_ = current;
                 // UI update is driven by the timer instead
             });
+
+        // ---- Start All Threads ----
+        m_pipeline_->scannerThread.start();
+        m_pipeline_->cacheLookupThread.start();
+        m_pipeline_->readerThread.start();
+        for (auto* thread : m_hash_worker_threads_) thread->start();
+        m_pipeline_->cacheStoreThread.start();
+        for (auto* thread : m_thumbnail_worker_threads_) thread->start();
+        m_pipeline_->resultThread.start();
 
         SetPipelineState(PipelineState::Running);
     }

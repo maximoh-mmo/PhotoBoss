@@ -78,6 +78,7 @@ namespace photoboss {
         void start(const ScanRequest& request);
         void stop();
 		void restart();
+        PipelineState state() const { return m_state_; }
 
     signals:
         void finalGroups(const std::vector<ImageGroup> groups);

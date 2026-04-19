@@ -15,6 +15,7 @@
 #include <QMultiMap>
 #include <deque>
 #include "ui/PreviewPane.h"
+#include "pipeline/PipelineController.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -46,6 +47,7 @@ namespace photoboss {
 
     private slots:
         void processBatch();
+        void onPipelineStateChanged(PipelineController::PipelineState state);
 
     private:
         Ui::MainWindow* ui_ = nullptr;

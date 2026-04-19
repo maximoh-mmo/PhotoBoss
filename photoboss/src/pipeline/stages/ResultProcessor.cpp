@@ -14,6 +14,7 @@ namespace photoboss {
         m_thumbnailOutput(thumbnailQueue),
         m_items()
     {
+        m_thumbnailOutput.register_producer();
     }
 
     void ResultProcessor::run() {
@@ -82,9 +83,9 @@ namespace photoboss {
         emit groupingFinished(result);
     }
 
+
     void ResultProcessor::onStart()
     {
-        m_thumbnailOutput.register_producer();
     }
 
     void ResultProcessor::onStop()
