@@ -56,7 +56,6 @@ namespace photoboss {
         QMap<quint64, int> m_emittedSizes;
         
         // Inherited via StageBase
-        void onStart() override;
         void onStop() override;
     };
 }

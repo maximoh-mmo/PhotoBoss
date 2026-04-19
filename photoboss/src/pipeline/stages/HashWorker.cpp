@@ -137,10 +137,6 @@ namespace photoboss {
     }
 
 
-    void HashWorker::onStart()
-    {
-    }
-
     void HashWorker::onStop()
     {
         m_output.producer_done();

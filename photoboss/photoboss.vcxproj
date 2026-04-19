@@ -197,7 +197,6 @@
     <QtMoc Include="inc\photoboss\pipeline\stages\ThumbnailGenerator.h" />
     <QtMoc Include="inc\photoboss\ui\ImageThumbWidget.h" />
     <QtMoc Include="inc\photoboss\ui\PreviewPane.h" />
-    <ClInclude Include="inc\photoboss\pipeline\stages\CachePrune.h" />
     <ClInclude Include="inc\photoboss\util\ExifData.h" />
     <ClInclude Include="inc\photoboss\util\humanSize.h" />
     <ClInclude Include="inc\photoboss\util\OrientImage.h" />

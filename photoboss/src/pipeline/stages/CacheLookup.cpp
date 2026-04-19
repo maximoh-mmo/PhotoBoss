@@ -19,10 +19,6 @@ namespace photoboss
 	}
 
 
-    void CacheLookup::onStart()
-    {
-    }
-
     void CacheLookup::onStop()
     {
 

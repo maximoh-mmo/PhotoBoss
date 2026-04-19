@@ -81,6 +81,9 @@
     <ClCompile Include="src\util\OrientImage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\pipeline\stages\ThumbnailGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="resources\MainWindow.ui" />
@@ -120,6 +123,9 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="inc\photoboss\ui\PreviewPane.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="inc\photoboss\pipeline\stages\ThumbnailGenerator.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
@@ -167,9 +173,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\photoboss\util\OrientImage.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\photoboss\pipeline\stages\CachePrune.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\photoboss\caching\IHashCache.h">

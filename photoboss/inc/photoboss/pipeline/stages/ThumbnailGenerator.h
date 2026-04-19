@@ -22,7 +22,6 @@ namespace photoboss {
 
     protected:
         void run() override;
-        void onStart() override;
         void onStop() override;
 
     private:

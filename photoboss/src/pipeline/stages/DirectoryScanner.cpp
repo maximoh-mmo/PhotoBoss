@@ -75,9 +75,6 @@ namespace photoboss {
         }
 		
     }
-    void DirectoryScanner::onStart()
-    {
-    }
     void DirectoryScanner::onStop()
     {
         m_output.producer_done();

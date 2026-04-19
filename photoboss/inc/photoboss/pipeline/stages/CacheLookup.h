@@ -32,7 +32,6 @@ namespace photoboss
 		QList<QString> m_methods;
 
 		// Inherited via StageBase
-		void onStart() override;
 		void onStop() override;
 	};
 

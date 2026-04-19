@@ -51,10 +51,10 @@ namespace photoboss {
                         if (!m_emittedGroups.contains(g.id)) {
                             emit groupAdded(g);
                             m_emittedGroups.insert(g.id);
-                            m_emittedSizes[g.id] = g.images.size();
-                        } else if (m_emittedSizes[g.id] < static_cast<int>(g.images.size())) {
+                            m_emittedSizes[g.id] = static_cast<int>(g.images.size());
+                        } else if (m_emittedSizes[g.id] <static_cast<int>(g.images.size())) {
                             emit groupUpdated(g);
-                            m_emittedSizes[g.id] = g.images.size();
+                            m_emittedSizes[g.id] = static_cast<int>(g.images.size());
                         }
                     }
                 }
@@ -73,20 +73,16 @@ namespace photoboss {
                 if (!m_emittedGroups.contains(g.id)) {
                     emit groupAdded(g);
                     m_emittedGroups.insert(g.id);
-                    m_emittedSizes[g.id] = g.images.size();
+                    m_emittedSizes[g.id] = static_cast<int>(g.images.size());
                 } else if (m_emittedSizes[g.id] < static_cast<int>(g.images.size())) {
                     emit groupUpdated(g);
-                    m_emittedSizes[g.id] = g.images.size();
+                    m_emittedSizes[g.id] = static_cast<int>(g.images.size());
                 }
             }
         }
         emit groupingFinished(result);
     }
 
-
-    void ResultProcessor::onStart()
-    {
-    }
 
     void ResultProcessor::onStop()
     {

@@ -25,10 +25,6 @@ namespace photoboss
         }
     }
 
-    void CacheStore::onStart()
-    {
-    }
-
     void CacheStore::onStop()
     {
         m_output.producer_done();

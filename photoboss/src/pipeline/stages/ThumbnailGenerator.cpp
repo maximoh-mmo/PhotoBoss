@@ -52,10 +52,6 @@ namespace photoboss {
         }
     }
 
-    void ThumbnailGenerator::onStart()
-    {
-    }
-
     void ThumbnailGenerator::onStop()
     {
         emit workerFinished();

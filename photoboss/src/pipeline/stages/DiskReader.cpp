@@ -45,10 +45,6 @@ namespace photoboss {
     }
 
 
-    void DiskReader::onStart()
-    {
-    }
-
     void DiskReader::onStop()
     {
         m_output_queue.producer_done();

@@ -23,7 +23,6 @@ namespace photoboss {
 
         bool loadAndOrient(const QByteArray& imageBytes, int orientation, QImage& image);
         // Inherited via StageBase
-        void onStart() override;
         void onStop() override;
     };
 }

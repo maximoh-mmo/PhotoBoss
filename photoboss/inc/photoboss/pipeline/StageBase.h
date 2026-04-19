@@ -26,9 +26,8 @@ namespace photoboss {
         QString stageId() const { return m_id; }
 
         void Run() {
-            onStart();
             try {
-                run(); // implemented by derived class
+                run();
             }
             catch (const std::exception& e) {
                 error(e.what());
@@ -46,7 +45,6 @@ namespace photoboss {
 
     protected:
         virtual void run() = 0;
-        virtual void onStart() = 0;
         virtual void onStop() = 0;
     
     private:

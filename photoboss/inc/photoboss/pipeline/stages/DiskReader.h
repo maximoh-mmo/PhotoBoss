@@ -29,8 +29,6 @@ namespace photoboss {
 
 
         // Inherited via StageBase
-        void onStart() override;
-
         void onStop() override;
 
     };
