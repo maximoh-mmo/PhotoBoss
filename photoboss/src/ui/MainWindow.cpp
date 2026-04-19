@@ -32,23 +32,16 @@ namespace photoboss
         delete ui_;
     }
     void MainWindow::Init()
-{
-    m_status_bar_ = ui_->statusbar;
-    m_browse_button_ = ui_->browsebutton;
-    m_scan_button_ = ui_->scan;
-    m_progress_bar_ = ui_->progressBar;
-    m_btn_delete_ = ui_->btnDelete;
-    m_delete_count_label_ = ui_->deleteCountLabel;
+    {
+        m_status_bar_ = ui_->statusbar;
+        m_browse_button_ = ui_->browsebutton;
+        m_scan_button_ = ui_->scan;
+        m_progress_bar_ = ui_->progressBar;
+        m_btn_delete_ = ui_->btnDelete;
+        m_delete_count_label_ = ui_->deleteCountLabel;
 
-    // Hide delete button initially
-    if (m_btn_delete_) {
-        m_btn_delete_->setVisible(false);
-    }
-    if (m_delete_count_label_) {
-        m_delete_count_label_->setVisible(false);
-    }
 
-    // Split body area
+        // Split body area
         m_splitter_ = new QSplitter(Qt::Horizontal);
 
         // LHS thumbnail container
@@ -60,8 +53,8 @@ namespace photoboss
 
         int totalWidth = settings::ThumbnailsPerRow * settings::ThumbnailWidth
             + (settings::ThumbnailsPerRow - 1) * spacing + margins;
-        
-        m_thumbnail_container_->setMinimumWidth(totalWidth); 
+
+        m_thumbnail_container_->setMinimumWidth(totalWidth);
         m_thumbnail_container_->setMaximumWidth(totalWidth);
         m_thumbnail_container_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 
@@ -80,7 +73,7 @@ namespace photoboss
         m_splitter_->addWidget(m_preview_pane);
         m_splitter_->setStretchFactor(0, 0);
         m_splitter_->setStretchFactor(1, 1);
-        m_splitter_->setSizes({totalWidth,1});
+        m_splitter_->setSizes({ totalWidth,1 });
 
         QVBoxLayout* bodyLayout = new QVBoxLayout(ui_->body);
         bodyLayout->setContentsMargins(0, 0, 0, 0);
@@ -91,8 +84,11 @@ namespace photoboss
         connect(m_batchTimer, &QTimer::timeout, this, &MainWindow::processBatch);
         // We start it in onGroupAdded as needed
 
+        m_btn_delete_->setVisible(false);
+        m_delete_count_label_->setVisible(false);
         WireConnections();
     }
+
     void MainWindow::OnBrowse()
     {
         if (QString directory = QFileDialog::getExistingDirectory(this, tr("Open Directory"), QDir::homePath()); !directory.isEmpty())
@@ -144,9 +140,7 @@ namespace photoboss
         connect(m_pipeline_controller_.get(), &PipelineController::pipelineStateChanged,
             this, &MainWindow::onPipelineStateChanged, Qt::QueuedConnection);
 
-        if (m_btn_delete_) {
-            connect(m_btn_delete_, &QPushButton::clicked, this, &MainWindow::onDeleteClicked);
-        }
+        connect(m_btn_delete_, &QPushButton::clicked, this, &MainWindow::onDeleteClicked);
     }
 
     void MainWindow::OnCurrentFolderChanged()
@@ -278,6 +272,7 @@ namespace photoboss
             m_scan_button_->setText(tr("Stop Scan"));
             m_scan_button_->setEnabled(true);
             m_browse_button_->setEnabled(false);
+            m_btn_delete_->setVisible(false);
             break;
 
         case PipelineController::PipelineState::Stopping:
@@ -295,7 +290,7 @@ case PipelineController::PipelineState::Stopped:
 
             updateDeleteButtonState();
 
-            if (!m_scan_found_duplicates_ && m_groupWidgets.size() > 0) {
+            if (!m_scan_found_duplicates_ && m_groupWidgets.size() == 0) {
                 QMessageBox::information(
                     this,
                     "Scan Complete",
@@ -308,6 +303,9 @@ case PipelineController::PipelineState::Stopped:
     void MainWindow::updateDeleteButtonState()
     {
         int count = countSelectedForDeletion();
+        qDebug() << "[Delete Button] Count:" << count 
+                 << "Duplicates found:" << m_scan_found_duplicates_
+                 << "Group count:" << m_groupWidgets.size();
 
         if (m_delete_count_label_) {
             if (count > 0) {
@@ -321,8 +319,12 @@ case PipelineController::PipelineState::Stopped:
         if (m_btn_delete_) {
             if (count > 0 && m_scan_found_duplicates_) {
                 m_btn_delete_->setVisible(true);
+                m_btn_delete_->setEnabled(true);
+                qDebug() << "[Delete Button] Setting visible and enabled";
             } else {
                 m_btn_delete_->setVisible(false);
+                m_btn_delete_->setEnabled(false);
+                qDebug() << "[Delete Button] Setting hidden/disabled";
             }
         }
     }
@@ -355,13 +357,32 @@ case PipelineController::PipelineState::Stopped:
 
         DeleteConfirmDialog dialog(files, this);
         if (dialog.exec() == QDialog::Accepted) {
-            // TODO: Implement actual deletion to trash
-            // For now, just show a message
-            QMessageBox::information(
-                this,
-                "Delete",
-                QString("Deleted %1 file(s) - stub implementation").arg(files.size())
-            );
+            // Implement actual deletion to trash
+            bool allDeleted = true;
+            QStringList failedFiles;
+            
+            for (const auto& file : files) {
+                if (!QFile::moveToTrash(file.path)) {
+                    allDeleted = false;
+                    failedFiles.append(file.path);
+                }
+            }
+            
+            if (allDeleted) {
+                QMessageBox::information(
+                    this,
+                    "Delete Successful",
+                    QString("Successfully moved %1 file(s) to trash.").arg(files.size())
+                );
+            } else {
+                QMessageBox::warning(
+                    this,
+                    "Partial Failure",
+                    QString("Failed to move %1 file(s) to trash:\n%2")
+                        .arg(failedFiles.size())
+                        .arg(failedFiles.join("\n"))
+                );
+            }
 
             // Refresh UI after deletion
             clearResults();

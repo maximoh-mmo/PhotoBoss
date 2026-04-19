@@ -1,8 +1,10 @@
 #include "ui/DeleteConfirmDialog.h"
-#include "ui/ImageThumbWidget.h"
 #include "util/humanSize.h"
 #include <QMessageBox>
 #include <QDebug>
+#include <QLabel>
+#include <QPixmap>
+#include <QImage>
 
 namespace photoboss {
 
@@ -43,7 +45,7 @@ namespace photoboss {
         );
         mainLayout->addWidget(warningLabel_);
 
-        // Thumbnail grid in scroll area
+        // Thumbnail grid in scroll area - simplified version without interactive widgets
         auto* scrollArea = new QScrollArea(this);
         scrollArea->setWidgetResizable(true);
         scrollArea->setMinimumHeight(200);
@@ -55,8 +57,29 @@ namespace photoboss {
         int cols = 4;
         for (int i = 0; i < filesToDelete.size(); ++i) {
             const auto& entry = filesToDelete[i];
-            auto* thumb = new ImageThumbWidget(entry, thumbnailContainer_);
-            thumbnailLayout_->addWidget(thumb, i / cols, i % cols);
+            
+            // Load and scale image for preview
+            QImage img(entry.path);
+            if (!img.isNull()) {
+                // Scale to thumbnail size (similar to preview pane)
+                QPixmap pixmap = QPixmap::fromImage(img).scaled(
+                    100, 100, Qt::KeepAspectRatio, Qt::SmoothTransformation
+                );
+                
+                auto* label = new QLabel(this);
+                label->setPixmap(pixmap);
+                label->setAlignment(Qt::AlignCenter);
+                label->setFixedSize(100, 100);
+                label->setStyleSheet("border: 1px solid #555; border-radius: 4px;");
+                thumbnailLayout_->addWidget(label, i / cols, i % cols);
+            } else {
+                // Fallback for failed image loads
+                auto* label = new QLabel("Failed\nto load", this);
+                label->setAlignment(Qt::AlignCenter);
+                label->setFixedSize(100, 100);
+                label->setStyleSheet("border: 1px solid #555; border-radius: 4px; color: #888;");
+                thumbnailLayout_->addWidget(label, i / cols, i % cols);
+            }
         }
 
         scrollArea->setWidget(thumbnailContainer_);
