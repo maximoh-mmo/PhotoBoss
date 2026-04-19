@@ -48,17 +48,26 @@ namespace photoboss {
     private slots:
         void processBatch();
         void onPipelineStateChanged(PipelineController::PipelineState state);
+        void onDeleteClicked();
+        void onGroupSelectionChanged();
 
     private:
+        void updateDeleteButtonState();
+        int countSelectedForDeletion() const;
+        QVector<ImageEntry> collectSelectedForDeletion() const;
+
         Ui::MainWindow* ui_ = nullptr;
         std::unique_ptr<PipelineController> m_pipeline_controller_ = nullptr;
 
         QString m_current_folder_;
+        bool m_scan_found_duplicates_ = false;
 
         QPushButton* m_browse_button_ = nullptr;
         QPushButton* m_scan_button_ = nullptr;
+        QPushButton* m_btn_delete_ = nullptr;
         QProgressBar* m_progress_bar_ = nullptr;
         QStatusBar* m_status_bar_ = nullptr;
+        QLabel* m_delete_count_label_ = nullptr;
 
         QScrollArea* m_body_ = nullptr;
         QSplitter* m_splitter_ = nullptr;

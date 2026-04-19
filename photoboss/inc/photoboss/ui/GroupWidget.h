@@ -19,13 +19,16 @@ namespace photoboss {
 		explicit GroupWidget(const ImageGroup& group, QWidget* parent = nullptr);
 
 		QVector<const HashedImageResult*> imagesMarkedForDelete() const;
+		QVector<ImageEntry> imagesMarkedForDeleteEntries() const;
 		void updateGroup(const ImageGroup& group);
 	
 	signals:
 		void previewImage(const ImageEntry& image);
+		void selectionChanged();
 
 	private slots:
 		void onThumbClicked(ImageThumbWidget* clicked);
+		void onThumbSelectionChanged();
 
 	private:
 		QVector<ImageThumbWidget*> m_thumbs;

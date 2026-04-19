@@ -5,8 +5,10 @@
 #include "ui/GroupWidget.h"
 #include "util/AppSettings.h"
 #include "ui/ImageThumbWidget.h"
+#include "ui/DeleteConfirmDialog.h"
 
 #include <QFileDialog>
+#include <QMessageBox>
 #include <QDebug>
 
 namespace photoboss
@@ -30,13 +32,23 @@ namespace photoboss
         delete ui_;
     }
     void MainWindow::Init()
-    {
-        m_status_bar_ = ui_->statusbar;
-        m_browse_button_ = ui_->browsebutton;
-        m_scan_button_ = ui_->scan;
-        m_progress_bar_ = ui_->progressBar;
+{
+    m_status_bar_ = ui_->statusbar;
+    m_browse_button_ = ui_->browsebutton;
+    m_scan_button_ = ui_->scan;
+    m_progress_bar_ = ui_->progressBar;
+    m_btn_delete_ = ui_->btnDelete;
+    m_delete_count_label_ = ui_->deleteCountLabel;
 
-        // Split body area
+    // Hide delete button initially
+    if (m_btn_delete_) {
+        m_btn_delete_->setVisible(false);
+    }
+    if (m_delete_count_label_) {
+        m_delete_count_label_->setVisible(false);
+    }
+
+    // Split body area
         m_splitter_ = new QSplitter(Qt::Horizontal);
 
         // LHS thumbnail container
@@ -131,6 +143,10 @@ namespace photoboss
 
         connect(m_pipeline_controller_.get(), &PipelineController::pipelineStateChanged,
             this, &MainWindow::onPipelineStateChanged, Qt::QueuedConnection);
+
+        if (m_btn_delete_) {
+            connect(m_btn_delete_, &QPushButton::clicked, this, &MainWindow::onDeleteClicked);
+        }
     }
 
     void MainWindow::OnCurrentFolderChanged()
@@ -160,6 +176,14 @@ namespace photoboss
             auto* widget = new GroupWidget(group, m_thumbnail_container_);
             m_thumbnail_layout_->addWidget(widget);
             m_groupWidgets[group.id] = widget;
+
+            // Connect selection changes to update delete button state
+            connect(widget, &GroupWidget::selectionChanged, this, &MainWindow::onGroupSelectionChanged);
+
+            // Track if we found duplicates (groups with >1 image)
+            if (group.images.size() > 1) {
+                m_scan_found_duplicates_ = true;
+            }
 
             // Register thumbnails for async update and check cache
             for (const auto& entry : group.images) {
@@ -244,6 +268,7 @@ namespace photoboss
         m_pendingGroups.clear();
         m_thumbnailWaiters.clear();
         m_thumbnailCache.clear();
+        m_scan_found_duplicates_ = false;
     }
 
     void MainWindow::onPipelineStateChanged(PipelineController::PipelineState state)
@@ -261,13 +286,91 @@ namespace photoboss
             m_browse_button_->setEnabled(false);
             break;
 
-        case PipelineController::PipelineState::Stopped:
+case PipelineController::PipelineState::Stopped:
             m_scan_button_->setText(tr("Start Scan"));
             m_scan_button_->setEnabled(true);
             m_browse_button_->setEnabled(true);
             m_progress_bar_->setValue(0);
-            m_progress_bar_->setMaximum(0); // Reset to idle/indeterminate state
+            m_progress_bar_->setMaximum(0);
+
+            updateDeleteButtonState();
+
+            if (!m_scan_found_duplicates_ && m_groupWidgets.size() > 0) {
+                QMessageBox::information(
+                    this,
+                    "Scan Complete",
+                    "No duplicates found in the scanned folder.");
+            }
             break;
         }
+    }
+
+    void MainWindow::updateDeleteButtonState()
+    {
+        int count = countSelectedForDeletion();
+
+        if (m_delete_count_label_) {
+            if (count > 0) {
+                m_delete_count_label_->setText(QString("%1 file(s) marked for deletion").arg(count));
+                m_delete_count_label_->setVisible(true);
+            } else {
+                m_delete_count_label_->setVisible(false);
+            }
+        }
+
+        if (m_btn_delete_) {
+            if (count > 0 && m_scan_found_duplicates_) {
+                m_btn_delete_->setVisible(true);
+            } else {
+                m_btn_delete_->setVisible(false);
+            }
+        }
+    }
+
+    int MainWindow::countSelectedForDeletion() const
+    {
+        int count = 0;
+        for (auto* widget : m_groupWidgets.values()) {
+            count += widget->imagesMarkedForDelete().size();
+        }
+        return count;
+    }
+
+    QVector<ImageEntry> MainWindow::collectSelectedForDeletion() const
+    {
+        QVector<ImageEntry> result;
+        for (auto* widget : m_groupWidgets.values()) {
+            const auto& marked = widget->imagesMarkedForDeleteEntries();
+            for (const auto& img : marked) {
+                result.push_back(img);
+            }
+        }
+        return result;
+    }
+
+    void MainWindow::onDeleteClicked()
+    {
+        auto files = collectSelectedForDeletion();
+        if (files.isEmpty()) return;
+
+        DeleteConfirmDialog dialog(files, this);
+        if (dialog.exec() == QDialog::Accepted) {
+            // TODO: Implement actual deletion to trash
+            // For now, just show a message
+            QMessageBox::information(
+                this,
+                "Delete",
+                QString("Deleted %1 file(s) - stub implementation").arg(files.size())
+            );
+
+            // Refresh UI after deletion
+            clearResults();
+            updateDeleteButtonState();
+        }
+    }
+
+    void MainWindow::onGroupSelectionChanged()
+    {
+        updateDeleteButtonState();
     }
 }

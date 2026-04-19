@@ -184,6 +184,7 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\ui\MainWindow.cpp" />
     <ClCompile Include="src\ui\PreviewPane.cpp" />
+    <ClCompile Include="src\ui\DeleteConfirmDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\photoboss\caching\IHashCache.h" />
@@ -197,6 +198,7 @@
     <QtMoc Include="inc\photoboss\pipeline\stages\ThumbnailGenerator.h" />
     <QtMoc Include="inc\photoboss\ui\ImageThumbWidget.h" />
     <QtMoc Include="inc\photoboss\ui\PreviewPane.h" />
+    <QtMoc Include="inc\photoboss\ui\DeleteConfirmDialog.h" />
     <ClInclude Include="inc\photoboss\util\ExifData.h" />
     <ClInclude Include="inc\photoboss\util\humanSize.h" />
     <ClInclude Include="inc\photoboss\util\OrientImage.h" />

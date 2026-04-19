@@ -43,6 +43,7 @@ namespace photoboss {
             m_thumbs.push_back(thumb);
 
             connect(thumb, &ImageThumbWidget::clicked, this, &GroupWidget::onThumbClicked);
+            connect(thumb, &ImageThumbWidget::selectionChanged, this, &GroupWidget::onThumbSelectionChanged);
 
             if (i > 0 && i % settings::ThumbnailsPerRow == 0) {
                 m_currentRow = new QHBoxLayout();
@@ -68,6 +69,33 @@ namespace photoboss {
     void GroupWidget::onThumbClicked(ImageThumbWidget* clicked)
     {
         emit previewImage(clicked->Image());
+    }
+
+    void GroupWidget::onThumbSelectionChanged()
+    {
+        emit selectionChanged();
+    }
+
+    QVector<const HashedImageResult*> GroupWidget::imagesMarkedForDelete() const
+    {
+        QVector<const HashedImageResult*> result;
+        for (auto* thumb : m_thumbs) {
+            if (thumb->state() == ImageThumbWidget::State::Delete) {
+                result.push_back(reinterpret_cast<const HashedImageResult*>(&thumb->Image()));
+            }
+        }
+        return result;
+    }
+
+    QVector<ImageEntry> GroupWidget::imagesMarkedForDeleteEntries() const
+    {
+        QVector<ImageEntry> result;
+        for (auto* thumb : m_thumbs) {
+            if (thumb->state() == ImageThumbWidget::State::Delete) {
+                result.push_back(thumb->Image());
+            }
+        }
+        return result;
     }
 
 }
