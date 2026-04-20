@@ -53,9 +53,13 @@ void HashWorker::run() {
 
     QImage img;
 
-    if (!loadAndOrient(item->imageBytes,
-                       item->fileIdentity.exif().orientation.value_or(1),
-                       img)) {
+    img.loadFromData(item->imageBytes);
+    const int orientation = item->fileIdentity.exif().orientation.value_or(1);
+    if (orientation > 1) {
+        img = OrientImage(img, orientation);
+    }
+
+    if (img.isNull()) {
       qDebug() << "Image load failed" << item->fileIdentity.path();
       result->source = HashSource::Error;
     }
@@ -77,16 +81,6 @@ void HashWorker::run() {
 
     m_output.emplace(std::move(result));
   }
-}
-bool HashWorker::loadAndOrient(const QByteArray &imageBytes, int orientation,
-                               QImage &image) {
-  QImage img;
-  if (!img.loadFromData(imageBytes))
-    return false;
-  QImage oriented = OrientImage(img, orientation);
-  if (oriented.isNull()) return false;
-  image = oriented;
-  return true;
 }
 
 void HashWorker::onStop() { m_output.producer_done(); }
