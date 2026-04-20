@@ -25,7 +25,7 @@ namespace photoboss {
         );
         ~DeleteConfirmDialog();
 
-        QVector<ImageEntry> filesToDelete() const { return filesToDelete_; }
+        QVector<ImageEntry> filesToDelete() const { return m_filesToDelete_; }
 
     private slots:
         void onCheckBoxToggled(bool checked);
@@ -34,15 +34,15 @@ namespace photoboss {
         void buildUi(const QVector<ImageEntry>& filesToDelete);
         QPixmap loadAndCacheThumbnail(const QString& filePath);
 
-        QVector<ImageEntry> filesToDelete_;
-        QMap<QString, QPixmap> thumbnailCache_;
+        QVector<ImageEntry> m_filesToDelete_;
+        QMap<QString, QPixmap> m_thumbnailCache_;
 
-        QLabel* warningLabel_ = nullptr;
-        QWidget* thumbnailContainer_ = nullptr;
-        QGridLayout* thumbnailLayout_ = nullptr;
-        QCheckBox* confirmCheckBox_ = nullptr;
-        QPushButton* cancelButton_ = nullptr;
-        QPushButton* deleteButton_ = nullptr;
+        QLabel* m_warningLabel_ = nullptr;
+        QWidget* m_thumbnailContainer_ = nullptr;
+        QGridLayout* m_thumbnailLayout_ = nullptr;
+        QCheckBox* m_confirmCheckBox_ = nullptr;
+        QPushButton* m_cancelButton_ = nullptr;
+        QPushButton* m_deleteButton_ = nullptr;
     };
 
 } // namespace photoboss

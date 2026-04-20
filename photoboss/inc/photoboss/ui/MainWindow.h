@@ -41,7 +41,7 @@ namespace photoboss {
         void onGroupUpdated(const ImageGroup& group);
         void onThumbnailReady(const ThumbnailResult& result);
         void clearResults();
-        QString GetCurrentFolder() const { return m_current_folder_; }
+        QString GetCurrentFolder() const { return m_current_folder_; }  // NOLINT
         void OnBrowse();
         void UpdateProgressBar(int current, int total);
 
@@ -56,7 +56,7 @@ namespace photoboss {
         int countSelectedForDeletion() const;
         QVector<ImageEntry> collectSelectedForDeletion() const;
 
-        Ui::MainWindow* ui_ = nullptr;
+        Ui::MainWindow* m_ui_ = nullptr;
         std::unique_ptr<PipelineController> m_pipeline_controller_ = nullptr;
 
         QString m_current_folder_;
@@ -78,13 +78,13 @@ namespace photoboss {
         QVBoxLayout* m_thumbnail_layout_ = nullptr;
 
         // Right
-        QMap<quint64, GroupWidget*> m_groupWidgets;
-        QMultiMap<QString, ImageThumbWidget*> m_thumbnailWaiters;
-        QMap<QString, QPixmap> m_thumbnailCache;
-        PreviewPane* m_preview_pane = nullptr;
+        QMap<quint64, GroupWidget*> m_groupWidgets_;
+        QMultiMap<QString, ImageThumbWidget*> m_thumbnailWaiters_;
+        QMap<QString, QPixmap> m_thumbnailCache_;
+        PreviewPane* m_preview_pane_ = nullptr;
 
-        std::deque<ImageGroup> m_pendingGroups;
-        QTimer* m_batchTimer = nullptr;
+        std::deque<ImageGroup> m_pendingGroups_;
+        QTimer* m_batchTimer_ = nullptr;
 
     };
 }

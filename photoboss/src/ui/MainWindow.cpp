@@ -1,5 +1,5 @@
 #include "ui/mainwindow.h"
-#include "ui_mainwindow.h"
+#include "m_ui_mainwindow.h"
 #include "pipeline/PipelineController.h"
 #include "hashing/HashMethod.h"
 #include "ui/GroupWidget.h"
@@ -14,12 +14,12 @@
 namespace photoboss
 {
     MainWindow::MainWindow(QWidget* parent)
-        : QMainWindow(parent), ui_(new Ui::MainWindow)
+        : QMainWindow(parent), m_ui_(new Ui::MainWindow)
 
     {
         m_pipeline_controller_ = std::make_unique<PipelineController>(this);
 
-        ui_->setupUi(this);
+        m_ui_->setupUi(this);
 
         Init();
     }
@@ -29,16 +29,16 @@ namespace photoboss
         if (m_pipeline_controller_) {
             m_pipeline_controller_->stop();
         }
-        delete ui_;
+        delete m_ui_;
     }
     void MainWindow::Init()
     {
-        m_status_bar_ = ui_->statusbar;
-        m_browse_button_ = ui_->browsebutton;
-        m_scan_button_ = ui_->scan;
-        m_progress_bar_ = ui_->progressBar;
-        m_btn_delete_ = ui_->btnDelete;
-        m_delete_count_label_ = ui_->deleteCountLabel;
+        m_status_bar_ = m_ui_->statusbar;
+        m_browse_button_ = m_ui_->browsebutton;
+        m_scan_button_ = m_ui_->scan;
+        m_progress_bar_ = m_ui_->progressBar;
+        m_btn_delete_ = m_ui_->btnDelete;
+        m_delete_count_label_ = m_ui_->deleteCountLabel;
 
 
         // Split body area
@@ -68,20 +68,20 @@ namespace photoboss
         m_splitter_->addWidget(m_thumbnail_scroll_);
 
         // Preview pane
-        m_preview_pane = new PreviewPane();
+        m_preview_pane_ = new PreviewPane();
 
-        m_splitter_->addWidget(m_preview_pane);
+        m_splitter_->addWidget(m_preview_pane_);
         m_splitter_->setStretchFactor(0, 0);
         m_splitter_->setStretchFactor(1, 1);
         m_splitter_->setSizes({ totalWidth,1 });
 
-        QVBoxLayout* bodyLayout = new QVBoxLayout(ui_->body);
+        QVBoxLayout* bodyLayout = new QVBoxLayout(m_ui_->body);
         bodyLayout->setContentsMargins(0, 0, 0, 0);
         bodyLayout->addWidget(m_splitter_);
 
-        m_batchTimer = new QTimer(this);
-        m_batchTimer->setInterval(settings::MainWindowBatchTimerInterval); // 50fps-ish
-        connect(m_batchTimer, &QTimer::timeout, this, &MainWindow::processBatch);
+        m_batchTimer_ = new QTimer(this);
+        m_batchTimer_->setInterval(settings::MainWindowBatchTimerInterval); // 50fps-ish
+        connect(m_batchTimer_, &QTimer::timeout, this, &MainWindow::processBatch);
         // We start it in onGroupAdded as needed
 
         m_btn_delete_->setVisible(false);
@@ -116,7 +116,7 @@ namespace photoboss
                 const QString folder = GetCurrentFolder();
                 if (!folder.isEmpty()) {
                     clearResults();
-                    m_pipeline_controller_->start({ folder, ui_->subfolders->isChecked() });
+                    m_pipeline_controller_->start({ folder, m_ui_->subfolders->isChecked() });
                 }
             }
             // If Stopping, ignore clicks (button is disabled)
@@ -145,7 +145,7 @@ namespace photoboss
 
     void MainWindow::OnCurrentFolderChanged()
     {
-        ui_->filepath->setPlainText(m_current_folder_);
+        m_ui_->filepath->setPlainText(m_current_folder_);
     }
 
     void MainWindow::SetCurrentFolder(const QString& folder)
@@ -158,18 +158,18 @@ namespace photoboss
 
 void MainWindow::processBatch()
 {
-    if (m_pendingGroups.empty()) return;
+    if (m_pendingGroups_.empty()) return;
 
     int count = 0;
-    while (!m_pendingGroups.empty() && count < settings::MainWindowBatchProcessSize) {
-            ImageGroup group = m_pendingGroups.front();
-            m_pendingGroups.pop_front();
+    while (!m_pendingGroups_.empty() && count < settings::MainWindowBatchProcessSize) {
+            ImageGroup group = m_pendingGroups_.front();
+            m_pendingGroups_.pop_front();
 
-            if (m_groupWidgets.contains(group.id)) continue;
+            if (m_groupWidgets_.contains(group.id)) continue;
 
             auto* widget = new GroupWidget(group, m_thumbnail_container_);
             m_thumbnail_layout_->addWidget(widget);
-            m_groupWidgets[group.id] = widget;
+            m_groupWidgets_[group.id] = widget;
 
             // Connect selection changes to update delete button state
             connect(widget, &GroupWidget::selectionChanged, this, &MainWindow::onGroupSelectionChanged);
@@ -184,38 +184,38 @@ void MainWindow::processBatch()
                 // Find the ImageThumbWidget inside the GroupWidget
                 for (auto* thumb : widget->findChildren<ImageThumbWidget*>()) {
                     if (thumb->Image().path == entry.path) {
-                        if (m_thumbnailCache.contains(entry.path)) {
-                            thumb->setThumbnail(m_thumbnailCache[entry.path]);
+                        if (m_thumbnailCache_.contains(entry.path)) {
+                            thumb->setThumbnail(m_thumbnailCache_[entry.path]);
                         } else {
-                            m_thumbnailWaiters.insert(entry.path, thumb);
+                            m_thumbnailWaiters_.insert(entry.path, thumb);
                         }
                     }
                 }
             }
 
-            connect(widget, &GroupWidget::previewImage, m_preview_pane, &PreviewPane::showImage);
+            connect(widget, &GroupWidget::previewImage, m_preview_pane_, &PreviewPane::showImage);
             count++;
         }
     }
 
     void MainWindow::onGroupAdded(const ImageGroup& group)
     {
-        m_pendingGroups.push_back(group);
-        if (!m_batchTimer->isActive()) {
-            m_batchTimer->start(50); // Process batch every 50ms
+        m_pendingGroups_.push_back(group);
+        if (!m_batchTimer_->isActive()) {
+            m_batchTimer_->start(50); // Process batch every 50ms
         }
     }
 
     void MainWindow::onGroupUpdated(const ImageGroup& group)
     {
-        if (m_groupWidgets.contains(group.id)) {
-            m_groupWidgets[group.id]->updateGroup(group);
+        if (m_groupWidgets_.contains(group.id)) {
+            m_groupWidgets_[group.id]->updateGroup(group);
 
              // Also update mapping for any new images added to the group
-             auto* widget = m_groupWidgets[group.id];
+             auto* widget = m_groupWidgets_[group.id];
              for (const auto& entry : group.images) {
                  bool alreadyWaiting = false;
-                 auto waiters = m_thumbnailWaiters.values(entry.path);
+                 auto waiters = m_thumbnailWaiters_.values(entry.path);
                  for (auto* w : waiters) {
                      if (w->parentWidget() == widget) {
                         alreadyWaiting = true;
@@ -226,10 +226,10 @@ void MainWindow::processBatch()
                 if (!alreadyWaiting) {
                     for (auto* thumb : widget->findChildren<ImageThumbWidget*>()) {
                         if (thumb->Image().path == entry.path) {
-                             if (m_thumbnailCache.contains(entry.path)) {
-                                 thumb->setThumbnail(m_thumbnailCache[entry.path]);
+                             if (m_thumbnailCache_.contains(entry.path)) {
+                                 thumb->setThumbnail(m_thumbnailCache_[entry.path]);
                              } else {
-                                 m_thumbnailWaiters.insert(entry.path, thumb);
+                                 m_thumbnailWaiters_.insert(entry.path, thumb);
                              }
                         }
                     }
@@ -241,14 +241,14 @@ void MainWindow::processBatch()
     void MainWindow::onThumbnailReady(const ThumbnailResult& result)
     {
         QPixmap pix = QPixmap::fromImage(result.image);
-        m_thumbnailCache.insert(result.path, pix);
+        m_thumbnailCache_.insert(result.path, pix);
 
-        auto waiters = m_thumbnailWaiters.values(result.path);
+        auto waiters = m_thumbnailWaiters_.values(result.path);
         for (auto* thumb : waiters) {
             thumb->setThumbnail(pix);
         }
         
-        m_thumbnailWaiters.remove(result.path);
+        m_thumbnailWaiters_.remove(result.path);
     }
 
     void MainWindow::clearResults()
@@ -258,10 +258,10 @@ void MainWindow::processBatch()
             delete item->widget();
             delete item;
         }
-        m_groupWidgets.clear();
-        m_pendingGroups.clear();
-        m_thumbnailWaiters.clear();
-        m_thumbnailCache.clear();
+        m_groupWidgets_.clear();
+        m_pendingGroups_.clear();
+        m_thumbnailWaiters_.clear();
+        m_thumbnailCache_.clear();
         m_scan_found_duplicates_ = false;
     }
 
@@ -290,7 +290,7 @@ case PipelineController::PipelineState::Stopped:
 
             updateDeleteButtonState();
 
-            if (!m_scan_found_duplicates_ && m_groupWidgets.size() == 0) {
+            if (!m_scan_found_duplicates_ && m_groupWidgets_.size() == 0) {
                 QMessageBox::information(
                     this,
                     "Scan Complete",
@@ -305,7 +305,7 @@ case PipelineController::PipelineState::Stopped:
         int count = countSelectedForDeletion();
         qDebug() << "[Delete Button] Count:" << count 
                  << "Duplicates found:" << m_scan_found_duplicates_
-                 << "Group count:" << m_groupWidgets.size();
+                 << "Group count:" << m_groupWidgets_.size();
 
         if (m_delete_count_label_) {
             if (count > 0) {
@@ -332,7 +332,7 @@ case PipelineController::PipelineState::Stopped:
     int MainWindow::countSelectedForDeletion() const
     {
         int count = 0;
-        for (auto* widget : m_groupWidgets.values()) {
+        for (auto* widget : m_groupWidgets_.values()) {
             count += widget->countSelectedForDeletion();
         }
         return count;
@@ -341,7 +341,7 @@ case PipelineController::PipelineState::Stopped:
     QVector<ImageEntry> MainWindow::collectSelectedForDeletion() const
     {
         QVector<ImageEntry> result;
-        for (auto* widget : m_groupWidgets.values()) {
+        for (auto* widget : m_groupWidgets_.values()) {
             const auto& marked = widget->imagesMarkedForDeleteEntries();
             for (const auto& img : marked) {
                 result.push_back(img);

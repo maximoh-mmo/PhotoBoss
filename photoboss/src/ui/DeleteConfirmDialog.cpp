@@ -14,7 +14,7 @@ namespace photoboss {
         QWidget* parent
     )
         : QDialog(parent)
-        , filesToDelete_(filesToDelete)
+        , m_m_filesToDelete_(filesToDelete)
     {
         setObjectName("DeleteConfirmDialog");
         setWindowTitle("Confirm Deletion");
@@ -33,9 +33,9 @@ void DeleteConfirmDialog::buildUi(const QVector<ImageEntry>& filesToDelete)
     auto* mainLayout = new QVBoxLayout(this);
 
     // Warning header
-    warningLabel_ = new QLabel(this);
-    warningLabel_->setObjectName("warningLabel");
-    warningLabel_->setText(
+    m_warningLabel_ = new QLabel(this);
+    m_warningLabel_->setObjectName("warningLabel");
+    m_warningLabel_->setText(
         QString(
             "<html><head/><body>"
             "<p><span class=\"warning-text\">⚠️ Confirm Deletion</span></p>"
@@ -44,16 +44,16 @@ void DeleteConfirmDialog::buildUi(const QVector<ImageEntry>& filesToDelete)
             "</body></html>"
         ).arg(filesToDelete.size())
     );
-    mainLayout->addWidget(warningLabel_);
+    mainLayout->addWidget(m_warningLabel_);
 
     // Thumbnail grid in scroll area
     auto* scrollArea = new QScrollArea(this);
     scrollArea->setWidgetResizable(true);
     scrollArea->setMinimumHeight(settings::DeleteConfirmDialogScrollAreaMinHeight);
 
-    thumbnailContainer_ = new QWidget(scrollArea);
-    thumbnailLayout_ = new QGridLayout(thumbnailContainer_);
-    thumbnailLayout_->setSpacing(settings::DeleteConfirmDialogLayoutSpacing);
+    m_thumbnailContainer_ = new QWidget(scrollArea);
+    m_thumbnailLayout_ = new QGridLayout(m_thumbnailContainer_);
+    m_thumbnailLayout_->setSpacing(settings::DeleteConfirmDialogLayoutSpacing);
 
     int cols = settings::DeleteConfirmDialogGridCols;
     for (int i = 0; i < filesToDelete.size(); ++i) {
@@ -73,34 +73,34 @@ void DeleteConfirmDialog::buildUi(const QVector<ImageEntry>& filesToDelete)
             label->setText("Failed\nto load");
             label->setObjectName("thumbnailLabelFailed");
         }
-        thumbnailLayout_->addWidget(label, i / cols, i % cols);
+        m_thumbnailLayout_->addWidget(label, i / cols, i % cols);
     }
 
-    scrollArea->setWidget(thumbnailContainer_);
+    scrollArea->setWidget(m_thumbnailContainer_);
     mainLayout->addWidget(scrollArea);
 
     // Confirmation checkbox
-    confirmCheckBox_ = new QCheckBox(
+    m_confirmCheckBox_ = new QCheckBox(
         "I understand the risks and want to proceed",
         this
     );
-    connect(confirmCheckBox_, &QCheckBox::toggled, this, &DeleteConfirmDialog::onCheckBoxToggled);
-    mainLayout->addWidget(confirmCheckBox_);
+    connect(m_confirmCheckBox_, &QCheckBox::toggled, this, &DeleteConfirmDialog::onCheckBoxToggled);
+    mainLayout->addWidget(m_confirmCheckBox_);
 
     // Buttons
     auto* buttonLayout = new QHBoxLayout();
     buttonLayout->addStretch();
 
-    cancelButton_ = new QPushButton("Cancel", this);
-    cancelButton_->setDefault(true);
-    connect(cancelButton_, &QPushButton::clicked, this, &QDialog::reject);
-    buttonLayout->addWidget(cancelButton_);
+    m_cancelButton_ = new QPushButton("Cancel", this);
+    m_cancelButton_->setDefault(true);
+    connect(m_cancelButton_, &QPushButton::clicked, this, &QDialog::reject);
+    buttonLayout->addWidget(m_cancelButton_);
 
-    deleteButton_ = new QPushButton("Delete", this);
-    deleteButton_->setObjectName("deleteButton");
-    deleteButton_->setEnabled(false);
-    connect(deleteButton_, &QPushButton::clicked, this, &QDialog::accept);
-    buttonLayout->addWidget(deleteButton_);
+    m_deleteButton_ = new QPushButton("Delete", this);
+    m_deleteButton_->setObjectName("deleteButton");
+    m_deleteButton_->setEnabled(false);
+    connect(m_deleteButton_, &QPushButton::clicked, this, &QDialog::accept);
+    buttonLayout->addWidget(m_deleteButton_);
 
     mainLayout->addLayout(buttonLayout);
 
@@ -109,19 +109,19 @@ void DeleteConfirmDialog::buildUi(const QVector<ImageEntry>& filesToDelete)
 
 void DeleteConfirmDialog::onCheckBoxToggled(bool checked)
 {
-    deleteButton_->setEnabled(checked);
+    m_deleteButton_->setEnabled(checked);
     if (checked) {
-        deleteButton_->setDefault(true);
+        m_deleteButton_->setDefault(true);
     } else {
-        cancelButton_->setDefault(true);
+        m_cancelButton_->setDefault(true);
     }
 }
 
 QPixmap DeleteConfirmDialog::loadAndCacheThumbnail(const QString& filePath)
 {
     // Check if we already have this thumbnail cached
-    if (thumbnailCache_.contains(filePath)) {
-        return thumbnailCache_[filePath];
+    if (m_thumbnailCache_.contains(filePath)) {
+        return m_thumbnailCache_[filePath];
     }
     
     // Load and scale the image
@@ -137,7 +137,7 @@ QPixmap DeleteConfirmDialog::loadAndCacheThumbnail(const QString& filePath)
     );
     
     // Cache the thumbnail
-    thumbnailCache_.insert(filePath, pixmap);
+    m_thumbnailCache_.insert(filePath, pixmap);
     return pixmap;
 }
 

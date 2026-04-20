@@ -30,9 +30,9 @@ int countSelectedForDeletion() const;
 		void onThumbSelectionChanged();
 
 	private:
-		QVector<ImageThumbWidget*> m_thumbs;
-		QLabel* m_header;
-		QHBoxLayout* m_currentRow;
-		QVBoxLayout* m_rootLayout;
+		QVector<ImageThumbWidget*> m_thumbs_;
+		QLabel* m_header_;
+		QHBoxLayout* m_currentRow_;
+		QVBoxLayout* m_rootLayout_;
 	};
 }
