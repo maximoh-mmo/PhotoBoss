@@ -22,7 +22,7 @@ namespace photoboss {
     private:
         std::atomic<bool> m_cancelled_{ false };
 		ScanRequest m_request_;
-        Queue<FileIdentityBatchPtr>& m_output;
+        Queue<FileIdentityBatchPtr>& m_output_;
 
         // Inherited via StageBase
         void run() override;

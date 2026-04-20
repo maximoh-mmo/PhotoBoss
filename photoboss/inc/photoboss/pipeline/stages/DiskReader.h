@@ -24,8 +24,8 @@ namespace photoboss {
         void ReadProgress(int current, int total);
 
     private:
-        Queue<FileIdentityBatchPtr>& m_input_queue; 
-        Queue<std::unique_ptr<DiskReadResult>>& m_output_queue;
+        Queue<FileIdentityBatchPtr>& m_input_queue_; 
+        Queue<std::unique_ptr<DiskReadResult>>& m_output_queue_;
 
 
         // Inherited via StageBase

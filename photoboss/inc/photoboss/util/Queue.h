@@ -32,7 +32,7 @@ public:
         std::unique_lock lock(m_mutex_);
         if (!wait_for_space(lock)) return false;
         m_deque_.push_back(std::move(item));
-        m_not_empty_.notify_one();
+        m_notEmpty_.notify_one();
         return true;
     }
     // Emplace an item in-place; returns false if shutdown occurred
@@ -41,7 +41,7 @@ public:
         std::unique_lock lock(m_mutex_);
         if (!wait_for_space(lock)) return false;
         m_deque_.emplace_back(std::forward<Args>(args)...);
-        m_not_empty_.notify_one();
+        m_notEmpty_.notify_one();
         return true;
     }
 
@@ -51,18 +51,18 @@ public:
         if (m_deque_.size() >= m_capacity_ || b_shutdown_)
             return false;
         m_deque_.push_back(std::move(item));
-        m_not_empty_.notify_one();
+        m_notEmpty_.notify_one();
         return true;
     }
 
     // Pop an item, blocks until available or shutdown. Returns false if queue empty & shutdown.
     bool wait_and_pop(T& item) {
         std::unique_lock lock(m_mutex_);
-        m_not_empty_.wait(lock, [this]() { return !m_deque_.empty() || b_shutdown_; });
+        m_notEmpty_.wait(lock, [this]() { return !m_deque_.empty() || b_shutdown_; });
         if (b_shutdown_ && m_deque_.empty()) return false;
         item = std::move(m_deque_.front());
         m_deque_.pop_front();
-        m_not_full_.notify_one();
+        m_notFull_.notify_one();
         return true;
     }
 
@@ -73,7 +73,7 @@ public:
             return false;
         item = std::move(m_deque_.front());
         m_deque_.pop_front();
-        m_not_full_.notify_one();
+        m_notFull_.notify_one();
         return true;
     }
 
@@ -81,14 +81,14 @@ public:
     void clear() {
         std::unique_lock lock(m_mutex_);
         m_deque_.clear();
-        m_not_empty_.notify_all();
-        m_not_full_.notify_all();
+        m_notEmpty_.notify_all();
+        m_notFull_.notify_all();
     }
 
     // Notify all waiting threads (producers and consumers)
     void notify_all() {
-        m_not_empty_.notify_all();
-        m_not_full_.notify_all();
+        m_notEmpty_.notify_all();
+        m_notFull_.notify_all();
     }
 
     // Check if queue is empty
@@ -135,20 +135,20 @@ private:
     const size_t m_capacity_;
     mutable std::mutex m_mutex_;
     std::atomic<size_t> m_producers_{ 0 };
-    std::condition_variable m_not_empty_;
-    std::condition_variable m_not_full_;
+    std::condition_variable m_notEmpty_;
+    std::condition_variable m_notFull_;
 
     // Signal Shutdown and wake all waiting threads
     void shutdown() {
         std::unique_lock lock(m_mutex_);
         b_shutdown_ = true;
-        m_not_empty_.notify_all();
-        m_not_full_.notify_all();
+        m_notEmpty_.notify_all();
+        m_notFull_.notify_all();
     }
 
     // Wait until there is space in the queue (for bounded) or shutdown
     bool wait_for_space(std::unique_lock<std::mutex>& lock) {
-        m_not_full_.wait(lock, [this]() { return m_deque_.size() < m_capacity_ || b_shutdown_; });
+        m_notFull_.wait(lock, [this]() { return m_deque_.size() < m_capacity_ || b_shutdown_; });
         return !b_shutdown_;
     }
 };

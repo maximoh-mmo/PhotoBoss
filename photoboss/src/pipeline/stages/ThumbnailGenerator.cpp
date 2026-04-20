@@ -9,14 +9,14 @@ namespace photoboss {
         Queue<ThumbnailRequestPtr>& input,
         QString id,
         QObject* parent
-    ) : StageBase(std::move(id), parent), m_input(input)
+    ) : StageBase(std::move(id), parent), m_input_(input)
     {
     }
 
     void ThumbnailGenerator::run()
     {
         ThumbnailRequestPtr request;
-        while (m_input.wait_and_pop(request)) {
+        while (m_input_.wait_and_pop(request)) {
             QImageReader reader(request->path);
             if (!reader.canRead()) continue;
 

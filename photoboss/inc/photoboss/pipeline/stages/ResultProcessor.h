@@ -49,11 +49,11 @@ namespace photoboss {
         void run() override;
 
     private:
-        Queue<std::shared_ptr<HashedImageResult>>& m_input;
-        Queue<ThumbnailRequestPtr>& m_thumbnailOutput;
-        std::vector<std::shared_ptr<HashedImageResult>> m_items;
-        QSet<quint64> m_emittedGroups;
-        QMap<quint64, int> m_emittedSizes;
+        Queue<std::shared_ptr<HashedImageResult>>& m_input_;
+        Queue<ThumbnailRequestPtr>& m_thumbnailOutput_;
+        std::vector<std::shared_ptr<HashedImageResult>> m_items_;
+        QSet<quint64> m_emittedGroups_;
+        QMap<quint64, int> m_emittedSizes_;
         
         // Inherited via StageBase
         void onStop() override;

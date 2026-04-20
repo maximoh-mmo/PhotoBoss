@@ -10,11 +10,11 @@ namespace photoboss {
         QString id,
         QObject* parent) :
         StageBase(std::move(id), parent),
-        m_input(queue),
-        m_thumbnailOutput(thumbnailQueue),
-        m_items()
+        m_input_(queue),
+        m_thumbnailOutput_(thumbnailQueue),
+        m_items_()
     {
-        m_thumbnailOutput.register_producer();
+        m_thumbnailOutput_.register_producer();
     }
 
     void ResultProcessor::run() {
@@ -25,7 +25,7 @@ namespace photoboss {
         QElapsedTimer timer;
         timer.start();
         
-        while (m_input.wait_and_pop(item)) {
+        while (m_input_.wait_and_pop(item)) {
             emit status(QString("Processing Hashed results..."));
             Q_ASSERT(!item->hashes.empty());
             
@@ -37,9 +37,9 @@ namespace photoboss {
 			thumbReq->rotation = item->fileIdentity.exif().orientation.value_or(1);
             thumbReq->width = settings::ThumbnailWidth;
             thumbReq->height = settings::ThumbnailWidth;
-            m_thumbnailOutput.push(std::move(thumbReq));
+            m_thumbnailOutput_.push(std::move(thumbReq));
 
-            m_items.push_back(std::move(item));
+            m_items_.push_back(std::move(item));
             
             processedCount++;
             emit progress(processedCount, processedCount);
@@ -48,13 +48,13 @@ namespace photoboss {
                 auto tempGroups = engine.getGroups();
                 for (const auto& g : tempGroups) {
                     if (g.images.size() > 1) {
-                        if (!m_emittedGroups.contains(g.id)) {
+                        if (!m_emittedGroups_.contains(g.id)) {
                             emit groupAdded(g);
-                            m_emittedGroups.insert(g.id);
-                            m_emittedSizes[g.id] = static_cast<int>(g.images.size());
-                        } else if (m_emittedSizes[g.id] <static_cast<int>(g.images.size())) {
+                            m_emittedGroups_.insert(g.id);
+                            m_emittedSizes_[g.id] = static_cast<int>(g.images.size());
+                        } else if (m_emittedSizes_[g.id] <static_cast<int>(g.images.size())) {
                             emit groupUpdated(g);
-                            m_emittedSizes[g.id] = static_cast<int>(g.images.size());
+                            m_emittedSizes_[g.id] = static_cast<int>(g.images.size());
                         }
                     }
                 }
@@ -70,13 +70,13 @@ namespace photoboss {
         for (const auto& g : groups) {
             if (g.images.size() > 1) {
                 result.push_back(g);
-                if (!m_emittedGroups.contains(g.id)) {
+                if (!m_emittedGroups_.contains(g.id)) {
                     emit groupAdded(g);
-                    m_emittedGroups.insert(g.id);
-                    m_emittedSizes[g.id] = static_cast<int>(g.images.size());
-                } else if (m_emittedSizes[g.id] < static_cast<int>(g.images.size())) {
+                    m_emittedGroups_.insert(g.id);
+                    m_emittedSizes_[g.id] = static_cast<int>(g.images.size());
+                } else if (m_emittedSizes_[g.id] < static_cast<int>(g.images.size())) {
                     emit groupUpdated(g);
-                    m_emittedSizes[g.id] = static_cast<int>(g.images.size());
+                    m_emittedSizes_[g.id] = static_cast<int>(g.images.size());
                 }
             }
         }
@@ -86,6 +86,6 @@ namespace photoboss {
 
     void ResultProcessor::onStop()
     {
-        m_thumbnailOutput.producer_done();
+        m_thumbnailOutput_.producer_done();
     }
 }

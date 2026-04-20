@@ -26,7 +26,7 @@ namespace photoboss {
 		QString m_dbPath_;
         bool m_valid_ = false;
         bool m_initialized_ = false;
-        quint64 m_scan_id_ = -1;
+        quint64 m_scanId_ = -1;
         static QString connectionName();
         bool initSchemaOrMigrate();
         bool initSchema();

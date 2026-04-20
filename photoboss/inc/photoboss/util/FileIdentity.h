@@ -22,32 +22,32 @@ namespace photoboss {
 			quint64 modifiedTime = 0,
 			ExifData exif = {}
 		)
-			: m_name(std::move(name))
-			, m_path(std::move(path))
-			, m_extension(std::move(extension))
-			, m_size(size)
-			, m_modifiedTime(modifiedTime)
-			, m_exif(exif)
+			: m_name_(std::move(name))
+			, m_path_(std::move(path))
+			, m_extension_(std::move(extension))
+			, m_size_(size)
+			, m_modifiedTime_(modifiedTime)
+			, m_exif_(exif)
 		{
 		}
 		FileIdentity& operator=(const FileIdentity&) = delete;
 
 		// Getters
-		const QString& name() const noexcept { return m_name; }
-		const QString& path() const noexcept { return m_path; }
-		quint64 size() const noexcept { return m_size; }
-		quint64 modifiedTime() const noexcept { return m_modifiedTime; }
-		const QString& extension() const noexcept { return m_extension; }
-		const ExifData& exif() const noexcept { return m_exif; }
+		const QString& name() const noexcept { return m_name_; }
+		const QString& path() const noexcept { return m_path_; }
+		quint64 size() const noexcept { return m_size_; }
+		quint64 modifiedTime() const noexcept { return m_modifiedTime_; }
+		const QString& extension() const noexcept { return m_extension_; }
+		const ExifData& exif() const noexcept { return m_exif_; }
 
 		// Comparison
 		bool operator==(const FileIdentity& other) const noexcept {
-			return m_name == other.m_name &&
-				m_path == other.m_path &&
-				m_extension == other.m_extension &&
-				m_size == other.m_size &&
-				m_modifiedTime == other.m_modifiedTime &&
-				m_exif == other.m_exif;
+			return m_name_ == other.m_name_ &&
+				m_path_ == other.m_path_ &&
+				m_extension_ == other.m_extension_ &&
+				m_size_ == other.m_size_ &&
+				m_modifiedTime_ == other.m_modifiedTime_ &&
+				m_exif_ == other.m_exif_;
 		}
 
 		bool operator!=(const FileIdentity& other) const noexcept {
@@ -55,11 +55,11 @@ namespace photoboss {
 		}
 
 	private:
-		const QString m_name;
-		const QString m_path;
-		const quint64 m_size;
-		const quint64 m_modifiedTime;
-		const QString m_extension;
-		const ExifData m_exif;
+		const QString m_name_;
+		const QString m_path_;
+		const quint64 m_size_;
+		const quint64 m_modifiedTime_;
+		const QString m_extension_;
+		const ExifData m_exif_;
 	};
 }

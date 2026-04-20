@@ -19,11 +19,11 @@ namespace photoboss {
         Q_OBJECT
     public:
         explicit StageBase(QString id, QObject* parent = nullptr)
-            : m_id(std::move(id)), QObject(parent) {
+            : m_id_(std::move(id)), QObject(parent) {
         }
         ~StageBase() override = default;
     
-        QString stageId() const { return m_id; }
+        QString stageId() const { return m_id_; }
 
         void Run() {
             try {
@@ -48,6 +48,6 @@ namespace photoboss {
         virtual void onStop() = 0;
     
     private:
-        QString m_id;
+        QString m_id_;
     };
 }

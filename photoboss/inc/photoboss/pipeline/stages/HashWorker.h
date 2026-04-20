@@ -17,11 +17,10 @@ namespace photoboss {
         void run() override;
 
     private:
-        Queue<std::unique_ptr<DiskReadResult>>& m_input;
-        Queue<std::shared_ptr<HashedImageResult>>& m_output;
-        std::vector<HashCatalog::Entry> m_hashMethods;
+        Queue<std::unique_ptr<DiskReadResult>>& m_input_;
+        Queue<std::shared_ptr<HashedImageResult>>& m_output_;
+        std::vector<HashCatalog::Entry> m_hashMethods_;
 
-        bool loadAndOrient(const QByteArray& imageBytes, int orientation, QImage& image);
         // Inherited via StageBase
         void onStop() override;
     };

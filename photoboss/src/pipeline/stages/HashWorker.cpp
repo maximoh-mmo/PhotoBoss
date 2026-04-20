@@ -12,10 +12,10 @@ namespace photoboss {
 HashWorker::HashWorker(Queue<std::unique_ptr<DiskReadResult>> &inputQueue,
                        Queue<std::shared_ptr<HashedImageResult>> &outputQueue,
                        QObject *parent)
-    : StageBase("HashWorker", parent), m_input(inputQueue),
-      m_output(outputQueue),
-      m_hashMethods(std::move(HashCatalog::createAll())) {
-  m_output.register_producer();
+    : StageBase("HashWorker", parent), m_input_(inputQueue),
+      m_output_(outputQueue),
+      m_hashMethods_(std::move(HashCatalog::createAll())) {
+  m_output_.register_producer();
 }
 
 void HashWorker::run() {
@@ -23,7 +23,7 @@ void HashWorker::run() {
   while (true) {
     std::unique_ptr<DiskReadResult> item;
 
-    if (!m_input.wait_and_pop(item)) {
+    if (!m_input_.wait_and_pop(item)) {
       break; // upstream shutdown
     }
 
@@ -38,7 +38,7 @@ void HashWorker::run() {
         item->fileIdentity, HashSource::Fresh, QDateTime::currentDateTimeUtc(),
         reader.size());
 
-    for (auto &hash : m_hashMethods) {
+    for (auto &hash : m_hashMethods_) {
       if (hash.method->InputType() == HashInput::Bytes) {
         try {
           result->hashes.emplace(hash.method->key(),
@@ -61,7 +61,7 @@ void HashWorker::run() {
     }
 
     else {
-      for (auto &method : m_hashMethods) {
+      for (auto &method : m_hashMethods_) {
         if (method.method->InputType() == HashInput::Image) {
           try {
             result->hashes.emplace(
@@ -75,9 +75,9 @@ void HashWorker::run() {
       }
     }
 
-    m_output.emplace(std::move(result));
+    m_output_.emplace(std::move(result));
   }
 }
 
-void HashWorker::onStop() { m_output.producer_done(); }
+void HashWorker::onStop() { m_output_.producer_done(); }
 } // namespace photoboss

@@ -25,6 +25,6 @@ namespace photoboss {
         void onStop() override;
 
     private:
-        Queue<ThumbnailRequestPtr>& m_input;
+        Queue<ThumbnailRequestPtr>& m_input_;
     };
 }

@@ -10,8 +10,8 @@ namespace photoboss {
         Queue<FileIdentityBatchPtr>& input_queue,
         Queue<std::unique_ptr<DiskReadResult>>& queue,
         QObject* parent)
-        : StageBase("DiskReader",parent), m_input_queue(input_queue), m_output_queue(queue) {
-        m_output_queue.register_producer();
+        : StageBase("DiskReader",parent), m_input_queue_(input_queue), m_output_queue_(queue) {
+        m_output_queue_.register_producer();
     }
 
 
@@ -19,7 +19,7 @@ namespace photoboss {
 
         while (true) {
             FileIdentityBatchPtr batch;
-            if (!m_input_queue.wait_and_pop(batch)) {
+            if (!m_input_queue_.wait_and_pop(batch)) {
                 break; // scanner finished
             }
 
@@ -32,7 +32,7 @@ namespace photoboss {
                 if (file.open(QIODevice::ReadOnly)) {
                     auto result = std::make_unique<DiskReadResult>(fileIdentity, file.readAll());
                     
-                    if (!m_output_queue.push(std::move(result))) {
+                    if (!m_output_queue_.push(std::move(result))) {
 						qDebug() << "DiskReader: Output queue shutdown," << result->fileIdentity.name() << "dropped, stopping.";
                         return;
                     }
@@ -47,6 +47,6 @@ namespace photoboss {
 
     void DiskReader::onStop()
     {
-        m_output_queue.producer_done();
+        m_output_queue_.producer_done();
     }
 }

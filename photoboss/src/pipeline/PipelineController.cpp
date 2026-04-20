@@ -38,7 +38,7 @@ namespace photoboss {
         m_displayedFiles_ = 0.0;
         
         Token t;
-        m_scan_id_ = SqliteHashCache(0).nextScanId(t);
+        m_scanId_ = SqliteHashCache(0).nextScanId(t);
         createPipeline(request);
     }
 
@@ -90,7 +90,7 @@ namespace photoboss {
 			m_pipeline_->disk,
 			m_pipeline_->resultQueue,
 			"CacheLookup",
-            m_scan_id_
+            m_scanId_
         );
 
         m_pipeline_->cacheLookup->moveToThread(&m_pipeline_->cacheLookupThread);
@@ -140,7 +140,7 @@ namespace photoboss {
 			m_pipeline_->cacheStoreQueue,
 			m_pipeline_->resultQueue,
             "CacheStore",
-            m_scan_id_
+            m_scanId_
             );
 
         m_pipeline_->cacheStore->moveToThread(&m_pipeline_->cacheStoreThread);
@@ -289,7 +289,7 @@ namespace photoboss {
 
             // Prune stale cache entries for this directory
             if (!m_current_request_.directory.isEmpty()) {
-                SqliteHashCache cache(m_scan_id_);
+                SqliteHashCache cache(m_scanId_);
                 cache.prune(m_current_request_.directory);
             }
 

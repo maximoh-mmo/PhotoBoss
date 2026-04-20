@@ -9,9 +9,9 @@ namespace photoboss {
     DirectoryScanner::DirectoryScanner(ScanRequest request,Queue<FileIdentityBatchPtr>& outputQueue, QObject* parent) :
         StageBase("DirectoryScanner", parent),
 		m_request_(std::move(request)),
-        m_output(outputQueue)
+        m_output_(outputQueue)
     {
-        m_output.register_producer();
+        m_output_.register_producer();
     }
 
     DirectoryScanner::~DirectoryScanner() {}
@@ -61,7 +61,7 @@ namespace photoboss {
             emit progress(count, 0); // Indeterminate progress spinner
 
             if (static_cast<int>(batch->size()) >= batch_size) {
-				m_output.emplace(batch);
+				m_output_.emplace(batch);
                 batch = std::make_shared<std::vector<FileIdentity>>();
                 batch->reserve(batch_size);
             }
@@ -71,12 +71,12 @@ namespace photoboss {
         emit progress(count, count); // Final update count = total for UI purposes.
         
         if (!batch->empty()) {
-            m_output.emplace(batch);
+            m_output_.emplace(batch);
         }
 		
     }
     void DirectoryScanner::onStop()
     {
-        m_output.producer_done();
+        m_output_.producer_done();
     }
 }

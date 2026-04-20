@@ -104,7 +104,7 @@ namespace photoboss {
         std::vector<QThread*> m_thumbnail_worker_threads_;
         std::atomic<int> m_activeThumbnailWorkers_{ 0 };
 
-        quint64 m_scan_id_ = -1;
+        quint64 m_scanId_ = -1;
         quint64 m_totalFiles_ = 0;
         quint64 m_processedFiles_ = 0;
 

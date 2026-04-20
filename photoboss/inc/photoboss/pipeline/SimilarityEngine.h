@@ -82,10 +82,6 @@ namespace photoboss {
             const HashedImageResult& b
         ) const;
 
-        ImageNode* selectRepresentative(
-            std::vector<ImageNode>& images
-        ) const;
-
         ImageGroup buildGroup(
             const SimilarityGroup& group
         ) const;

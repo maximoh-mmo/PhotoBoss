@@ -16,7 +16,7 @@ namespace photoboss
 
     SqliteHashCache::SqliteHashCache(quint64 scanId)
         : m_dbPath_(defaultDatabasePath())
-        , m_scan_id_(scanId)
+        , m_scanId_(scanId)
     {
     }
 
@@ -285,7 +285,7 @@ namespace photoboss
         SET last_seen_scan_id = :scanId
         WHERE id = :fileId
     )");
-        q.bindValue(":scanId", m_scan_id_);
+        q.bindValue(":scanId", m_scanId_);
         q.bindValue(":fileId", fileId);
         q.exec();
     }
@@ -388,7 +388,7 @@ namespace photoboss
         q.bindValue(":format", result.fileIdentity.extension());
         q.bindValue(":width", result.resolution.width());
         q.bindValue(":height", result.resolution.height());
-        q.bindValue(":scan", m_scan_id_);
+        q.bindValue(":scan", m_scanId_);
 
         if (!execOrLog(q, "upsert file")) { q.exec("ROLLBACK;"); return; }
 
@@ -454,7 +454,7 @@ namespace photoboss
             WHERE path=:path AND (last_seen_scan_id IS NULL OR last_seen_scan_id!=:scanId);
         )");
         q.bindValue(":path", path);
-        q.bindValue(":scanId", m_scan_id_);
+        q.bindValue(":scanId", m_scanId_);
 
         if (!execOrLog(q, "prune files")) return;
 

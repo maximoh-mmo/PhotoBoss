@@ -22,10 +22,10 @@ namespace photoboss
 		~CacheStore() override = default;
 
 	private:
-		std::unique_ptr<IHashCache> m_cache;
+		std::unique_ptr<IHashCache> m_cache_;
 
-		Queue<std::shared_ptr<HashedImageResult>>& m_input;
-		Queue<std::shared_ptr<HashedImageResult>>& m_output;
+		Queue<std::shared_ptr<HashedImageResult>>& m_input_;
+		Queue<std::shared_ptr<HashedImageResult>>& m_output_;
 
 		// Inherited via StageBase
 		void run() override;

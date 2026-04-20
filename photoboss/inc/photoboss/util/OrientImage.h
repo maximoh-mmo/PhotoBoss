@@ -2,5 +2,5 @@
 #include <QImage>
 
 namespace photoboss {
-QImage OrientImage(QImage image, int rotation);
+	QImage OrientImage(QImage image, int rotation);
 }
