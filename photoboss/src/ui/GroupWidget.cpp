@@ -62,9 +62,6 @@ namespace photoboss {
             if (static_cast<int>(i) == group.bestIndex)
                 m_thumbs_[i]->setState(ImageThumbWidget::State::Keep);
             else
-            {
-
-            }
                 m_thumbs_[i]->setState(ImageThumbWidget::State::Delete);
         }
     }

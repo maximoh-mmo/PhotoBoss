@@ -62,16 +62,16 @@ namespace photoboss {
         Config m_cfg;
         quint64 m_nextGroupId = 1;
 
-        std::list<ImageNode> m_nodes;
-        std::unordered_map<QString, ExactGroup> m_exactGroups;
-        std::vector<SimilarityGroup> m_clusters;
+        std::list<ImageNode> m_nodes_;
+        std::unordered_map<QString, ExactGroup> m_exactGroups_;
+        std::vector<SimilarityGroup> m_clusters_;
 
         struct WeightedHash {
             std::unique_ptr<HashMethod> method;
             double weight;
         };
 
-        std::vector<WeightedHash> m_hashes;
+        std::vector<WeightedHash> m_hashes_;
 
 
     private:
