@@ -333,7 +333,7 @@ case PipelineController::PipelineState::Stopped:
     {
         int count = 0;
         for (auto* widget : m_groupWidgets.values()) {
-            count += widget->imagesMarkedForDelete().size();
+            count += widget->countSelectedForDeletion();
         }
         return count;
     }

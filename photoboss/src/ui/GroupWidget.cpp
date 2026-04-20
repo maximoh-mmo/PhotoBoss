@@ -76,15 +76,15 @@ namespace photoboss {
         emit selectionChanged();
     }
 
-    QVector<const HashedImageResult*> GroupWidget::imagesMarkedForDelete() const
+    int GroupWidget::countSelectedForDeletion() const
     {
-        QVector<const HashedImageResult*> result;
+        int count = 0;
         for (auto* thumb : m_thumbs) {
             if (thumb->state() == ImageThumbWidget::State::Delete) {
-                result.push_back(reinterpret_cast<const HashedImageResult*>(&thumb->Image()));
+                count++;
             }
         }
-        return result;
+        return count;
     }
 
     QVector<ImageEntry> GroupWidget::imagesMarkedForDeleteEntries() const

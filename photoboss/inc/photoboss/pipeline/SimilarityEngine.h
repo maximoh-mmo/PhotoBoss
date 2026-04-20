@@ -2,6 +2,7 @@
 
 #include "util/DataTypes.h"
 #include "util/GroupTypes.h"
+#include "util/AppSettings.h"
 
 namespace photoboss {
     class HashMethod;
@@ -19,8 +20,12 @@ namespace photoboss {
     class SimilarityEngine {
     public:
         struct Config {
-            double strongThreshold = 0.97;
-            double weakThreshold = 0.92;
+            double strongThreshold = settings::SimilarityStrongThreshold;
+            double weakThreshold = settings::SimilarityWeakThreshold;
+
+            // Hard gate thresholds - images must exceed BOTH to be considered similar
+            double pHashGate = settings::SimilarityPHashGate;
+            double dHashGate = settings::SimilarityDHashGate;
 
             double pHashWeight = 0.60;
             double dHashWeight = 0.30;

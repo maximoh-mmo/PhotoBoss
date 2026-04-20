@@ -140,7 +140,7 @@ namespace photoboss {
         // are below acceptable thresholds return 0
         // --------------------------------------------------
 
-        if (phashSim < 0.98 || dhashSim < 0.94) {
+        if (phashSim < m_cfg.pHashGate || dhashSim < m_cfg.dHashGate) {
             return 0.0;
         }
 

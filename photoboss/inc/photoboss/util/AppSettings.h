@@ -32,4 +32,10 @@ namespace photoboss::settings {
     static inline constexpr int MainWindowBatchTimerInterval = 50; // ms
     static inline constexpr int MainWindowProgressTimerInterval = 30; // ms
 
+    // Similarity Engine
+    static inline constexpr double SimilarityStrongThreshold = 0.97;
+    static inline constexpr double SimilarityWeakThreshold = 0.92;
+    static inline constexpr double SimilarityPHashGate = 0.98;
+    static inline constexpr double SimilarityDHashGate = 0.94;
+
 }

@@ -8,18 +8,17 @@
 
 namespace photoboss {
 
-	class ImageThumbWidget;
-	struct HashedImageResult;
+ 	class ImageThumbWidget;
 
-	class GroupWidget : public QWidget
+ 	class GroupWidget : public QWidget
 	{
 		Q_OBJECT
 
 	public:
 		explicit GroupWidget(const ImageGroup& group, QWidget* parent = nullptr);
 
-		QVector<const HashedImageResult*> imagesMarkedForDelete() const;
-		QVector<ImageEntry> imagesMarkedForDeleteEntries() const;
+int countSelectedForDeletion() const;
+ 		QVector<ImageEntry> imagesMarkedForDeleteEntries() const;
 		void updateGroup(const ImageGroup& group);
 	
 	signals:
