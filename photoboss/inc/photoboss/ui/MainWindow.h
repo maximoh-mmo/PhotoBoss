@@ -41,7 +41,7 @@ namespace photoboss {
         void onGroupUpdated(const ImageGroup& group);
         void onThumbnailReady(const ThumbnailResult& result);
         void clearResults();
-        QString GetCurrentFolder() const { return m_current_folder_; }  // NOLINT
+        QString GetCurrentFolder() const { return m_current_folder_; }
         void OnBrowse();
         void UpdateProgressBar(int current, int total);
 
