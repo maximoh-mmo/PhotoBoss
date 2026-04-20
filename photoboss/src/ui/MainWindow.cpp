@@ -80,7 +80,7 @@ namespace photoboss
         bodyLayout->addWidget(m_splitter_);
 
         m_batchTimer = new QTimer(this);
-        m_batchTimer->setInterval(20); // 50fps-ish
+        m_batchTimer->setInterval(settings::MainWindowBatchTimerInterval); // 50fps-ish
         connect(m_batchTimer, &QTimer::timeout, this, &MainWindow::processBatch);
         // We start it in onGroupAdded as needed
 
@@ -156,12 +156,12 @@ namespace photoboss
         }
     }
 
-    void MainWindow::processBatch()
-    {
-        if (m_pendingGroups.empty()) return;
+void MainWindow::processBatch()
+{
+    if (m_pendingGroups.empty()) return;
 
-        int count = 0;
-        while (!m_pendingGroups.empty() && count < 10) { // increased batch size
+    int count = 0;
+    while (!m_pendingGroups.empty() && count < settings::MainWindowBatchProcessSize) {
             ImageGroup group = m_pendingGroups.front();
             m_pendingGroups.pop_front();
 
@@ -211,17 +211,17 @@ namespace photoboss
         if (m_groupWidgets.contains(group.id)) {
             m_groupWidgets[group.id]->updateGroup(group);
 
-            // Also update mapping for any new images added to the group
-            auto* widget = m_groupWidgets[group.id];
-            for (const auto& entry : group.images) {
-                bool alreadyWaiting = false;
-                auto waiters = m_thumbnailWaiters.values(entry.path);
-                for (auto* w : waiters) {
-                    if (w->parentWidget()->parentWidget() == widget) { // Very hacky path to GroupWidget
-                       alreadyWaiting = true;
-                       break;
-                    }
-                }
+             // Also update mapping for any new images added to the group
+             auto* widget = m_groupWidgets[group.id];
+             for (const auto& entry : group.images) {
+                 bool alreadyWaiting = false;
+                 auto waiters = m_thumbnailWaiters.values(entry.path);
+                 for (auto* w : waiters) {
+                     if (w->parentWidget() == widget) {
+                        alreadyWaiting = true;
+                        break;
+                     }
+                 }
                 
                 if (!alreadyWaiting) {
                     for (auto* thumb : widget->findChildren<ImageThumbWidget*>()) {
@@ -394,4 +394,4 @@ case PipelineController::PipelineState::Stopped:
     {
         updateDeleteButtonState();
     }
-}
+}

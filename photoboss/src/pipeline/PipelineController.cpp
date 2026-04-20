@@ -8,6 +8,7 @@
 #include "pipeline/stages/ThumbnailGenerator.h"
 #include "caching/SqliteHashCache.h"
 #include "util/Token.h"
+#include "util/AppSettings.h"
 #include <QDebug>
 #include <QThread>
 
@@ -18,7 +19,7 @@ namespace photoboss {
         : QObject(parent)
     {
         connect(&m_progressTimer_, &QTimer::timeout, this, &PipelineController::onProgressTimerTick);
-        m_progressTimer_.setInterval(30);
+        m_progressTimer_.setInterval(settings::MainWindowProgressTimerInterval);
     }
 
     PipelineController::~PipelineController()

@@ -9,6 +9,8 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QGridLayout>
+#include <QMap>
+#include <QPixmap>
 #include "util/GroupTypes.h"
 
 namespace photoboss {
@@ -30,8 +32,10 @@ namespace photoboss {
 
     private:
         void buildUi(const QVector<ImageEntry>& filesToDelete);
+        QPixmap loadAndCacheThumbnail(const QString& filePath);
 
         QVector<ImageEntry> filesToDelete_;
+        QMap<QString, QPixmap> thumbnailCache_;
 
         QLabel* warningLabel_ = nullptr;
         QWidget* thumbnailContainer_ = nullptr;
