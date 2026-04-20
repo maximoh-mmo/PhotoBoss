@@ -27,14 +27,6 @@ namespace photoboss::settings {
     static inline constexpr int DeleteConfirmDialogScrollAreaMinHeight = 200;
     static inline constexpr int DeleteConfirmDialogLayoutSpacing = 6;
 
-    // UI Colors and Styles
-    static inline constexpr char DeleteConfirmDialogWarningColor[] = "#ff6b6b";
-    static inline constexpr char DeleteConfirmDialogBorderColor[] = "#555";
-    static inline constexpr char DeleteConfirmDialogDeleteButtonBgColor[] = "#c0392b";
-    static inline constexpr char DeleteConfirmDialogDeleteButtonTextColor[] = "white";
-    static inline constexpr char DeleteConfirmDialogFailedLoadBorderColor[] = "#555";
-    static inline constexpr char DeleteConfirmDialogFailedLoadTextColor[] = "#888";
-
     // Main Window
     static inline constexpr int MainWindowBatchProcessSize = 10;
     static inline constexpr int MainWindowBatchTimerInterval = 50; // ms

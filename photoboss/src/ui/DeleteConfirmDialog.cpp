@@ -16,6 +16,7 @@ namespace photoboss {
         : QDialog(parent)
         , filesToDelete_(filesToDelete)
     {
+        setObjectName("DeleteConfirmDialog");
         setWindowTitle("Confirm Deletion");
         setMinimumSize(settings::DeleteConfirmDialogMinWidth, settings::DeleteConfirmDialogMinHeight);
         setModal(true);
@@ -32,29 +33,27 @@ void DeleteConfirmDialog::buildUi(const QVector<ImageEntry>& filesToDelete)
     auto* mainLayout = new QVBoxLayout(this);
 
     // Warning header
-    warningLabel_ = new QLabel(
+    warningLabel_ = new QLabel(this);
+    warningLabel_->setObjectName("warningLabel");
+    warningLabel_->setText(
         QString(
             "<html><head/><body>"
-            "<p><span style=\"color:%1;font-size:14px;font-weight:bold;\">"
-            "⚠️ Confirm Deletion"
-            "</span></p>"
-            "<p>This will move %2 file(s) to your system trash.</p>"
+            "<p><span class=\"warning-text\">⚠️ Confirm Deletion</span></p>"
+            "<p>This will move %1 file(s) to your system trash.</p>"
             "<p>This action can be undone by restoring the files from your system's trash folder.</p>"
             "</body></html>"
-        ).arg(settings::DeleteConfirmDialogWarningColor).arg(filesToDelete.size()),
-        this
+        ).arg(filesToDelete.size())
     );
-    // Insert warning label at the beginning
-    mainLayout->insertWidget(0, warningLabel_);
+    mainLayout->addWidget(warningLabel_);
 
-    // Thumbnail grid in scroll area - simplified version without interactive widgets
+    // Thumbnail grid in scroll area
     auto* scrollArea = new QScrollArea(this);
     scrollArea->setWidgetResizable(true);
     scrollArea->setMinimumHeight(settings::DeleteConfirmDialogScrollAreaMinHeight);
 
     thumbnailContainer_ = new QWidget(scrollArea);
     thumbnailLayout_ = new QGridLayout(thumbnailContainer_);
-    thumbnailLayout_->setSpacing(settings->DeleteConfirmDialogLayoutSpacing);
+    thumbnailLayout_->setSpacing(settings::DeleteConfirmDialogLayoutSpacing);
 
     int cols = settings::DeleteConfirmDialogGridCols;
     for (int i = 0; i < filesToDelete.size(); ++i) {
@@ -62,22 +61,19 @@ void DeleteConfirmDialog::buildUi(const QVector<ImageEntry>& filesToDelete)
         
         // Load and scale image for preview with caching
         QPixmap pixmap = loadAndCacheThumbnail(entry.path);
+        
+        auto* label = new QLabel(this);
+        label->setObjectName("thumbnailLabel");
+        label->setAlignment(Qt::AlignCenter);
+        label->setFixedSize(settings::DeleteConfirmDialogThumbnailSize, settings::DeleteConfirmDialogThumbnailSize);
+        
         if (!pixmap.isNull()) {
-            auto* label = new QLabel(this);
             label->setPixmap(pixmap);
-            label->setAlignment(Qt::AlignCenter);
-            label->setFixedSize(settings::DeleteConfirmDialogThumbnailSize, settings::DeleteConfirmDialogThumbnailSize);
-            label->setStyleSheet(QString("border: 1px solid %1; border-radius: 4px;").arg(settings::DeleteConfirmDialogBorderColor));
-            thumbnailLayout_->addWidget(label, i / cols, i % cols);
+        } else {
+            label->setText("Failed\nto load");
+            label->setObjectName("thumbnailLabelFailed");
         }
-        else {
-            // Fallback for failed image loads
-            auto* label = new QLabel("Failed\nto load", this);
-            label->setAlignment(Qt::AlignCenter);
-            label->setFixedSize(settings::DeleteConfirmDialogThumbnailSize, settings::DeleteConfirmDialogThumbnailSize);
-            label->setStyleSheet(QString("border: 1px solid %1; border-radius: 4px; color: %2;").arg(settings::DeleteConfirmDialogFailedLoadBorderColor).arg(settings::DeleteConfirmDialogFailedLoadTextColor));
-            thumbnailLayout_->addWidget(label, i / cols, i % cols);
-        }
+        thumbnailLayout_->addWidget(label, i / cols, i % cols);
     }
 
     scrollArea->setWidget(thumbnailContainer_);
@@ -101,8 +97,8 @@ void DeleteConfirmDialog::buildUi(const QVector<ImageEntry>& filesToDelete)
     buttonLayout->addWidget(cancelButton_);
 
     deleteButton_ = new QPushButton("Delete", this);
+    deleteButton_->setObjectName("deleteButton");
     deleteButton_->setEnabled(false);
-    deleteButton_->setStyleSheet(QString("background-color: %1; color: %2;").arg(settings::DeleteConfirmDialogDeleteButtonBgColor).arg(settings::DeleteConfirmDialogDeleteButtonTextColor));
     connect(deleteButton_, &QPushButton::clicked, this, &QDialog::accept);
     buttonLayout->addWidget(deleteButton_);
 
@@ -110,92 +106,6 @@ void DeleteConfirmDialog::buildUi(const QVector<ImageEntry>& filesToDelete)
 
     setLayout(mainLayout);
 }
-            else {
-                // Fallback for failed image loads
-                auto* label = new QLabel("Failed\nto load", this);
-                label->setAlignment(Qt::AlignCenter);
-                label->setFixedSize(settings::DeleteConfirmDialogThumbnailSize, settings::DeleteConfirmDialogThumbnailSize);
-                label->setStyleSheet(QString("border: 1px solid %1; border-radius: 4px; color: %2;").arg(settings::DeleteConfirmDialogFailedLoadBorderColor).arg(settings::DeleteConfirmDialogFailedLoadTextColor));
-                thumbnailLayout_->addWidget(label, i / cols, i % cols);
-            }
-        }
-
-        scrollArea->setWidget(thumbnailContainer_);
-        mainLayout->addWidget(scrollArea);
-
-        // Confirmation checkbox
-        confirmCheckBox_ = new QCheckBox(
-            "I understand the risks and want to proceed",
-            this
-        );
-        connect(confirmCheckBox_, &QCheckBox::toggled, this, &DeleteConfirmDialog::onCheckBoxToggled);
-        mainLayout->addWidget(confirmCheckBox_);
-
-        // Buttons
-        auto* buttonLayout = new QHBoxLayout();
-        buttonLayout->addStretch();
-
-        cancelButton_ = new QPushButton("Cancel", this);
-        cancelButton_->setDefault(true);
-        connect(cancelButton_, &QPushButton::clicked, this, &QDialog::reject);
-        buttonLayout->addWidget(cancelButton_);
-
-        deleteButton_ = new QPushButton("Delete", this);
-        deleteButton_->setEnabled(false);
-        deleteButton_->setStyleSheet(QString("background-color: %1; color: %2;").arg(settings::DeleteConfirmDialogDeleteButtonBgColor).arg(settings::DeleteConfirmDialogDeleteButtonTextColor));
-        connect(deleteButton_, &QPushButton::clicked, this, &QDialog::accept);
-        buttonLayout->addWidget(deleteButton_);
-
-        mainLayout->addLayout(buttonLayout);
-
-        setLayout(mainLayout);
-
-        scrollArea->setWidget(thumbnailContainer_);
-        mainLayout->addWidget(scrollArea);
-
-        // Warning header
-        warningLabel_ = new QLabel(
-            QString(
-                "<html><head/><body>"
-                "<p><span style=\"color:%1;font-size:14px;font-weight:bold;\">"
-                "⚠️ Confirm Deletion"
-                "</span></p>"
-                "<p>This will move %2 file(s) to your system trash.</p>"
-                "<p>This action can be undone by restoring the files from your system's trash folder.</p>"
-                "</body></html>"
-            ).arg(settings::DeleteConfirmDialogWarningColor).arg(filesToDelete.size()),
-            this
-        );
-        // Insert warning label at the beginning
-        mainLayout->insertWidget(0, warningLabel_);
-
-        // Confirmation checkbox
-        confirmCheckBox_ = new QCheckBox(
-            "I understand the risks and want to proceed",
-            this
-        );
-        connect(confirmCheckBox_, &QCheckBox::toggled, this, &DeleteConfirmDialog::onCheckBoxToggled);
-        mainLayout->addWidget(confirmCheckBox_);
-
-        // Buttons
-        auto* buttonLayout = new QHBoxLayout();
-        buttonLayout->addStretch();
-
-        cancelButton_ = new QPushButton("Cancel", this);
-        cancelButton_->setDefault(true);
-        connect(cancelButton_, &QPushButton::clicked, this, &QDialog::reject);
-        buttonLayout->addWidget(cancelButton_);
-
-        deleteButton_ = new QPushButton("Delete", this);
-        deleteButton_->setEnabled(false);
-        deleteButton_->setStyleSheet(QString("background-color: %1; color: %2;").arg(settings::DeleteConfirmDialogDeleteButtonBgColor).arg(settings::DeleteConfirmDialogDeleteButtonTextColor));
-        connect(deleteButton_, &QPushButton::clicked, this, &QDialog::accept);
-        buttonLayout->addWidget(deleteButton_);
-
-        mainLayout->addLayout(buttonLayout);
-
-        setLayout(mainLayout);
-    }
 
 void DeleteConfirmDialog::onCheckBoxToggled(bool checked)
 {

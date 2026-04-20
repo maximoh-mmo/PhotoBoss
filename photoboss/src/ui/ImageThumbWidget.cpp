@@ -21,9 +21,11 @@ namespace photoboss {
     void ImageThumbWidget::buildUi()
     {
         m_thumbnailLabel_ = new QLabel(this);
+        m_thumbnailLabel_->setObjectName("thumbnailLabel");
         m_thumbnailLabel_->setAlignment(Qt::AlignCenter);
         m_thumbnailLabel_->setFixedSize(140, 140);
         m_thumbnailLabel_->setScaledContents(false);
+        m_thumbnailLabel_->setText("Loading...");
 
         m_checkBox_ = new QCheckBox(this);
         m_keepBadge_ = new QLabel("✓ KEEP", this);
@@ -53,11 +55,7 @@ namespace photoboss {
         layout->addWidget(m_resolutionLabel_, 0, Qt::AlignHCenter);
 
         setFixedWidth(settings::ThumbnailWidth + settings::ThumbnailSpacing);
-        setFixedHeight(settings::ThumbnailWidth + settings::BadgeHeight + settings::MetaHeight + 20); // 20 = margins + checkbox
-
-        // Placeholder logic
-        m_thumbnailLabel_->setText("Loading...");
-        m_thumbnailLabel_->setStyleSheet("background-color: #333; border-radius: 4px; color: #777;");
+        setFixedHeight(settings::ThumbnailWidth + settings::BadgeHeight + settings::MetaHeight + 20);
 
         connect(m_checkBox_, &QCheckBox::toggled, this, [this](bool checked) {
             setState(checked ? State::Delete : State::Keep);
@@ -83,7 +81,6 @@ namespace photoboss {
     {
         m_thumbnailLabel_->setText("");
         m_thumbnailLabel_->setPixmap(pixmap);
-        m_thumbnailLabel_->setStyleSheet(""); // Clear placeholder style
     }
 
     void ImageThumbWidget::mousePressEvent(QMouseEvent* event)

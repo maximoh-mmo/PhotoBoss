@@ -1,15 +1,36 @@
 * {
     font-family: "Segoe UI", "Inter", "Roboto", sans-serif;
     font-size: 11pt;
+
+    /* Theme Color Variables */
+    --bg-primary: #1e1e1e;
+    --bg-secondary: #252525;
+    --bg-tertiary: #2d2d2d;
+    --bg-hover: #3a3a3a;
+    --bg-pressed: #444;
+    
+    --border-default: #3a3a3a;
+    --border-focus: #555;
+    
+    --text-primary: #e0e0e0;
+    --text-secondary: #ffffff;
+    --text-muted: #888;
+    
+    --accent-success: #4CAF50;
+    --accent-danger: #C0392B;
+    --accent-warning: #ff6b6b;
+    
+    --thumbnail-placeholder-bg: #333;
+    --thumbnail-placeholder-text: #777;
 }
 
 QWidget {
-    background-color: #1e1e1e;
-    color: #e0e0e0;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
 }
 
 QMainWindow {
-    background-color: #1e1e1e;
+    background-color: var(--bg-primary);
 }
 
 QSplitter::handle {
@@ -17,18 +38,18 @@ QSplitter::handle {
 }
 
 QFrame {
-    background-color: #252525;
+    background-color: var(--bg-secondary);
     border: none;
 }
 
 QScrollArea {
-    background-color: #1e1e1e;
+    background-color: var(--bg-primary);
     border: none;
 }
 
 QScrollBar:vertical {
     width: 10px;
-    background: #1e1e1e;
+    background: var(--bg-primary);
 }
 
 QScrollBar::handle:vertical {
@@ -47,18 +68,33 @@ QScrollBar::sub-line:vertical {
 }
 
 QPushButton {
-    background-color: #2d2d2d;
-    border: 1px solid #3a3a3a;
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-default);
     border-radius: 4px;
     padding: 6px 10px;
 }
 
 QPushButton:hover {
-    background-color: #3a3a3a;
+    background-color: var(--bg-hover);
 }
 
 QPushButton:pressed {
-    background-color: #444;
+    background-color: var(--bg-pressed);
+}
+
+QPushButton#deleteButton {
+    background-color: var(--accent-danger);
+    color: white;
+    border: none;
+}
+
+QPushButton#deleteButton:hover {
+    background-color: #d63027;
+}
+
+QPushButton#deleteButton:disabled {
+    background-color: #5c2822;
+    color: #888;
 }
 
 QLabel {
@@ -68,7 +104,40 @@ QLabel {
 QLabel#SectionHeader {
     font-size: 13pt;
     font-weight: 600;
-    color: #ffffff;
+    color: var(--text-secondary);
+}
+
+QLabel#warningLabel .warning-text {
+    color: var(--accent-warning);
+    font-size: 14px;
+    font-weight: bold;
+}
+
+QLabel#thumbnailLabel {
+    border: 1px solid var(--border-focus);
+    border-radius: 4px;
+}
+
+QLabel#thumbnailLabelFailed {
+    border: 1px solid var(--border-focus);
+    border-radius: 4px;
+    color: var(--text-muted);
+}
+
+QLabel#keepBadge {
+    color: var(--accent-success);
+    font-weight: bold;
+}
+
+QLabel#deleteBadge {
+    color: var(--accent-danger);
+    font-weight: bold;
+}
+
+QLabel.thumbnailPlaceholder {
+    background-color: var(--thumbnail-placeholder-bg);
+    border-radius: 4px;
+    color: var(--thumbnail-placeholder-text);
 }
 
 GroupWidget {
@@ -82,28 +151,18 @@ GroupWidget {
 ImageThumbWidget {
     border: 1px solid #333;
     border-radius: 6px;
-    background: #1e1e1e;
+    background: var(--bg-primary);
 }
 
 ImageThumbWidget[state="selected"] {
-    border: 2px solid #4CAF50;
+    border: 2px solid var(--accent-success);
     background: #223322;
 }
 
 ImageThumbWidget[state="delete"] {
-    border: 1px dashed #C0392B;
+    border: 1px dashed var(--accent-danger);
     background: #2a1a1a;
     opacity: 0.65;
-}
-
-QLabel#keepBadge {
-    color: #4CAF50;
-    font-weight: bold;
-}
-
-QLabel#deleteBadge {
-    color: #E74C3C;
-    font-weight: bold;
 }
 
 QStatusBar {
@@ -123,4 +182,17 @@ QToolTip {
     border: 1px solid #555;
     padding: 6px;
     border-radius: 4px;
+}
+
+QCheckBox {
+    spacing: 8px;
+}
+
+QCheckBox::indicator {
+    width: 18px;
+    height: 18px;
+}
+
+QDialog#DeleteConfirmDialog {
+    background-color: var(--bg-primary);
 }
