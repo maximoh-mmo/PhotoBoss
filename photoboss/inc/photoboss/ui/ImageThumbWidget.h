@@ -42,7 +42,7 @@ namespace photoboss {
         State m_state_ = State::Keep;
 
         QCheckBox* m_checkBox_ = nullptr;
-        QLabel* m_thumbnailLabel__ = nullptr;
+        QLabel* m_thumbnailLabel_ = nullptr;
         QLabel* m_sizeLabel_ = nullptr;
         QLabel* m_resolutionLabel_ = nullptr;
         QLabel* m_deleteBadge_ = nullptr;

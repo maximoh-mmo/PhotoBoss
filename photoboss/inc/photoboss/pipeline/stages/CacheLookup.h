@@ -25,11 +25,11 @@ namespace photoboss
 		void run();
 
 	private:
-		Queue<FileIdentityBatchPtr>& m_inputQueue;
-		Queue<FileIdentityBatchPtr>& m_diskReadQueue;
-		Queue< std::shared_ptr<HashedImageResult>>& m_resultQueue;
-		std::unique_ptr<IHashCache> m_cache;
-		QList<QString> m_methods;
+		Queue<FileIdentityBatchPtr>& m_inputQueue_;
+		Queue<FileIdentityBatchPtr>& m_diskReadQueue_;
+		Queue< std::shared_ptr<HashedImageResult>>& m_resultQueue_;
+		std::unique_ptr<IHashCache> m_cache_;
+		QList<QString> m_methods_;
 
 		// Inherited via StageBase
 		void onStop() override;

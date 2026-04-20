@@ -21,8 +21,8 @@ namespace photoboss
         void resizeEvent(QResizeEvent* event) override;
 
     private:
-        QLabel* m_image_label__;
+        QLabel* m_image_label_;
         QLabel* m_meta_label_;
-        QImage m_current_image__;
+        QImage m_current_image_;
     };
 }

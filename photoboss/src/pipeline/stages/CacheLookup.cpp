@@ -6,24 +6,24 @@ namespace photoboss
 	CacheLookup::CacheLookup(Queue<FileIdentityBatchPtr>& input, Queue<FileIdentityBatchPtr>& diskOut, 
         Queue<std::shared_ptr<HashedImageResult>>& resultOut, QString id, quint64 scanId, QObject* parent)
 		: StageBase(id, parent),
-		m_inputQueue(input),
-		m_diskReadQueue(diskOut),
-		m_resultQueue(resultOut),
-		m_cache(std::make_unique<SqliteHashCache>(scanId))
+		m_inputQueue_(input),
+		m_diskReadQueue_(diskOut),
+		m_resultQueue_(resultOut),
+		m_cache_(std::make_unique<SqliteHashCache>(scanId))
 	{
         for (HashCatalog::Entry& method : HashCatalog::createAll()) {
-            m_methods.append(method.method.get()->key());
+            m_methods_.append(method.method.get()->key());
         }
-        m_resultQueue.register_producer();
-        m_diskReadQueue.register_producer();
+        m_resultQueue_.register_producer();
+        m_diskReadQueue_.register_producer();
 	}
 
 
     void CacheLookup::onStop()
     {
 
-        m_resultQueue.producer_done();
-        m_diskReadQueue.producer_done();
+        m_resultQueue_.producer_done();
+        m_diskReadQueue_.producer_done();
     }
 
 	void CacheLookup::run()
@@ -31,7 +31,7 @@ namespace photoboss
         while (true) {
             FileIdentityBatchPtr batch;
 
-            if (!m_inputQueue.wait_and_pop(batch))
+            if (!m_inputQueue_.wait_and_pop(batch))
                 break;
 
             if (!batch || batch->empty())
@@ -44,12 +44,12 @@ namespace photoboss
             for (const auto& fileId : *batch) {
                 CacheQuery query(fileId);
 
-                query.hashMethods = m_methods; // empty means "any"
+                query.hashMethods = m_methods_; // empty means "any"
 
-                auto result = m_cache->lookup(query);
+                auto result = m_cache_->lookup(query);
 
                 if (result.hit == Lookup::Hit) {                   
-                    m_resultQueue.emplace(std::make_shared<HashedImageResult>(std::move(result.hashedImage)));
+                    m_resultQueue_.emplace(std::make_shared<HashedImageResult>(std::move(result.hashedImage)));
                 }
                 else {
                     misses->push_back(fileId);
@@ -57,7 +57,7 @@ namespace photoboss
             }
 
             if (!misses->empty()) {
-                m_diskReadQueue.emplace(std::move(misses));
+                m_diskReadQueue_.emplace(std::move(misses));
             }
         }
 	}

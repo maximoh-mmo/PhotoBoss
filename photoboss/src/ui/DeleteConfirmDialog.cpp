@@ -14,7 +14,7 @@ namespace photoboss {
         QWidget* parent
     )
         : QDialog(parent)
-        , m_m_filesToDelete_(filesToDelete)
+        , m_filesToDelete_(filesToDelete)
     {
         setObjectName("DeleteConfirmDialog");
         setWindowTitle("Confirm Deletion");

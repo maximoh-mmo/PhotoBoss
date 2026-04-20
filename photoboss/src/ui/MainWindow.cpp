@@ -1,5 +1,5 @@
 #include "ui/mainwindow.h"
-#include "m_ui_mainwindow.h"
+#include "ui_mainwindow.h"
 #include "pipeline/PipelineController.h"
 #include "hashing/HashMethod.h"
 #include "ui/GroupWidget.h"
