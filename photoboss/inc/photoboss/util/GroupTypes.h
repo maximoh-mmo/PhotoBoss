@@ -25,11 +25,4 @@ namespace photoboss {
         QString key;
         double similarity; // 1.0 ? 0.0
     };
-
-    struct SimilarityWeights {
-        double pHash = 0.45;
-        double dHash = 0.25;
-        double aHash = 0.20;
-        double ratio = 0.10;
-    };
 }

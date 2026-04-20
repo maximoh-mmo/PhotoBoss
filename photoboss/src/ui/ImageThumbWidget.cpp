@@ -23,7 +23,7 @@ namespace photoboss {
         m_thumbnailLabel_ = new QLabel(this);
         m_thumbnailLabel_->setObjectName("thumbnailLabel");
         m_thumbnailLabel_->setAlignment(Qt::AlignCenter);
-        m_thumbnailLabel_->setFixedSize(140, 140);
+        m_thumbnailLabel_->setFixedSize(settings::ThumbnailWidth, settings::ThumbnailWidth);
         m_thumbnailLabel_->setScaledContents(false);
         m_thumbnailLabel_->setText("Loading...");
 
@@ -55,6 +55,7 @@ namespace photoboss {
         layout->addWidget(m_resolutionLabel_, 0, Qt::AlignHCenter);
 
         setFixedWidth(settings::ThumbnailWidth + settings::ThumbnailSpacing);
+        // 20 = margins(4) + checkbox height approximation
         setFixedHeight(settings::ThumbnailWidth + settings::BadgeHeight + settings::MetaHeight + 20);
 
         connect(m_checkBox_, &QCheckBox::toggled, this, [this](bool checked) {

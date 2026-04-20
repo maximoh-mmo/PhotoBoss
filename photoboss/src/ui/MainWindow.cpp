@@ -357,7 +357,6 @@ case PipelineController::PipelineState::Stopped:
 
         DeleteConfirmDialog dialog(files, this);
         if (dialog.exec() == QDialog::Accepted) {
-            // Implement actual deletion to trash
             bool allDeleted = true;
             QStringList failedFiles;
             
