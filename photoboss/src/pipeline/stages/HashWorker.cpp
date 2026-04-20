@@ -52,12 +52,8 @@ void HashWorker::run() {
     }
 
     QImage img;
-
     img.loadFromData(item->imageBytes);
-    const int orientation = item->fileIdentity.exif().orientation.value_or(1);
-    if (orientation > 1) {
-        img = OrientImage(img, orientation);
-    }
+    img = OrientImage(img, item->fileIdentity.exif().orientation.value_or(1));
 
     if (img.isNull()) {
       qDebug() << "Image load failed" << item->fileIdentity.path();
