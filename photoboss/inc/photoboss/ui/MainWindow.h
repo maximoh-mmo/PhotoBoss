@@ -15,6 +15,7 @@
 #include <QMultiMap>
 #include <deque>
 #include "ui/PreviewPane.h"
+#include "ui/WaitingSpinnerWidget.h"
 #include "pipeline/PipelineController.h"
 
 QT_BEGIN_NAMESPACE
@@ -83,6 +84,11 @@ namespace photoboss {
         QLabel* m_phase_finding_label_ = nullptr;
         QLabel* m_phase_analyzing_label_ = nullptr;
         QLabel* m_phase_grouping_label_ = nullptr;
+
+        // Phase spinners
+        WaitingSpinnerWidget* m_phase_finding_spinner_ = nullptr;
+        WaitingSpinnerWidget* m_phase_analyzing_spinner_ = nullptr;
+        WaitingSpinnerWidget* m_phase_grouping_spinner_ = nullptr;
 
         QScrollArea* m_body_ = nullptr;
         QSplitter* m_splitter_ = nullptr;

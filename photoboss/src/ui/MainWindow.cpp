@@ -48,6 +48,37 @@ namespace photoboss
         m_phase_grouping_label_ = m_ui_->phaseGroupingLabel;
         m_phase_grouping_count_ = m_ui_->phaseGroupingCount;
 
+// Phase spinners - positioned near count labels manually in UI
+        m_phase_finding_spinner_ = new WaitingSpinnerWidget(m_ui_->phaseFindingCount);
+        m_phase_finding_spinner_->setColor(QColor(245, 158, 11));
+        m_phase_finding_spinner_->setNumberOfLines(8);
+        m_phase_finding_spinner_->setLineLength(4);
+        m_phase_finding_spinner_->setLineWidth(1);
+        m_phase_finding_spinner_->setInnerRadius(4);
+        m_phase_finding_spinner_->setRevolutionsPerSecond(1.5);
+        m_phase_finding_spinner_->hide();
+        m_phase_finding_spinner_->move(60, 8);  // Right of count label
+
+        m_phase_analyzing_spinner_ = new WaitingSpinnerWidget(m_ui_->phaseAnalyzingCount);
+        m_phase_analyzing_spinner_->setColor(QColor(245, 158, 11));
+        m_phase_analyzing_spinner_->setNumberOfLines(8);
+        m_phase_analyzing_spinner_->setLineLength(4);
+        m_phase_analyzing_spinner_->setLineWidth(1);
+        m_phase_analyzing_spinner_->setInnerRadius(4);
+        m_phase_analyzing_spinner_->setRevolutionsPerSecond(1.5);
+        m_phase_analyzing_spinner_->hide();
+        m_phase_analyzing_spinner_->move(60, 8);
+
+        m_phase_grouping_spinner_ = new WaitingSpinnerWidget(m_ui_->phaseGroupingCount);
+        m_phase_grouping_spinner_->setColor(QColor(245, 158, 11));
+        m_phase_grouping_spinner_->setNumberOfLines(8);
+        m_phase_grouping_spinner_->setLineLength(4);
+        m_phase_grouping_spinner_->setLineWidth(1);
+        m_phase_grouping_spinner_->setInnerRadius(4);
+        m_phase_grouping_spinner_->setRevolutionsPerSecond(1.5);
+        m_phase_grouping_spinner_->hide();
+        m_phase_grouping_spinner_->move(60, 8);
+
         // Split body area
         m_splitter_ = new QSplitter(Qt::Horizontal);
 
@@ -443,6 +474,20 @@ void MainWindow::processBatch()
             m_phase_grouping_count_->setStyleSheet("color: gray;");
             m_phase_grouping_label_->setStyleSheet("color: gray;");
         }
+
+        // Stop all spinners
+        if (m_phase_finding_spinner_) {
+            m_phase_finding_spinner_->stop();
+            m_phase_finding_spinner_->hide();
+        }
+        if (m_phase_analyzing_spinner_) {
+            m_phase_analyzing_spinner_->stop();
+            m_phase_analyzing_spinner_->hide();
+        }
+        if (m_phase_grouping_spinner_) {
+            m_phase_grouping_spinner_->stop();
+            m_phase_grouping_spinner_->hide();
+        }
     }
 
     void MainWindow::updatePhaseFinding(int count)
@@ -451,6 +496,12 @@ void MainWindow::processBatch()
             m_phase_finding_count_->setText(QString::number(count));
             m_phase_finding_count_->setStyleSheet("color: #F59E0B; font-weight: bold;");
             m_phase_finding_label_->setStyleSheet("color: #F59E0B; font-weight: bold;");
+
+            // Show and start spinner
+            if (m_phase_finding_spinner_) {
+                m_phase_finding_spinner_->show();
+                m_phase_finding_spinner_->start();
+            }
         }
     }
 
@@ -460,6 +511,12 @@ void MainWindow::processBatch()
             m_phase_analyzing_count_->setText(QString::number(count));
             m_phase_analyzing_count_->setStyleSheet("color: #F59E0B; font-weight: bold;");
             m_phase_analyzing_label_->setStyleSheet("color: #F59E0B; font-weight: bold;");
+
+            // Show and start spinner
+            if (m_phase_analyzing_spinner_) {
+                m_phase_analyzing_spinner_->show();
+                m_phase_analyzing_spinner_->start();
+            }
         }
     }
 
@@ -469,6 +526,12 @@ void MainWindow::processBatch()
             m_phase_grouping_count_->setText(QString::number(count));
             m_phase_grouping_count_->setStyleSheet("color: #F59E0B; font-weight: bold;");
             m_phase_grouping_label_->setStyleSheet("color: #F59E0B; font-weight: bold;");
+
+            // Show and start spinner
+            if (m_phase_grouping_spinner_) {
+                m_phase_grouping_spinner_->show();
+                m_phase_grouping_spinner_->start();
+            }
         }
     }
 
@@ -479,15 +542,27 @@ void MainWindow::processBatch()
                 m_phase_finding_count_->setStyleSheet("color: #10B981; font-weight: bold;");
                 m_phase_finding_label_->setStyleSheet("color: #10B981; font-weight: bold;");
             }
+            if (m_phase_finding_spinner_) {
+                m_phase_finding_spinner_->stop();
+                m_phase_finding_spinner_->hide();
+            }
         } else if (phase == "analyzing") {
             if (m_phase_analyzing_count_) {
                 m_phase_analyzing_count_->setStyleSheet("color: #10B981; font-weight: bold;");
                 m_phase_analyzing_label_->setStyleSheet("color: #10B981; font-weight: bold;");
             }
+            if (m_phase_analyzing_spinner_) {
+                m_phase_analyzing_spinner_->stop();
+                m_phase_analyzing_spinner_->hide();
+            }
         } else if (phase == "grouping") {
             if (m_phase_grouping_count_) {
                 m_phase_grouping_count_->setStyleSheet("color: #10B981; font-weight: bold;");
                 m_phase_grouping_label_->setStyleSheet("color: #10B981; font-weight: bold;");
+            }
+            if (m_phase_grouping_spinner_) {
+                m_phase_grouping_spinner_->stop();
+                m_phase_grouping_spinner_->hide();
             }
         }
     }
