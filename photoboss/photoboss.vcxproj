@@ -165,6 +165,7 @@
     <ClCompile Include="src\ui\GroupWidget.cpp" />
     <ClCompile Include="src\pipeline\stages\ThumbnailGenerator.cpp" />
     <ClCompile Include="src\ui\ImageThumbWidget.cpp" />
+    <ClCompile Include="src\ui\WaitingSpinnerWidget.cpp" />
     <ClCompile Include="src\pipeline\SimilarityEngine.cpp" />
     <ClCompile Include="src\hashmethods\AverageHash.cpp" />
     <ClCompile Include="src\hashmethods\DifferenceHash.cpp" />
@@ -197,9 +198,10 @@
     <QtMoc Include="inc\photoboss\ui\GroupWidget.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\ThumbnailGenerator.h" />
     <QtMoc Include="inc\photoboss\ui\ImageThumbWidget.h" />
+    <QtMoc Include="inc\photoboss\ui\WaitingSpinnerWidget.h" />
     <QtMoc Include="inc\photoboss\ui\PreviewPane.h" />
     <QtMoc Include="inc\photoboss\ui\DeleteConfirmDialog.h" />
-    <ClInclude Include="inc\photoboss\util\ExifData.h" />
+    <ClInclude Include="inc\photoboss\types\ExifData.h" />
     <ClInclude Include="inc\photoboss\util\humanSize.h" />
     <ClInclude Include="inc\photoboss\util\OrientImage.h" />
     <ClInclude Include="inc\photoboss\util\Token.h" />
@@ -214,14 +216,14 @@
     <QtMoc Include="inc\photoboss\pipeline\stages\DirectoryScanner.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\CacheLookup.h" />
     <ClInclude Include="inc\photoboss\hashing\HashMethod.h" />
-    <ClInclude Include="inc\photoboss\util\DataTypes.h" />
-    <ClInclude Include="inc\photoboss\util\FileIdentity.h" />
+    <ClInclude Include="inc\photoboss\types\DataTypes.h" />
+    <ClInclude Include="inc\photoboss\types\FileIdentity.h" />
     <ClInclude Include="inc\photoboss\util\Queue.h" />
     <ClInclude Include="inc\photoboss\util\AppSettings.h" />
     <ClInclude Include="inc\photoboss\hashing\DifferenceHash.h" />
     <ClInclude Include="inc\photoboss\hashing\PerceptualHash.h" />
-    <ClInclude Include="inc\photoboss\util\GroupTypes.h" />
-    <ClInclude Include="inc\photoboss\util\CacheTypes.h" />
+    <ClInclude Include="inc\photoboss\types\GroupTypes.h" />
+    <ClInclude Include="inc\photoboss\types\CacheTypes.h" />
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="resources\Resources.qrc" />

@@ -5,7 +5,7 @@
 #include <QPixmap>
 #include "util/humanSize.h"
 #include "util/OrientImage.h"
-#include "util/GroupTypes.h"
+#include "types/GroupTypes.h"
 
 namespace photoboss
 {

@@ -2,7 +2,7 @@
 
 #include "hashing/HashCatalog.h"
 #include "pipeline/StageBase.h"
-#include "util/DataTypes.h"
+#include "types/DataTypes.h"
 #include "util/Queue.h"
 
 namespace photoboss {

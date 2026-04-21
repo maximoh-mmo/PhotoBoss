@@ -1,5 +1,5 @@
 #pragma once
-#include "util/DataTypes.h"
+#include "DataTypes.h"
 namespace photoboss
 {
     enum class Lookup {

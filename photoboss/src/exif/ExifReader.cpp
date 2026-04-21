@@ -1,5 +1,5 @@
 #include "exif/ExifReader.h"
-#include "util/ExifData.h"
+#include "types/ExifData.h"
 #include <exiv2/exiv2.hpp>
 #include <QDateTime>
 

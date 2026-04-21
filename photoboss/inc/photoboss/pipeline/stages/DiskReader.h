@@ -2,7 +2,7 @@
 
 #include <list>
 #include <memory>
-#include "util/DataTypes.h"
+#include "types/DataTypes.h"
 #include "util/Queue.h"
 #include "pipeline/StageBase.h"
 

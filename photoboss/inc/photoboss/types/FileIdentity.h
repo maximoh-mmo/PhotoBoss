@@ -1,6 +1,6 @@
 #pragma once
 #include <QString>
-#include "util/ExifData.h"
+#include "types/ExifData.h"
 
 /// <summary>
 /// 

@@ -1,7 +1,7 @@
 #pragma once
 #include <QObject>
 #include "util/Queue.h"
-#include "util/DataTypes.h"
+#include "types/DataTypes.h"
 #include "pipeline/StageBase.h"
 #include "caching/IHashCache.h"
 

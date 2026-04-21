@@ -2,7 +2,7 @@
 #include <qdatetime.h>
 #include <qsize.h>
 #include <qimage.h>
-#include "util/FileIdentity.h"
+#include "types/FileIdentity.h"
 
 namespace photoboss {
 

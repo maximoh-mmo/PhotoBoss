@@ -1,6 +1,6 @@
 #pragma once
 
-#include "util/DataTypes.h"
+#include "types/DataTypes.h"
 #include "hashing/PerceptualImage.h"
 namespace photoboss
 {

@@ -2,7 +2,7 @@
 #include <QFile>
 #include <QThread>
 #include <QCryptographicHash>
-#include "util/DataTypes.h"
+#include "types/DataTypes.h"
 
 namespace photoboss {
 

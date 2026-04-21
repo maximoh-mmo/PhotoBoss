@@ -5,8 +5,8 @@
 #include <QProgressBar>
 #include <QtCore>
 #include <QtWidgets/QMainWindow>
-#include "util/DataTypes.h"
-#include "util/GroupTypes.h"
+#include "types/DataTypes.h"
+#include "types/GroupTypes.h"
 #include <QSplitter>
 #include <qscrollarea.h>
 #include <qlayout.h>
@@ -45,6 +45,12 @@ namespace photoboss {
         void OnBrowse();
         void UpdateProgressBar(int current, int total);
 
+        // Phase indicator updates
+        void updatePhaseFinding(int count);
+        void updatePhaseAnalyzing(int count);
+        void updatePhaseGrouping(int count);
+        void setPhaseComplete(const QString& phase);
+
     private slots:
         void processBatch();
         void onPipelineStateChanged(PipelineController::PipelineState state);
@@ -55,6 +61,7 @@ namespace photoboss {
         void updateDeleteButtonState();
         int countSelectedForDeletion() const;
         QVector<ImageEntry> collectSelectedForDeletion() const;
+        void resetPhaseIndicators();
 
         Ui::MainWindow* m_ui_ = nullptr;
         std::unique_ptr<PipelineController> m_pipeline_controller_ = nullptr;
@@ -68,6 +75,14 @@ namespace photoboss {
         QProgressBar* m_progress_bar_ = nullptr;
         QStatusBar* m_status_bar_ = nullptr;
         QLabel* m_delete_count_label_ = nullptr;
+
+        // Phase indicators
+        QLabel* m_phase_finding_count_ = nullptr;
+        QLabel* m_phase_analyzing_count_ = nullptr;
+        QLabel* m_phase_grouping_count_ = nullptr;
+        QLabel* m_phase_finding_label_ = nullptr;
+        QLabel* m_phase_analyzing_label_ = nullptr;
+        QLabel* m_phase_grouping_label_ = nullptr;
 
         QScrollArea* m_body_ = nullptr;
         QSplitter* m_splitter_ = nullptr;

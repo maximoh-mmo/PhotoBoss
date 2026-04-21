@@ -1,6 +1,6 @@
 #pragma once
 #include <exiv2/exiv2.hpp>
-#include "util/ExifData.h"
+#include "types/ExifData.h"
 #include <qstring.h>
 
 namespace exif

@@ -4,7 +4,7 @@
 #include <qlayout.h>
 #include <Qlabel>
 #include <qpushbutton>
-#include "util/GroupTypes.h"
+#include "types/GroupTypes.h"
 
 namespace photoboss {
 

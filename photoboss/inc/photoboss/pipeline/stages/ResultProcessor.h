@@ -1,10 +1,10 @@
 #pragma once
 #include <QObject>
 #include "util/Queue.h"
-#include "util/DataTypes.h"
+#include "types/DataTypes.h"
 #include "pipeline/StageBase.h"
 #include "pipeline/PipelineController.h"
-#include "util/GroupTypes.h"
+#include "types/GroupTypes.h"
 #include "hashing/HashMethod.h"
 
 #include <QSet>

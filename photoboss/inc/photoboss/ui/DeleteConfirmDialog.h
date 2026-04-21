@@ -11,7 +11,7 @@
 #include <QGridLayout>
 #include <QMap>
 #include <QPixmap>
-#include "util/GroupTypes.h"
+#include "types/GroupTypes.h"
 
 namespace photoboss {
 

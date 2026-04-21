@@ -1,7 +1,7 @@
 #pragma once
 
-#include "util/DataTypes.h"
-#include "util/GroupTypes.h"
+#include "types/DataTypes.h"
+#include "types/GroupTypes.h"
 #include "util/AppSettings.h"
 
 namespace photoboss {

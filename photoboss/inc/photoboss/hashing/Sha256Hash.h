@@ -1,6 +1,6 @@
 #pragma once
 #include "hashing/HashMethod.h"
-#include "util/DataTypes.h"
+#include "types/DataTypes.h"
 namespace photoboss {
     class Sha256Hash : public HashMethod
     {

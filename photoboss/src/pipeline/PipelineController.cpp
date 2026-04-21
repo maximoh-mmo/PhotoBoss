@@ -9,6 +9,7 @@
 #include "caching/SqliteHashCache.h"
 #include "util/Token.h"
 #include "util/AppSettings.h"
+#include "types/DataTypes.h"
 #include <QDebug>
 #include <QThread>
 
@@ -32,11 +33,11 @@ namespace photoboss {
         if (m_state_ != PipelineState::Stopped)
             return;
         SetPipelineState(PipelineState::Running);
-        
+
         m_totalFiles_ = 0;
         m_processedFiles_ = 0;
         m_displayedFiles_ = 0.0;
-        
+
         Token t;
         m_scanId_ = SqliteHashCache(0).nextScanId(t);
         createPipeline(request);
@@ -212,11 +213,16 @@ namespace photoboss {
 
         connect(m_pipeline_->scanner, &StageBase::progress, this, [this](qint64 current, qint64 total) {
             if (total == 0) {
-                emit status(QString("Scanning... Discovered %1 files").arg(current));
+                emit status("Scan started...");
+                emit phaseFindingUpdate(static_cast<int>(current));
                 emit progressUpdate(current, 0); // Spinner
             } else {
                 m_totalFiles_ = total;
-                emit status(QString("%1 files discovered, processing files...").arg(total));
+                emit status("File Discovery Complete. Processing Files...");
+                emit phaseFindingUpdate(static_cast<int>(total));  // Final discovery count
+                emit phaseAnalyzingUpdate(0);  // Start analyzing at 0
+                emit phaseGroupingUpdate(0);  // Start grouping at 0
+                emit progressUpdate(0, total);  // Set determinate mode
                 m_progressTimer_.start(); // Start lerping progress
             }
         });
@@ -225,6 +231,9 @@ namespace photoboss {
             [this](qint64 current, qint64 total) {
                 m_processedFiles_ = current;
                 // UI update is driven by the timer instead
+                emit phaseAnalyzingUpdate(static_cast<int>(current));
+                emit phaseGroupingUpdate(static_cast<int>(current));
+                emit status("Files Processed. Grouping Duplicates...");
             });
 
         // ---- Start All Threads ----
@@ -317,6 +326,16 @@ namespace photoboss {
     {
         if (m_totalFiles_ == 0) return;
 
+        // When we know all files are processed, jump immediately to 100%
+        // No need to lerp - user understands "done" when bar is full
+        if (m_processedFiles_ >= m_totalFiles_) {
+            m_displayedFiles_ = m_totalFiles_;
+            emit progressUpdate(m_totalFiles_, m_totalFiles_);
+            m_progressTimer_.stop();
+            return;
+        }
+
+        // Otherwise, smooth lerp toward current processed count
         if (m_displayedFiles_ < m_processedFiles_) {
             double gap = static_cast<double>(m_processedFiles_) - m_displayedFiles_;
             double step = qMax(gap * 0.05, 1.0); // jump 5% of the gap per 30ms
@@ -325,12 +344,8 @@ namespace photoboss {
             if (m_displayedFiles_ > m_processedFiles_) {
                 m_displayedFiles_ = m_processedFiles_;
             }
-            
-            emit progressUpdate(static_cast<int>(m_displayedFiles_), m_totalFiles_);
-        }
 
-        if (m_displayedFiles_ >= m_totalFiles_) {
-            m_progressTimer_.stop();
+            emit progressUpdate(static_cast<int>(m_displayedFiles_), m_totalFiles_);
         }
     }
 }

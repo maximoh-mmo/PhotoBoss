@@ -2,7 +2,7 @@
 #include <QWidget.h>
 #include <qcheckbox.h>
 #include <qlabel.h>
-#include "util/GroupTypes.h"
+#include "types/GroupTypes.h"
 
 namespace photoboss {
 

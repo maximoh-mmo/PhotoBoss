@@ -40,6 +40,13 @@ namespace photoboss
         m_btn_delete_ = m_ui_->btnDelete;
         m_delete_count_label_ = m_ui_->deleteCountLabel;
 
+        // Phase indicator labels
+        m_phase_finding_label_ = m_ui_->phaseFindingLabel;
+        m_phase_finding_count_ = m_ui_->phaseFindingCount;
+        m_phase_analyzing_label_ = m_ui_->phaseAnalyzingLabel;
+        m_phase_analyzing_count_ = m_ui_->phaseAnalyzingCount;
+        m_phase_grouping_label_ = m_ui_->phaseGroupingLabel;
+        m_phase_grouping_count_ = m_ui_->phaseGroupingCount;
 
         // Split body area
         m_splitter_ = new QSplitter(Qt::Horizontal);
@@ -141,6 +148,22 @@ namespace photoboss
             this, &MainWindow::onPipelineStateChanged, Qt::QueuedConnection);
 
         connect(m_btn_delete_, &QPushButton::clicked, this, &MainWindow::onDeleteClicked);
+
+// Status bar - just display messages
+        connect(m_pipeline_controller_.get(), &PipelineController::status, this,
+            [this](const QString& message) {
+                m_status_bar_->showMessage(message);
+            });
+
+        // Phase-specific signals - direct connections, no parsing
+        connect(m_pipeline_controller_.get(), &PipelineController::phaseFindingUpdate,
+            this, &MainWindow::updatePhaseFinding);
+
+        connect(m_pipeline_controller_.get(), &PipelineController::phaseAnalyzingUpdate,
+            this, &MainWindow::updatePhaseAnalyzing);
+
+        connect(m_pipeline_controller_.get(), &PipelineController::phaseGroupingUpdate,
+            this, &MainWindow::updatePhaseGrouping);
     }
 
     void MainWindow::OnCurrentFolderChanged()
@@ -273,6 +296,7 @@ void MainWindow::processBatch()
             m_scan_button_->setEnabled(true);
             m_browse_button_->setEnabled(false);
             m_btn_delete_->setVisible(false);
+            resetPhaseIndicators();
             break;
 
         case PipelineController::PipelineState::Stopping:
@@ -281,21 +305,25 @@ void MainWindow::processBatch()
             m_browse_button_->setEnabled(false);
             break;
 
-case PipelineController::PipelineState::Stopped:
+        case PipelineController::PipelineState::Stopped:
             m_scan_button_->setText(tr("Start Scan"));
             m_scan_button_->setEnabled(true);
             m_browse_button_->setEnabled(true);
-            m_progress_bar_->setValue(0);
-            m_progress_bar_->setMaximum(0);
+            // Leave progress bar at 100% to show completion
+
+            // Mark phases complete and show final status
+            setPhaseComplete("finding");
+            setPhaseComplete("analyzing");
+            setPhaseComplete("grouping");
+
+            if (m_scan_found_duplicates_) {
+                m_status_bar_->showMessage(
+                    QString("%1 Duplicates found -- Scan Complete").arg(m_groupWidgets_.size()));
+            } else {
+                m_status_bar_->showMessage("No duplicates found -- Scan Complete");
+            }
 
             updateDeleteButtonState();
-
-            if (!m_scan_found_duplicates_ && m_groupWidgets_.size() == 0) {
-                QMessageBox::information(
-                    this,
-                    "Scan Complete",
-                    "No duplicates found in the scanned folder.");
-            }
             break;
         }
     }
@@ -303,9 +331,10 @@ case PipelineController::PipelineState::Stopped:
     void MainWindow::updateDeleteButtonState()
     {
         int count = countSelectedForDeletion();
-        qDebug() << "[Delete Button] Count:" << count 
+        qDebug() << "[Delete Button] Count:" << count
                  << "Duplicates found:" << m_scan_found_duplicates_
-                 << "Group count:" << m_groupWidgets_.size();
+                 << "Group count:" << m_groupWidgets_.size()
+                 << "Pipeline state:" << static_cast<int>(m_pipeline_controller_->state());
 
         if (m_delete_count_label_) {
             if (count > 0) {
@@ -317,7 +346,10 @@ case PipelineController::PipelineState::Stopped:
         }
 
         if (m_btn_delete_) {
-            if (count > 0 && m_scan_found_duplicates_) {
+            // Only enable delete button when pipeline is fully stopped
+            bool canDelete = count > 0 && m_scan_found_duplicates_
+                         && m_pipeline_controller_->state() == PipelineController::PipelineState::Stopped;
+            if (canDelete) {
                 m_btn_delete_->setVisible(true);
                 m_btn_delete_->setEnabled(true);
                 qDebug() << "[Delete Button] Setting visible and enabled";
@@ -392,5 +424,71 @@ case PipelineController::PipelineState::Stopped:
     void MainWindow::onGroupSelectionChanged()
     {
         updateDeleteButtonState();
+    }
+
+    void MainWindow::resetPhaseIndicators()
+    {
+        if (m_phase_finding_count_) {
+            m_phase_finding_count_->setText("—");
+            m_phase_finding_count_->setStyleSheet("color: gray;");
+            m_phase_finding_label_->setStyleSheet("color: gray;");
+        }
+        if (m_phase_analyzing_count_) {
+            m_phase_analyzing_count_->setText("—");
+            m_phase_analyzing_count_->setStyleSheet("color: gray;");
+            m_phase_analyzing_label_->setStyleSheet("color: gray;");
+        }
+        if (m_phase_grouping_count_) {
+            m_phase_grouping_count_->setText("—");
+            m_phase_grouping_count_->setStyleSheet("color: gray;");
+            m_phase_grouping_label_->setStyleSheet("color: gray;");
+        }
+    }
+
+    void MainWindow::updatePhaseFinding(int count)
+    {
+        if (m_phase_finding_count_) {
+            m_phase_finding_count_->setText(QString::number(count));
+            m_phase_finding_count_->setStyleSheet("color: #F59E0B; font-weight: bold;");
+            m_phase_finding_label_->setStyleSheet("color: #F59E0B; font-weight: bold;");
+        }
+    }
+
+    void MainWindow::updatePhaseAnalyzing(int count)
+    {
+        if (m_phase_analyzing_count_) {
+            m_phase_analyzing_count_->setText(QString::number(count));
+            m_phase_analyzing_count_->setStyleSheet("color: #F59E0B; font-weight: bold;");
+            m_phase_analyzing_label_->setStyleSheet("color: #F59E0B; font-weight: bold;");
+        }
+    }
+
+    void MainWindow::updatePhaseGrouping(int count)
+    {
+        if (m_phase_grouping_count_) {
+            m_phase_grouping_count_->setText(QString::number(count));
+            m_phase_grouping_count_->setStyleSheet("color: #F59E0B; font-weight: bold;");
+            m_phase_grouping_label_->setStyleSheet("color: #F59E0B; font-weight: bold;");
+        }
+    }
+
+    void MainWindow::setPhaseComplete(const QString& phase)
+    {
+        if (phase == "finding") {
+            if (m_phase_finding_count_) {
+                m_phase_finding_count_->setStyleSheet("color: #10B981; font-weight: bold;");
+                m_phase_finding_label_->setStyleSheet("color: #10B981; font-weight: bold;");
+            }
+        } else if (phase == "analyzing") {
+            if (m_phase_analyzing_count_) {
+                m_phase_analyzing_count_->setStyleSheet("color: #10B981; font-weight: bold;");
+                m_phase_analyzing_label_->setStyleSheet("color: #10B981; font-weight: bold;");
+            }
+        } else if (phase == "grouping") {
+            if (m_phase_grouping_count_) {
+                m_phase_grouping_count_->setStyleSheet("color: #10B981; font-weight: bold;");
+                m_phase_grouping_label_->setStyleSheet("color: #10B981; font-weight: bold;");
+            }
+        }
     }
 }

@@ -6,8 +6,8 @@
 #include <vector>
 #include <atomic>
 #include "util/Queue.h"
-#include "util/DataTypes.h"
-#include "util/GroupTypes.h"
+#include "types/DataTypes.h"
+#include "types/GroupTypes.h"
 #include "hashing/HashMethod.h"
 #include "caching/IHashCache.h"
 
@@ -88,6 +88,11 @@ namespace photoboss {
 		void status(const QString& message);
 		void progressUpdate(int current, int total);
         void pipelineStateChanged(PipelineState state);
+
+        // Phase-specific updates for UI indicators
+        void phaseFindingUpdate(int count);      // Files discovered
+        void phaseAnalyzingUpdate(int count); // Files hashed/processed
+        void phaseGroupingUpdate(int count);   // Files processed for grouping
         
     private:
         void createPipeline(const ScanRequest& request);
