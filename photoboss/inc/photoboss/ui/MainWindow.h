@@ -15,7 +15,7 @@
 #include <QMultiMap>
 #include <deque>
 #include "ui/PreviewPane.h"
-#include "ui/WaitingSpinnerWidget.h"
+#include "ui/ProgressCounterWidget.h"
 #include "pipeline/PipelineController.h"
 
 QT_BEGIN_NAMESPACE
@@ -46,11 +46,7 @@ namespace photoboss {
         void OnBrowse();
         void UpdateProgressBar(int current, int total);
 
-        // Phase indicator updates
-        void updatePhaseFinding(int count);
-        void updatePhaseAnalyzing(int count);
-        void updatePhaseGrouping(int count);
-        void setPhaseComplete(const QString& phase);
+        void progressPhase(PipelineController::Phase phase, int count, int total);
 
     private slots:
         void processBatch();
@@ -63,6 +59,7 @@ namespace photoboss {
         int countSelectedForDeletion() const;
         QVector<ImageEntry> collectSelectedForDeletion() const;
         void resetPhaseIndicators();
+
 
         Ui::MainWindow* m_ui_ = nullptr;
         std::unique_ptr<PipelineController> m_pipeline_controller_ = nullptr;
@@ -78,17 +75,7 @@ namespace photoboss {
         QLabel* m_delete_count_label_ = nullptr;
 
         // Phase indicators
-        QLabel* m_phase_finding_count_ = nullptr;
-        QLabel* m_phase_analyzing_count_ = nullptr;
-        QLabel* m_phase_grouping_count_ = nullptr;
-        QLabel* m_phase_finding_label_ = nullptr;
-        QLabel* m_phase_analyzing_label_ = nullptr;
-        QLabel* m_phase_grouping_label_ = nullptr;
-
-        // Phase spinners
-        WaitingSpinnerWidget* m_phase_finding_spinner_ = nullptr;
-        WaitingSpinnerWidget* m_phase_analyzing_spinner_ = nullptr;
-        WaitingSpinnerWidget* m_phase_grouping_spinner_ = nullptr;
+		QMap<PipelineController::Phase, ProgressCounterWidget*> m_phase_indicators_;
 
         QScrollArea* m_body_ = nullptr;
         QSplitter* m_splitter_ = nullptr;

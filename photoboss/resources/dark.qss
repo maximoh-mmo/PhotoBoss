@@ -1,36 +1,12 @@
-* {
+QWidget {
     font-family: "Segoe UI", "Inter", "Roboto", sans-serif;
     font-size: 11pt;
-
-    /* Theme Color Variables */
-    --bg-primary: #1e1e1e;
-    --bg-secondary: #252525;
-    --bg-tertiary: #2d2d2d;
-    --bg-hover: #3a3a3a;
-    --bg-pressed: #444;
-    
-    --border-default: #3a3a3a;
-    --border-focus: #555;
-    
-    --text-primary: #e0e0e0;
-    --text-secondary: #ffffff;
-    --text-muted: #888;
-    
-    --accent-success: #4CAF50;
-    --accent-danger: #C0392B;
-    --accent-warning: #ff6b6b;
-    
-    --thumbnail-placeholder-bg: #333;
-    --thumbnail-placeholder-text: #777;
-}
-
-QWidget {
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
+    background-color: #1e1e1e;
+    color: #e0e0e0;
 }
 
 QMainWindow {
-    background-color: var(--bg-primary);
+    background-color: #1e1e1e;
 }
 
 QSplitter::handle {
@@ -38,18 +14,18 @@ QSplitter::handle {
 }
 
 QFrame {
-    background-color: var(--bg-secondary);
+    background-color: #252525;
     border: none;
 }
 
 QScrollArea {
-    background-color: var(--bg-primary);
+    background-color: #1e1e1e;
     border: none;
 }
 
 QScrollBar:vertical {
     width: 10px;
-    background: var(--bg-primary);
+    background: #1e1e1e;
 }
 
 QScrollBar::handle:vertical {
@@ -59,31 +35,55 @@ QScrollBar::handle:vertical {
 }
 
 QScrollBar::handle:vertical:hover {
-    background: #4a4a4a;
+    background: #3a3a3a;
 }
 
 QScrollBar::add-line:vertical,
 QScrollBar::sub-line:vertical {
-    height: 0;
+    background: none;
+    border: none;
+    height: 0px;
+}
+
+QScrollBar:horizontal {
+    height: 10px;
+    background: #1e1e1e;
+}
+
+QScrollBar::handle:horizontal {
+    background: #3a3a3a;
+    border-radius: 4px;
+    min-width: 24px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background: #3a3a3a;
+}
+
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal {
+    background: none;
+    border: none;
+    width: 0px;
 }
 
 QPushButton {
-    background-color: var(--bg-tertiary);
-    border: 1px solid var(--border-default);
+    background-color: var(#2d2d2d);
+    border: 1px solid var(#3a3a3a);
     border-radius: 4px;
     padding: 6px 10px;
 }
 
 QPushButton:hover {
-    background-color: var(--bg-hover);
+    background-color: var(#3a3a3a);
 }
 
 QPushButton:pressed {
-    background-color: var(--bg-pressed);
+    background-color: var(#444);
 }
 
 QPushButton#deleteButton {
-    background-color: var(--accent-danger);
+    background-color: var(#C0392B);
     color: white;
     border: none;
 }
@@ -104,40 +104,40 @@ QLabel {
 QLabel#SectionHeader {
     font-size: 13pt;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(#ffffff);
 }
 
 QLabel#warningLabel .warning-text {
-    color: var(--accent-warning);
+    color: var(#ff6b6b);
     font-size: 14px;
     font-weight: bold;
 }
 
 QLabel#thumbnailLabel {
-    border: 1px solid var(--border-focus);
+    border: 1px solid var(#555);
     border-radius: 4px;
 }
 
 QLabel#thumbnailLabelFailed {
-    border: 1px solid var(--border-focus);
+    border: 1px solid var(#555);
     border-radius: 4px;
-    color: var(--text-muted);
+    color: var(#888);
 }
 
 QLabel#keepBadge {
-    color: var(--accent-success);
+    color: var(#4CAF50);
     font-weight: bold;
 }
 
 QLabel#deleteBadge {
-    color: var(--accent-danger);
+    color: var(#C0392B);
     font-weight: bold;
 }
 
 QLabel.thumbnailPlaceholder {
-    background-color: var(--thumbnail-placeholder-bg);
+    background-color: var(#333);
     border-radius: 4px;
-    color: var(--thumbnail-placeholder-text);
+    color: var(#777);
 }
 
 GroupWidget {
@@ -151,16 +151,16 @@ GroupWidget {
 ImageThumbWidget {
     border: 1px solid #333;
     border-radius: 6px;
-    background: var(--bg-primary);
+    background: var(#1e1e1e);
 }
 
 ImageThumbWidget[state="selected"] {
-    border: 2px solid var(--accent-success);
+    border: 2px solid var(#4CAF50);
     background: #223322;
 }
 
 ImageThumbWidget[state="delete"] {
-    border: 1px dashed var(--accent-danger);
+    border: 1px dashed var(#C0392B);
     background: #2a1a1a;
     opacity: 0.65;
 }
@@ -194,5 +194,14 @@ QCheckBox::indicator {
 }
 
 QDialog#DeleteConfirmDialog {
-    background-color: var(--bg-primary);
+    background-color: var(#1e1e1e);
+}
+
+QLabel#titleLabel {
+    font-weight: bold;
+    color: #888888;
+}
+
+QLabel#progressLabel {
+    color: #e0e0e0;
 }

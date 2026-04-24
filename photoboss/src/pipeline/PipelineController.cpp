@@ -214,15 +214,12 @@ namespace photoboss {
         connect(m_pipeline_->scanner, &StageBase::progress, this, [this](qint64 current, qint64 total) {
             if (total == 0) {
                 emit status("Scan started...");
-                emit phaseFindingUpdate(static_cast<int>(current));
+				emit phaseUpdate(Phase::Find, current, total);  // Phase spinner/count update
                 emit progressUpdate(current, 0); // Spinner
             } else {
                 m_totalFiles_ = total;
-                emit status("File Discovery Complete. Processing Files...");
-                emit phaseFindingUpdate(static_cast<int>(total));  // Final discovery count
-                emit phaseAnalyzingUpdate(0);  // Start analyzing at 0
-                emit phaseGroupingUpdate(0);  // Start grouping at 0
-                emit progressUpdate(0, total);  // Set determinate mode
+                emit phaseUpdate(Phase::Find, current, total);  
+                emit progressUpdate(current, 0);  // Set determinate mode
                 m_progressTimer_.start(); // Start lerping progress
             }
         });
@@ -231,8 +228,7 @@ namespace photoboss {
             [this](qint64 current, qint64 total) {
                 m_processedFiles_ = current;
                 // UI update is driven by the timer instead
-                emit phaseAnalyzingUpdate(static_cast<int>(current));
-                emit phaseGroupingUpdate(static_cast<int>(current));
+				emit phaseUpdate(Phase::Analyze, current, total);
                 emit status("Files Processed. Grouping Duplicates...");
             });
 

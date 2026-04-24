@@ -161,6 +161,7 @@
     <QtMoc Include="inc\photoboss\ui\MainWindow.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="inc\photoboss\ui\ProgressCounterWidget.cpp" />
     <ClCompile Include="src\util\OrientImage.cpp" />
     <ClCompile Include="src\ui\GroupWidget.cpp" />
     <ClCompile Include="src\pipeline\stages\ThumbnailGenerator.cpp" />
@@ -202,6 +203,7 @@
     <QtMoc Include="inc\photoboss\ui\PreviewPane.h" />
     <QtMoc Include="inc\photoboss\ui\DeleteConfirmDialog.h" />
     <ClInclude Include="inc\photoboss\types\ExifData.h" />
+    <QtMoc Include="inc\photoboss\ui\ProgressCounterWidget.h" />
     <ClInclude Include="inc\photoboss\util\humanSize.h" />
     <ClInclude Include="inc\photoboss\util\OrientImage.h" />
     <ClInclude Include="inc\photoboss\util\Token.h" />

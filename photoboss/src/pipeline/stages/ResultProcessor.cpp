@@ -24,12 +24,19 @@ namespace photoboss {
         int processedCount = 0;
         QElapsedTimer timer;
         timer.start();
+		bool firstEmit = false;
         
         while (m_input_.wait_and_pop(item)) {
-            emit status(QString("Processing Hashed results..."));
             Q_ASSERT(!item->hashes.empty());
             
+            if(!firstEmit) {
+                emit status(QString("Processing Hashed results..."));
+                firstEmit = true;
+            }
+
             engine.addImage(item);
+            processedCount++;
+            emit progress(processedCount, processedCount);
 
             // Push thumbnail request
             auto thumbReq = std::make_shared<ThumbnailRequest>();
@@ -40,9 +47,7 @@ namespace photoboss {
             m_thumbnailOutput_.push(std::move(thumbReq));
 
             m_items_.push_back(std::move(item));
-            
-            processedCount++;
-            emit progress(processedCount, processedCount);
+   
 
             if (timer.elapsed() > 500) {
                 auto tempGroups = engine.getGroups();

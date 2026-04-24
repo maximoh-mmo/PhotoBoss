@@ -58,7 +58,7 @@ namespace photoboss {
 
             batch->push_back(fileIdentity);
             ++count;
-            emit progress(count, 0); // Indeterminate progress spinner
+            emit progress(count, count); // Indeterminate progress spinner
 
             if (static_cast<int>(batch->size()) >= batch_size) {
 				m_output_.emplace(batch);
@@ -67,8 +67,6 @@ namespace photoboss {
             }
         }
         emit status(QString("Finished Scanning files in directory : " + m_request_.directory));
-
-        emit progress(count, count); // Final update count = total for UI purposes.
         
         if (!batch->empty()) {
             m_output_.emplace(batch);

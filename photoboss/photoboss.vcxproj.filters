@@ -84,6 +84,15 @@
     <ClCompile Include="src\pipeline\stages\ThumbnailGenerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\ui\WaitingSpinnerWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\DeleteConfirmDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="inc\photoboss\ui\ProgressCounterWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="resources\MainWindow.ui" />
@@ -128,6 +137,15 @@
     <QtMoc Include="inc\photoboss\pipeline\stages\ThumbnailGenerator.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="inc\photoboss\ui\WaitingSpinnerWidget.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="inc\photoboss\ui\DeleteConfirmDialog.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="inc\photoboss\ui\ProgressCounterWidget.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\photoboss\util\Queue.h">
@@ -136,13 +154,7 @@
     <ClInclude Include="inc\photoboss\hashing\HashMethod.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\photoboss\util\DataTypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="inc\photoboss\caching\SqliteHashCache.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\photoboss\util\FileIdentity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\photoboss\util\Token.h">
@@ -166,9 +178,6 @@
     <ClInclude Include="inc\photoboss\pipeline\SimilarityEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\photoboss\util\ExifData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="inc\photoboss\util\humanSize.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -184,16 +193,25 @@
     <ClInclude Include="inc\photoboss\hashing\PerceptualHash.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\photoboss\util\CacheTypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\photoboss\util\GroupTypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="inc\photoboss\hashing\DifferenceHash.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\photoboss\util\AppSettings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\types\ExifData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\types\DataTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\types\FileIdentity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\types\GroupTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\types\CacheTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

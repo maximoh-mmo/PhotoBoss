@@ -68,7 +68,14 @@ namespace photoboss {
             Running,
             Stopping
         };
-        Q_ENUM(PipelineState)
+        Q_ENUM(PipelineState)       
+        
+        enum class Phase {
+            Find,
+            Analyze,
+            Group
+        };
+        Q_ENUM(Phase)
 
         explicit PipelineController(
             QObject* parent = nullptr);
@@ -90,9 +97,7 @@ namespace photoboss {
         void pipelineStateChanged(PipelineState state);
 
         // Phase-specific updates for UI indicators
-        void phaseFindingUpdate(int count);      // Files discovered
-        void phaseAnalyzingUpdate(int count); // Files hashed/processed
-        void phaseGroupingUpdate(int count);   // Files processed for grouping
+        void phaseUpdate(PipelineController::Phase,int count, int total);      // Files discovered
         
     private:
         void createPipeline(const ScanRequest& request);

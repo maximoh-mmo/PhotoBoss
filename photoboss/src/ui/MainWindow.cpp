@@ -6,6 +6,7 @@
 #include "util/AppSettings.h"
 #include "ui/ImageThumbWidget.h"
 #include "ui/DeleteConfirmDialog.h"
+#include "ui/ProgressCounterWidget.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -41,43 +42,15 @@ namespace photoboss
         m_delete_count_label_ = m_ui_->deleteCountLabel;
 
         // Phase indicator labels
-        m_phase_finding_label_ = m_ui_->phaseFindingLabel;
-        m_phase_finding_count_ = m_ui_->phaseFindingCount;
-        m_phase_analyzing_label_ = m_ui_->phaseAnalyzingLabel;
-        m_phase_analyzing_count_ = m_ui_->phaseAnalyzingCount;
-        m_phase_grouping_label_ = m_ui_->phaseGroupingLabel;
-        m_phase_grouping_count_ = m_ui_->phaseGroupingCount;
-
-// Phase spinners - positioned near count labels manually in UI
-        m_phase_finding_spinner_ = new WaitingSpinnerWidget(m_ui_->phaseFindingCount);
-        m_phase_finding_spinner_->setColor(QColor(245, 158, 11));
-        m_phase_finding_spinner_->setNumberOfLines(8);
-        m_phase_finding_spinner_->setLineLength(4);
-        m_phase_finding_spinner_->setLineWidth(1);
-        m_phase_finding_spinner_->setInnerRadius(4);
-        m_phase_finding_spinner_->setRevolutionsPerSecond(1.5);
-        m_phase_finding_spinner_->hide();
-        m_phase_finding_spinner_->move(60, 8);  // Right of count label
-
-        m_phase_analyzing_spinner_ = new WaitingSpinnerWidget(m_ui_->phaseAnalyzingCount);
-        m_phase_analyzing_spinner_->setColor(QColor(245, 158, 11));
-        m_phase_analyzing_spinner_->setNumberOfLines(8);
-        m_phase_analyzing_spinner_->setLineLength(4);
-        m_phase_analyzing_spinner_->setLineWidth(1);
-        m_phase_analyzing_spinner_->setInnerRadius(4);
-        m_phase_analyzing_spinner_->setRevolutionsPerSecond(1.5);
-        m_phase_analyzing_spinner_->hide();
-        m_phase_analyzing_spinner_->move(60, 8);
-
-        m_phase_grouping_spinner_ = new WaitingSpinnerWidget(m_ui_->phaseGroupingCount);
-        m_phase_grouping_spinner_->setColor(QColor(245, 158, 11));
-        m_phase_grouping_spinner_->setNumberOfLines(8);
-        m_phase_grouping_spinner_->setLineLength(4);
-        m_phase_grouping_spinner_->setLineWidth(1);
-        m_phase_grouping_spinner_->setInnerRadius(4);
-        m_phase_grouping_spinner_->setRevolutionsPerSecond(1.5);
-        m_phase_grouping_spinner_->hide();
-        m_phase_grouping_spinner_->move(60, 8);
+        m_phase_indicators_[PipelineController::Phase::Find] = new ProgressCounterWidget("Scan Progress", this);
+        m_phase_indicators_[PipelineController::Phase::Analyze] = new ProgressCounterWidget("Analyse Progress", this);
+        m_phase_indicators_[PipelineController::Phase::Group] = new ProgressCounterWidget("Group Progress", this);
+		QWidget* container = new QWidget(m_ui_->phaseStrip);
+        QHBoxLayout* layout = new QHBoxLayout(container);
+        for (auto& indicator : m_phase_indicators_) {
+			layout->addWidget(indicator);
+		}
+		m_ui_->phaseStripLayout->addWidget(container);
 
         // Split body area
         m_splitter_ = new QSplitter(Qt::Horizontal);
@@ -150,7 +123,8 @@ namespace photoboss
             auto state = m_pipeline_controller_->state();
             if (state == PipelineController::PipelineState::Running) {
                 m_pipeline_controller_->stop();
-            } else if (state == PipelineController::PipelineState::Stopped) {
+            }
+            else if (state == PipelineController::PipelineState::Stopped) {
                 const QString folder = GetCurrentFolder();
                 if (!folder.isEmpty()) {
                     clearResults();
@@ -158,13 +132,16 @@ namespace photoboss
                 }
             }
             // If Stopping, ignore clicks (button is disabled)
-        });
+            });
 
         connect(m_pipeline_controller_.get(), &PipelineController::status, this, [this](const QString& message) {
             m_status_bar_->showMessage(message);
-			});
+            if (message.contains("Finished Scanning files")) {
+				m_phase_indicators_[PipelineController::Phase::Find]->finish();
+            }
+            });
 
-		connect(m_pipeline_controller_.get(), &PipelineController::progressUpdate, this, &MainWindow::UpdateProgressBar);
+        connect(m_pipeline_controller_.get(), &PipelineController::progressUpdate, this, &MainWindow::UpdateProgressBar);
 
         connect(m_pipeline_controller_.get(), &PipelineController::groupAdded,
             this, &MainWindow::onGroupAdded, Qt::QueuedConnection);
@@ -180,21 +157,15 @@ namespace photoboss
 
         connect(m_btn_delete_, &QPushButton::clicked, this, &MainWindow::onDeleteClicked);
 
-// Status bar - just display messages
+        // Status bar - just display messages
         connect(m_pipeline_controller_.get(), &PipelineController::status, this,
             [this](const QString& message) {
                 m_status_bar_->showMessage(message);
             });
 
         // Phase-specific signals - direct connections, no parsing
-        connect(m_pipeline_controller_.get(), &PipelineController::phaseFindingUpdate,
-            this, &MainWindow::updatePhaseFinding);
-
-        connect(m_pipeline_controller_.get(), &PipelineController::phaseAnalyzingUpdate,
-            this, &MainWindow::updatePhaseAnalyzing);
-
-        connect(m_pipeline_controller_.get(), &PipelineController::phaseGroupingUpdate,
-            this, &MainWindow::updatePhaseGrouping);
+        connect(m_pipeline_controller_.get(), &PipelineController::phaseUpdate,
+            this, &MainWindow::progressPhase);
     }
 
     void MainWindow::OnCurrentFolderChanged()
@@ -210,12 +181,12 @@ namespace photoboss
         }
     }
 
-void MainWindow::processBatch()
-{
-    if (m_pendingGroups_.empty()) return;
+    void MainWindow::processBatch()
+    {
+        if (m_pendingGroups_.empty()) return;
 
-    int count = 0;
-    while (!m_pendingGroups_.empty() && count < settings::MainWindowBatchProcessSize) {
+        int count = 0;
+        while (!m_pendingGroups_.empty() && count < settings::MainWindowBatchProcessSize) {
             ImageGroup group = m_pendingGroups_.front();
             m_pendingGroups_.pop_front();
 
@@ -240,7 +211,8 @@ void MainWindow::processBatch()
                     if (thumb->Image().path == entry.path) {
                         if (m_thumbnailCache_.contains(entry.path)) {
                             thumb->setThumbnail(m_thumbnailCache_[entry.path]);
-                        } else {
+                        }
+                        else {
                             m_thumbnailWaiters_.insert(entry.path, thumb);
                         }
                     }
@@ -265,26 +237,27 @@ void MainWindow::processBatch()
         if (m_groupWidgets_.contains(group.id)) {
             m_groupWidgets_[group.id]->updateGroup(group);
 
-             // Also update mapping for any new images added to the group
-             auto* widget = m_groupWidgets_[group.id];
-             for (const auto& entry : group.images) {
-                 bool alreadyWaiting = false;
-                 auto waiters = m_thumbnailWaiters_.values(entry.path);
-                 for (auto* w : waiters) {
-                     if (w->parentWidget() == widget) {
+            // Also update mapping for any new images added to the group
+            auto* widget = m_groupWidgets_[group.id];
+            for (const auto& entry : group.images) {
+                bool alreadyWaiting = false;
+                auto waiters = m_thumbnailWaiters_.values(entry.path);
+                for (auto* w : waiters) {
+                    if (w->parentWidget() == widget) {
                         alreadyWaiting = true;
                         break;
-                     }
-                 }
-                
+                    }
+                }
+
                 if (!alreadyWaiting) {
                     for (auto* thumb : widget->findChildren<ImageThumbWidget*>()) {
                         if (thumb->Image().path == entry.path) {
-                             if (m_thumbnailCache_.contains(entry.path)) {
-                                 thumb->setThumbnail(m_thumbnailCache_[entry.path]);
-                             } else {
-                                 m_thumbnailWaiters_.insert(entry.path, thumb);
-                             }
+                            if (m_thumbnailCache_.contains(entry.path)) {
+                                thumb->setThumbnail(m_thumbnailCache_[entry.path]);
+                            }
+                            else {
+                                m_thumbnailWaiters_.insert(entry.path, thumb);
+                            }
                         }
                     }
                 }
@@ -301,7 +274,7 @@ void MainWindow::processBatch()
         for (auto* thumb : waiters) {
             thumb->setThumbnail(pix);
         }
-        
+
         m_thumbnailWaiters_.remove(result.path);
     }
 
@@ -342,15 +315,11 @@ void MainWindow::processBatch()
             m_browse_button_->setEnabled(true);
             // Leave progress bar at 100% to show completion
 
-            // Mark phases complete and show final status
-            setPhaseComplete("finding");
-            setPhaseComplete("analyzing");
-            setPhaseComplete("grouping");
-
             if (m_scan_found_duplicates_) {
                 m_status_bar_->showMessage(
                     QString("%1 Duplicates found -- Scan Complete").arg(m_groupWidgets_.size()));
-            } else {
+            }
+            else {
                 m_status_bar_->showMessage("No duplicates found -- Scan Complete");
             }
 
@@ -363,15 +332,16 @@ void MainWindow::processBatch()
     {
         int count = countSelectedForDeletion();
         qDebug() << "[Delete Button] Count:" << count
-                 << "Duplicates found:" << m_scan_found_duplicates_
-                 << "Group count:" << m_groupWidgets_.size()
-                 << "Pipeline state:" << static_cast<int>(m_pipeline_controller_->state());
+            << "Duplicates found:" << m_scan_found_duplicates_
+            << "Group count:" << m_groupWidgets_.size()
+            << "Pipeline state:" << static_cast<int>(m_pipeline_controller_->state());
 
         if (m_delete_count_label_) {
             if (count > 0) {
                 m_delete_count_label_->setText(QString("%1 file(s) marked for deletion").arg(count));
                 m_delete_count_label_->setVisible(true);
-            } else {
+            }
+            else {
                 m_delete_count_label_->setVisible(false);
             }
         }
@@ -379,12 +349,13 @@ void MainWindow::processBatch()
         if (m_btn_delete_) {
             // Only enable delete button when pipeline is fully stopped
             bool canDelete = count > 0 && m_scan_found_duplicates_
-                         && m_pipeline_controller_->state() == PipelineController::PipelineState::Stopped;
+                && m_pipeline_controller_->state() == PipelineController::PipelineState::Stopped;
             if (canDelete) {
                 m_btn_delete_->setVisible(true);
                 m_btn_delete_->setEnabled(true);
                 qDebug() << "[Delete Button] Setting visible and enabled";
-            } else {
+            }
+            else {
                 m_btn_delete_->setVisible(false);
                 m_btn_delete_->setEnabled(false);
                 qDebug() << "[Delete Button] Setting hidden/disabled";
@@ -422,27 +393,28 @@ void MainWindow::processBatch()
         if (dialog.exec() == QDialog::Accepted) {
             bool allDeleted = true;
             QStringList failedFiles;
-            
+
             for (const auto& file : files) {
                 if (!QFile::moveToTrash(file.path)) {
                     allDeleted = false;
                     failedFiles.append(file.path);
                 }
             }
-            
+
             if (allDeleted) {
                 QMessageBox::information(
                     this,
                     "Delete Successful",
                     QString("Successfully moved %1 file(s) to trash.").arg(files.size())
                 );
-            } else {
+            }
+            else {
                 QMessageBox::warning(
                     this,
                     "Partial Failure",
                     QString("Failed to move %1 file(s) to trash:\n%2")
-                        .arg(failedFiles.size())
-                        .arg(failedFiles.join("\n"))
+                    .arg(failedFiles.size())
+                    .arg(failedFiles.join("\n"))
                 );
             }
 
@@ -459,111 +431,22 @@ void MainWindow::processBatch()
 
     void MainWindow::resetPhaseIndicators()
     {
-        if (m_phase_finding_count_) {
-            m_phase_finding_count_->setText("—");
-            m_phase_finding_count_->setStyleSheet("color: gray;");
-            m_phase_finding_label_->setStyleSheet("color: gray;");
-        }
-        if (m_phase_analyzing_count_) {
-            m_phase_analyzing_count_->setText("—");
-            m_phase_analyzing_count_->setStyleSheet("color: gray;");
-            m_phase_analyzing_label_->setStyleSheet("color: gray;");
-        }
-        if (m_phase_grouping_count_) {
-            m_phase_grouping_count_->setText("—");
-            m_phase_grouping_count_->setStyleSheet("color: gray;");
-            m_phase_grouping_label_->setStyleSheet("color: gray;");
-        }
-
-        // Stop all spinners
-        if (m_phase_finding_spinner_) {
-            m_phase_finding_spinner_->stop();
-            m_phase_finding_spinner_->hide();
-        }
-        if (m_phase_analyzing_spinner_) {
-            m_phase_analyzing_spinner_->stop();
-            m_phase_analyzing_spinner_->hide();
-        }
-        if (m_phase_grouping_spinner_) {
-            m_phase_grouping_spinner_->stop();
-            m_phase_grouping_spinner_->hide();
+        for (auto& indicator : m_phase_indicators_) {
+            indicator->reset();
         }
     }
 
-    void MainWindow::updatePhaseFinding(int count)
+    void MainWindow::progressPhase(PipelineController::Phase phase, int count, int total)
     {
-        if (m_phase_finding_count_) {
-            m_phase_finding_count_->setText(QString::number(count));
-            m_phase_finding_count_->setStyleSheet("color: #F59E0B; font-weight: bold;");
-            m_phase_finding_label_->setStyleSheet("color: #F59E0B; font-weight: bold;");
-
-            // Show and start spinner
-            if (m_phase_finding_spinner_) {
-                m_phase_finding_spinner_->show();
-                m_phase_finding_spinner_->start();
+        if (m_phase_indicators_.contains(phase)) {
+            if (phase == PipelineController::Phase::Find) {
+                for (QMap<PipelineController::Phase, ProgressCounterWidget*>::iterator p = m_phase_indicators_.begin(); p != m_phase_indicators_.end(); ++p) {
+                    if (p.key() != phase) {
+                         p.value()->setTotal(total);
+					}
+				}
             }
-        }
-    }
-
-    void MainWindow::updatePhaseAnalyzing(int count)
-    {
-        if (m_phase_analyzing_count_) {
-            m_phase_analyzing_count_->setText(QString::number(count));
-            m_phase_analyzing_count_->setStyleSheet("color: #F59E0B; font-weight: bold;");
-            m_phase_analyzing_label_->setStyleSheet("color: #F59E0B; font-weight: bold;");
-
-            // Show and start spinner
-            if (m_phase_analyzing_spinner_) {
-                m_phase_analyzing_spinner_->show();
-                m_phase_analyzing_spinner_->start();
-            }
-        }
-    }
-
-    void MainWindow::updatePhaseGrouping(int count)
-    {
-        if (m_phase_grouping_count_) {
-            m_phase_grouping_count_->setText(QString::number(count));
-            m_phase_grouping_count_->setStyleSheet("color: #F59E0B; font-weight: bold;");
-            m_phase_grouping_label_->setStyleSheet("color: #F59E0B; font-weight: bold;");
-
-            // Show and start spinner
-            if (m_phase_grouping_spinner_) {
-                m_phase_grouping_spinner_->show();
-                m_phase_grouping_spinner_->start();
-            }
-        }
-    }
-
-    void MainWindow::setPhaseComplete(const QString& phase)
-    {
-        if (phase == "finding") {
-            if (m_phase_finding_count_) {
-                m_phase_finding_count_->setStyleSheet("color: #10B981; font-weight: bold;");
-                m_phase_finding_label_->setStyleSheet("color: #10B981; font-weight: bold;");
-            }
-            if (m_phase_finding_spinner_) {
-                m_phase_finding_spinner_->stop();
-                m_phase_finding_spinner_->hide();
-            }
-        } else if (phase == "analyzing") {
-            if (m_phase_analyzing_count_) {
-                m_phase_analyzing_count_->setStyleSheet("color: #10B981; font-weight: bold;");
-                m_phase_analyzing_label_->setStyleSheet("color: #10B981; font-weight: bold;");
-            }
-            if (m_phase_analyzing_spinner_) {
-                m_phase_analyzing_spinner_->stop();
-                m_phase_analyzing_spinner_->hide();
-            }
-        } else if (phase == "grouping") {
-            if (m_phase_grouping_count_) {
-                m_phase_grouping_count_->setStyleSheet("color: #10B981; font-weight: bold;");
-                m_phase_grouping_label_->setStyleSheet("color: #10B981; font-weight: bold;");
-            }
-            if (m_phase_grouping_spinner_) {
-                m_phase_grouping_spinner_->stop();
-                m_phase_grouping_spinner_->hide();
-            }
-        }
+            m_phase_indicators_[phase]->setProgress(count);
+		}
     }
 }
