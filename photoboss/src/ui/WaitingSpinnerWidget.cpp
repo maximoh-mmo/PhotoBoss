@@ -65,7 +65,7 @@ void WaitingSpinnerWidget::initialize() {
     _trailFadePercentage = 80.0;
     _revolutionsPerSecond = 1.57079632679489661923;
     _numberOfLines = 10;
-    _lineLength = 0;
+    _lineLength = 5;
     _lineWidth = 17;
     _innerRadius = 19;
     _currentCounter = 0;

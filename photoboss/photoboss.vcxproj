@@ -161,7 +161,7 @@
     <QtMoc Include="inc\photoboss\ui\MainWindow.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="inc\photoboss\ui\ProgressCounterWidget.cpp" />
+    <ClCompile Include="src\ui\ProgressCounterWidget.cpp" />
     <ClCompile Include="src\util\OrientImage.cpp" />
     <ClCompile Include="src\ui\GroupWidget.cpp" />
     <ClCompile Include="src\pipeline\stages\ThumbnailGenerator.cpp" />

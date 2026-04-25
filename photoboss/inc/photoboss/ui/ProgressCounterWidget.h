@@ -19,7 +19,6 @@ namespace photoboss {
 	
 	private:
 		void buildUi();
-		void update();
 		void setColour(QColor color);
 		void setActive(bool active);
 

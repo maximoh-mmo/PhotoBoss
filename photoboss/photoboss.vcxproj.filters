@@ -90,7 +90,7 @@
     <ClCompile Include="src\ui\DeleteConfirmDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="inc\photoboss\ui\ProgressCounterWidget.cpp">
+    <ClCompile Include="src\ui\ProgressCounterWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

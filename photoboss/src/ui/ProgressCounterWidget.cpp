@@ -1,4 +1,4 @@
-#include "ProgressCounterWidget.h"
+#include "ui/ProgressCounterWidget.h"
 #include <QLabel.h>
 
 namespace photoboss
@@ -53,25 +53,50 @@ namespace photoboss
 	void ProgressCounterWidget::setProgress(int progress)
 	{
 		m_progress_ = progress;
-		update();
+		if (!m_active_) {
+			if (m_progress_ > 0) {
+				setActive(true);
+			}
+		}
+		if (m_total_ == 0) {
+			m_progressLabel_->setText(QString::number(m_progress_));
+			return;
+		}
+		else {
+			m_progressLabel_->setText(QString::number(m_progress_) + " / " + QString::number(m_total_));
+			if (m_progress_ >= m_total_) {
+				m_spinner_->stop();
+				setColour(Qt::green);
+			}
+		}
 	}
 	void ProgressCounterWidget::setTotal(int total)
 	{
 		m_total_ = total;
-		update();
+		if (m_total_ == 0) {
+			m_progressLabel_->setText(QString::number(m_progress_));
+			return;
+		}
+		else {
+			m_progressLabel_->setText(QString::number(m_progress_) + " / " + QString::number(m_total_));
+			if (m_progress_ >= m_total_) {
+				m_spinner_->stop();
+				setColour(Qt::green);
+			}
+		}
 	}
 
 	void ProgressCounterWidget::setActive(bool active)
 	{
 		m_active_ = active;
-		if (!active) {
-			m_spinner_->stop();
-			m_spinner_->hide();
-		}
-		else if (active) {
+		if (m_active_) {
 			m_spinner_->start();
 			m_spinner_->show();
 			setColour(Qt::yellow);
+		}
+		else {
+			m_spinner_->stop();
+			m_spinner_->hide();
 		}
 	}
 	void ProgressCounterWidget::setColour(QColor colour) {
@@ -86,33 +111,10 @@ namespace photoboss
 	}
 	void ProgressCounterWidget::reset(int total) 
 	{
-		m_spinner_->stop();
+		m_spinner_->hide();
 		setColour(Qt::gray);
 		m_progress_ = 0;
 		m_total_ = total;
 		m_progressLabel_->setText("0");
-		if (total > 0) {
-			m_spinner_->start();
-		}
-		m_spinner_->hide();
-	}
-	void ProgressCounterWidget::update() {
-		if (!m_active_) {
-			if (m_progress_ > 0) {
-				setActive(true);
-			}
-		}
-		if (m_total_ == 0) {
-			m_progressLabel_->setText(QString::number(m_progress_));
-			return;
-		}
-		else
-		{
-			m_progressLabel_->setText(QString::number(m_progress_) + " / " + QString::number(m_total_));
-			if (m_progress_ >= m_total_) {
-				m_spinner_->stop();
-				setColour(Qt::green);
-			}
-		}
 	}
 }
