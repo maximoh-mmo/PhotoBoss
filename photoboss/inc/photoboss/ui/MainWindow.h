@@ -69,6 +69,7 @@ namespace photoboss {
 
         QPushButton* m_browse_button_ = nullptr;
         QPushButton* m_scan_button_ = nullptr;
+        QPushButton* m_factory_scan_button_ = nullptr;
         QPushButton* m_btn_delete_ = nullptr;
         QProgressBar* m_progress_bar_ = nullptr;
         QStatusBar* m_status_bar_ = nullptr;

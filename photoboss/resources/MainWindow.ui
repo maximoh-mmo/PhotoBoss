@@ -146,6 +146,13 @@
           </widget>
          </item>
          <item>
+          <widget class="QPushButton" name="factoryScan">
+           <property name="text">
+            <string>Factory Scan</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPushButton" name="btnDelete">
            <property name="enabled">
             <bool>false</bool>

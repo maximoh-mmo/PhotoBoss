@@ -1,5 +1,6 @@
 #include "pipeline/PipelineFactory.h"
-#include "pipeline/stages/DirectoryScanner.h"
+#include "pipeline/stages/ExifRead.h"
+#include "pipeline/stages/FileEnumerator.h"
 #include "pipeline/stages/DiskReader.h"
 #include "pipeline/stages/HashWorker.h"
 #include "pipeline/stages/ResultProcessor.h"
@@ -29,7 +30,8 @@ std::unique_ptr<PipelineFactory::Pipeline> PipelineFactory::create(const Config&
 {
     auto pipeline = std::make_unique<Pipeline>();
 
-    createScanner(*pipeline, config);
+    createFileEnumerator(*pipeline, config);
+    createExifReaders(*pipeline, config);
     createCacheLookup(*pipeline, config, scanId);
     createDiskReader(*pipeline, config);
     createHashWorkers(*pipeline, config);
@@ -40,19 +42,39 @@ std::unique_ptr<PipelineFactory::Pipeline> PipelineFactory::create(const Config&
     return pipeline;
 }
 
-void PipelineFactory::createScanner(Pipeline& pipeline, const Config& config)
+void PipelineFactory::createFileEnumerator(Pipeline& pipeline, const Config& config)
 {
-    pipeline.scanner = new DirectoryScanner(
+    pipeline.enumerator = new FileEnumerator(
         config.request,
-        pipeline.scan
+        pipeline.pathsQueue
     );
-    pipeline.scanner->moveToThread(&pipeline.scannerThread);
+    pipeline.enumerator->moveToThread(&pipeline.enumeratorThread);
+}
+
+void PipelineFactory::createExifReaders(Pipeline& pipeline, const Config& config)
+{
+    pipeline.exifQueue.register_producer();
+
+    const int workerCount = config.storage == StorageStrategy::Parallel
+        ? std::max(1, QThread::idealThreadCount() - 1)
+        : 1;
+
+    for (int i = 0; i < workerCount; ++i) {
+        ExifRead* reader = new ExifRead(
+            pipeline.pathsQueue,
+            pipeline.exifQueue
+        );
+        QThread* thread = new QThread();
+        pipeline.exifReaderThreads.push_back(thread);
+        reader->moveToThread(thread);
+        pipeline.exifReaders.push_back(reader);
+    }
 }
 
 void PipelineFactory::createCacheLookup(Pipeline& pipeline, const Config& config, quint64 scanId)
 {
     pipeline.cacheLookup = new CacheLookup(
-        pipeline.scan,
+        pipeline.exifQueue,
         pipeline.disk,
         pipeline.resultQueue,
         "CacheLookup",

@@ -37,6 +37,7 @@ namespace photoboss
         m_status_bar_ = m_ui_->statusbar;
         m_browse_button_ = m_ui_->browsebutton;
         m_scan_button_ = m_ui_->scan;
+        m_factory_scan_button_ = m_ui_->factoryScan;
         m_progress_bar_ = m_ui_->progressBar;
         m_btn_delete_ = m_ui_->btnDelete;
         m_delete_count_label_ = m_ui_->deleteCountLabel;
@@ -132,6 +133,18 @@ namespace photoboss
                 }
             }
             // If Stopping, ignore clicks (button is disabled)
+            });
+
+        connect(m_factory_scan_button_, &QPushButton::clicked, this, [this]() {
+            auto state = m_pipeline_controller_->state();
+            if (state == PipelineController::PipelineState::Running) {
+                m_pipeline_controller_->stop();
+            }
+            else if (state == PipelineController::PipelineState::Stopped) {
+                const QString folder = GetCurrentFolder();
+                if (!folder.isEmpty()) {
+                    clearResults();                }
+            }
             });
 
         connect(m_pipeline_controller_.get(), &PipelineController::status, this, [this](const QString& message) {
