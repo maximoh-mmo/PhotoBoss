@@ -3,7 +3,7 @@
 #include <QThread>
 #include <QElapsedTimer>
 #include "pipeline/stages/DirectoryScanner.h"
-#include "exif/ExifReader.h"
+#include "exif/ExifTool.h"
 #include "util/AppSettings.h"
 
 namespace photoboss {
@@ -133,7 +133,7 @@ namespace photoboss {
             const QString& path = filePaths[i];
             QFileInfo fileInfo(path);
 
-            auto exif = exif::ExifReader::read(path);
+            auto exif = exif::ExifTool::parse(path);
 
             FileIdentity fileIdentity(
                 fileInfo.fileName(),
@@ -182,7 +182,7 @@ namespace photoboss {
                 const QString& path = filePaths[index];
                 QFileInfo fileInfo(path);
 
-                auto exif = exif::ExifReader::read(path);
+                auto exif = exif::ExifTool::parse(path);
 
                 FileIdentity fileIdentity(
                     fileInfo.fileName(),

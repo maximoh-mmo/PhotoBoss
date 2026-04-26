@@ -172,7 +172,7 @@
     <ClCompile Include="src\hashmethods\AverageHash.cpp" />
     <ClCompile Include="src\hashmethods\DifferenceHash.cpp" />
     <ClCompile Include="inc\photoboss\hashing\HashCatalog.cpp" />
-    <ClCompile Include="src\exif\ExifReader.cpp" />
+    <ClCompile Include="src\exif\ExifTool.cpp" />
     <ClCompile Include="src\hashmethods\PerceptualImage.cpp" />
     <ClCompile Include="src\hashmethods\Sha256Hash.cpp" />
     <ClCompile Include="src\pipeline\stages\CacheStore.cpp" />
@@ -195,7 +195,7 @@
   <ItemGroup>
     <ClInclude Include="inc\photoboss\caching\IHashCache.h" />
     <ClInclude Include="inc\photoboss\caching\NullHashCache.h" />
-    <ClInclude Include="inc\photoboss\exif\ExifReader.h" />
+    <ClInclude Include="inc\photoboss\exif\ExifTool.h" />
     <ClInclude Include="inc\photoboss\hashing\AverageHash.h" />
     <ClInclude Include="inc\photoboss\hashing\HashCatalog.h" />
     <ClInclude Include="inc\photoboss\hashing\PerceptualImage.h" />

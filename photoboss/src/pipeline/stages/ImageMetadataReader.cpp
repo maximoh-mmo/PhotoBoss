@@ -1,6 +1,6 @@
 #include <QFileInfo>
 #include "pipeline/stages/ImageMetadataReader.h"
-#include "exif/ExifReader.h"
+#include "exif/ExifTool.h"
 #include "util/AppSettings.h"
 
 namespace photoboss {
@@ -40,7 +40,7 @@ void ImageMetadataReader::run()
 
         for (const QString& path : *batchPtr) {
             QFileInfo fileInfo(path);
-            auto exif = exif::ExifReader::read(path);
+            auto exif = exif::ExifTool::parse(path);
 
             FileIdentity fileIdentity(
                 fileInfo.fileName(),
