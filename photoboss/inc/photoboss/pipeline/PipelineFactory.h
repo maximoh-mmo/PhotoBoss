@@ -29,9 +29,6 @@ public:
     struct Config {
         ScanRequest request;
         StorageStrategy storage;
-        bool enableCache = true;
-        bool enableThumbnails = true;
-        size_t queueCapacity = 100;
     };
 
     struct Pipeline {

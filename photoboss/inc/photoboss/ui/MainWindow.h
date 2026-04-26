@@ -23,6 +23,7 @@ namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 namespace photoboss {
 	class PipelineController;
+	class PipelineFactory;
     class GroupWidget;
 	class ImageThumbWidget;
 
@@ -63,6 +64,7 @@ namespace photoboss {
 
         Ui::MainWindow* m_ui_ = nullptr;
         std::unique_ptr<PipelineController> m_pipeline_controller_ = nullptr;
+		std::unique_ptr<PipelineFactory> m_pipeline_factory_ = nullptr;
 
         QString m_current_folder_;
         bool m_scan_found_duplicates_ = false;

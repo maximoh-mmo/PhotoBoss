@@ -123,10 +123,6 @@ void PipelineFactory::createCacheStore(Pipeline& pipeline, const Config& config,
 
 void PipelineFactory::createThumbnailGenerators(Pipeline& pipeline, const Config& config)
 {
-    if (!config.enableThumbnails) {
-        return;
-    }
-
     const int workers = std::max(2, QThread::idealThreadCount() / 2);
 
     for (int i = 0; i < workers; ++i) {

@@ -1,12 +1,14 @@
 #include "ui/mainwindow.h"
 #include "ui_mainwindow.h"
 #include "pipeline/PipelineController.h"
+#include "pipeline/PipelineFactory.h"
 #include "hashing/HashMethod.h"
 #include "ui/GroupWidget.h"
 #include "util/AppSettings.h"
 #include "ui/ImageThumbWidget.h"
 #include "ui/DeleteConfirmDialog.h"
 #include "ui/ProgressCounterWidget.h"
+#include "util/StorageInfo.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -19,6 +21,7 @@ namespace photoboss
 
     {
         m_pipeline_controller_ = std::make_unique<PipelineController>(this);
+		m_pipeline_factory_ = std::make_unique<PipelineFactory>(this);
 
         m_ui_->setupUi(this);
 
@@ -143,7 +146,9 @@ namespace photoboss
             else if (state == PipelineController::PipelineState::Stopped) {
                 const QString folder = GetCurrentFolder();
                 if (!folder.isEmpty()) {
-                    clearResults();                }
+                    clearResults();
+                    m_pipeline_factory_->create(PipelineFactory::Config{ {folder, m_ui_->subfolders->isChecked()}, StorageInfo::isFastStorage(folder) ? PipelineFactory::StorageStrategy::Parallel : PipelineFactory::StorageStrategy::Sequential},0);
+                }
             }
             });
 
