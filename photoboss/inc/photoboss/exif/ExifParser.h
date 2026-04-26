@@ -6,13 +6,13 @@
 namespace photoboss {
 namespace exif {
 
-class ExifTool {
+class ExifParser {
 public:
     static ExifData parse(const QString& filePath);
 
 private:
-    ExifTool() = delete;
-    ~ExifTool() = delete;
+    ExifParser() = delete;
+    ~ExifParser() = delete;
 };
 
 }

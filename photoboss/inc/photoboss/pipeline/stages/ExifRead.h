@@ -10,15 +10,15 @@
 
 namespace photoboss {
 
-class ImageMetadataReader : public StageBase {
+class ExifRead : public StageBase {
     Q_OBJECT
 public:
-    explicit ImageMetadataReader(
+    explicit ExifRead(
         Queue<std::shared_ptr<QStringList>>& inputQueue,
         Queue<FileIdentityBatchPtr>& outputQueue,
         QObject* parent = nullptr);
 
-    ~ImageMetadataReader() override;
+    ~ExifRead() override;
 
 private:
     void run() override;

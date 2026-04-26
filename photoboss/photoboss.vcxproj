@@ -172,14 +172,14 @@
     <ClCompile Include="src\hashmethods\AverageHash.cpp" />
     <ClCompile Include="src\hashmethods\DifferenceHash.cpp" />
     <ClCompile Include="inc\photoboss\hashing\HashCatalog.cpp" />
-    <ClCompile Include="src\exif\ExifTool.cpp" />
+    <ClCompile Include="src\exif\ExifParser.cpp" />
     <ClCompile Include="src\hashmethods\PerceptualImage.cpp" />
     <ClCompile Include="src\hashmethods\Sha256Hash.cpp" />
     <ClCompile Include="src\pipeline\stages\CacheStore.cpp" />
     <ClCompile Include="src\caching\SqliteHashCache.cpp" />
     <ClCompile Include="src\pipeline\stages\CacheLookup.cpp" />
     <ClCompile Include="src\pipeline\stages\DirectoryScanner.cpp" />
-    <ClCompile Include="src\pipeline\stages\ImageMetadataReader.cpp" />
+    <ClCompile Include="src\pipeline\stages\ExifRead.cpp" />
     <ClCompile Include="src\pipeline\stages\FileEnumerator.cpp" />
     <ClCompile Include="src\pipeline\PipelineController.cpp" />
     <ClCompile Include="src\pipeline\PipelineFactory.cpp" />
@@ -195,7 +195,7 @@
   <ItemGroup>
     <ClInclude Include="inc\photoboss\caching\IHashCache.h" />
     <ClInclude Include="inc\photoboss\caching\NullHashCache.h" />
-    <ClInclude Include="inc\photoboss\exif\ExifTool.h" />
+    <ClInclude Include="inc\photoboss\exif\ExifParser.h" />
     <ClInclude Include="inc\photoboss\hashing\AverageHash.h" />
     <ClInclude Include="inc\photoboss\hashing\HashCatalog.h" />
     <ClInclude Include="inc\photoboss\hashing\PerceptualImage.h" />
@@ -221,7 +221,7 @@
     <QtMoc Include="inc\photoboss\pipeline\stages\DiskReader.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\HashWorker.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\DirectoryScanner.h" />
-    <QtMoc Include="inc\photoboss\pipeline\stages\ImageMetadataReader.h" />
+    <QtMoc Include="inc\photoboss\pipeline\stages\ExifRead.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\FileEnumerator.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\CacheLookup.h" />
     <ClInclude Include="inc\photoboss\hashing\HashMethod.h" />

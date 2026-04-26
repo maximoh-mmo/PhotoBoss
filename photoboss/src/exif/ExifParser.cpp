@@ -1,10 +1,10 @@
-#include "exif/ExifTool.h"
+#include "exif/ExifParser.h"
 #include <QDateTime>
 
 namespace photoboss {
 namespace exif {
 
-ExifData ExifTool::parse(const QString& filePath)
+ExifData ExifParser::parse(const QString& filePath)
 {
     ExifData result;
 

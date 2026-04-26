@@ -1,11 +1,11 @@
 #include <QFileInfo>
-#include "pipeline/stages/ImageMetadataReader.h"
-#include "exif/ExifTool.h"
+#include "pipeline/stages/ExifRead.h"
+#include "exif/ExifParser.h"
 #include "util/AppSettings.h"
 
 namespace photoboss {
 
-ImageMetadataReader::ImageMetadataReader(
+ExifRead::ExifRead(
     Queue<std::shared_ptr<QStringList>>& inputQueue,
     Queue<FileIdentityBatchPtr>& outputQueue,
     QObject* parent)
@@ -16,9 +16,9 @@ ImageMetadataReader::ImageMetadataReader(
     m_outputQueue_.register_producer();
 }
 
-ImageMetadataReader::~ImageMetadataReader() {}
+ExifRead::~ExifRead() {}
 
-void ImageMetadataReader::run()
+void ExifRead::run()
 {
     emit status("Reading image metadata...");
 
@@ -40,7 +40,7 @@ void ImageMetadataReader::run()
 
         for (const QString& path : *batchPtr) {
             QFileInfo fileInfo(path);
-            auto exif = exif::ExifTool::parse(path);
+            auto exif = exif::ExifParser::parse(path);
 
             FileIdentity fileIdentity(
                 fileInfo.fileName(),
@@ -74,7 +74,7 @@ void ImageMetadataReader::run()
     m_outputQueue_.producer_done();
 }
 
-void ImageMetadataReader::onStop()
+void ExifRead::onStop()
 {
     m_cancelled_.store(true);
 }
