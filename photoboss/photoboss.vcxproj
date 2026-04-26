@@ -179,6 +179,8 @@
     <ClCompile Include="src\caching\SqliteHashCache.cpp" />
     <ClCompile Include="src\pipeline\stages\CacheLookup.cpp" />
     <ClCompile Include="src\pipeline\stages\DirectoryScanner.cpp" />
+    <ClCompile Include="src\pipeline\stages\ImageMetadataReader.cpp" />
+    <ClCompile Include="src\pipeline\stages\FileEnumerator.cpp" />
     <ClCompile Include="src\pipeline\PipelineController.cpp" />
     <ClCompile Include="src\pipeline\PipelineFactory.cpp" />
     <ClCompile Include="src\pipeline\stages\ResultProcessor.cpp" />
@@ -219,6 +221,8 @@
     <QtMoc Include="inc\photoboss\pipeline\stages\DiskReader.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\HashWorker.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\DirectoryScanner.h" />
+    <QtMoc Include="inc\photoboss\pipeline\stages\ImageMetadataReader.h" />
+    <QtMoc Include="inc\photoboss\pipeline\stages\FileEnumerator.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\CacheLookup.h" />
     <ClInclude Include="inc\photoboss\hashing\HashMethod.h" />
     <ClInclude Include="inc\photoboss\types\DataTypes.h" />
