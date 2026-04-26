@@ -54,6 +54,7 @@ namespace photoboss {
         std::vector<std::shared_ptr<HashedImageResult>> m_items_;
         QSet<quint64> m_emittedGroups_;
         QMap<quint64, int> m_emittedSizes_;
+        QSet<QString> m_thumbnailRequested_; // Track which images have had thumbnails requested
         
         // Inherited via StageBase
         void onStop() override;
