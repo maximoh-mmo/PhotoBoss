@@ -16,6 +16,10 @@ namespace photoboss::settings {
     // Scanning / batching
     static inline constexpr int DirectoryScanBatchSize = 200;
 
+    // Storage-aware scanning
+    static inline constexpr int SSDMaxThreads = 8;
+    static inline constexpr int HDDBatchMultiplier = 4;
+
     // DiskReader
     static inline constexpr int DiskReaderProgressUpdateFrequency = 50;
 
@@ -31,6 +35,11 @@ namespace photoboss::settings {
     static inline constexpr int MainWindowBatchProcessSize = 10;
     static inline constexpr int MainWindowBatchTimerInterval = 50; // ms
     static inline constexpr int MainWindowProgressTimerInterval = 30; // ms
+
+    // Progress throttling (time-based, per stage)
+    static inline constexpr int ScannerProgressEmitIntervalMs = 200;   // 5/sec - Find phase
+    static inline constexpr int HashingProgressEmitIntervalMs = 100;    // 10/sec - Analyze phase
+    static inline constexpr int ResultProgressEmitIntervalMs = 100;    // 10/sec - Group phase
 
     // Similarity Engine
     static inline constexpr double SimilarityStrongThreshold = 0.97;

@@ -19,8 +19,6 @@ namespace photoboss {
         QObject* parent)
         : QObject(parent)
     {
-        connect(&m_progressTimer_, &QTimer::timeout, this, &PipelineController::onProgressTimerTick);
-        m_progressTimer_.setInterval(settings::MainWindowProgressTimerInterval);
     }
 
     PipelineController::~PipelineController()
@@ -34,9 +32,13 @@ namespace photoboss {
             return;
         SetPipelineState(PipelineState::Running);
 
-        m_totalFiles_ = 0;
-        m_processedFiles_ = 0;
-        m_displayedFiles_ = 0.0;
+        // Reset cumulative progress tracking
+        m_findProgress_ = 0;
+        m_findTotal_ = 0;
+        m_analyzeProgress_ = 0;
+        m_analyzeTotal_ = 0;
+        m_groupProgress_ = 0;
+        m_groupTotal_ = 0;
 
         Token t;
         m_scanId_ = SqliteHashCache(0).nextScanId(t);
@@ -60,8 +62,6 @@ namespace photoboss {
             m_pipeline_->resultQueue.request_shutdown(t);
             m_pipeline_->thumbnailQueue.request_shutdown(t);
         }
-        
-        m_progressTimer_.stop();
     }
 
     void PipelineController::createPipeline(const ScanRequest& request)
@@ -212,24 +212,27 @@ namespace photoboss {
 
 
         connect(m_pipeline_->scanner, &StageBase::progress, this, [this](qint64 current, qint64 total) {
+            // Track Find phase cumulative progress
+            m_findProgress_ = current;
+            m_findTotal_ = total;
+
             if (total == 0) {
                 emit status("Scan started...");
-				emit phaseUpdate(Phase::Find, current, total);  // Phase spinner/count update
-                emit progressUpdate(current, 0); // Spinner
-            } else {
-                m_totalFiles_ = total;
-                emit phaseUpdate(Phase::Find, current, total);  
-                emit progressUpdate(current, 0);  // Set determinate mode
-                m_progressTimer_.start(); // Start lerping progress
             }
+            // Emit per-phase progress (NOT cumulative) for Find phase spinner
+            emit phaseUpdate(Phase::Find, static_cast<int>(current), static_cast<int>(total));
         });
 
         connect(m_pipeline_->resultProcessor, &StageBase::progress, this,
             [this](qint64 current, qint64 total) {
-                m_processedFiles_ = current;
-                // UI update is driven by the timer instead
-				emit phaseUpdate(Phase::Analyze, current, total);
+                // Track Analyze phase cumulative progress
+                m_analyzeProgress_ = current;
+                // Analyze processes same total as Find phase discovered
+                m_analyzeTotal_ = m_findTotal_;
+
                 emit status("Files Processed. Grouping Duplicates...");
+                // Emit per-phase progress (NOT cumulative) for Analyze phase spinner
+                emit phaseUpdate(Phase::Analyze, static_cast<int>(current), static_cast<int>(m_analyzeTotal_));
             });
 
         // ---- Start All Threads ----
@@ -284,6 +287,13 @@ namespace photoboss {
 
     void PipelineController::onGroupingFinished(const std::vector<ImageGroup> groups)
     {
+        // Track Group phase completion
+        m_groupProgress_ = m_findTotal_;
+        m_groupTotal_ = m_findTotal_;
+
+        // Emit per-phase progress for Group phase spinner (100% complete)
+        emit phaseUpdate(Phase::Group, static_cast<int>(m_groupProgress_), static_cast<int>(m_groupTotal_));
+
         emit finalGroups(groups); // UI-facing signal
     }
 
@@ -316,32 +326,5 @@ namespace photoboss {
             stop();
 
         start(m_current_request_);
-    }    
-
-    void PipelineController::onProgressTimerTick()
-    {
-        if (m_totalFiles_ == 0) return;
-
-        // When we know all files are processed, jump immediately to 100%
-        // No need to lerp - user understands "done" when bar is full
-        if (m_processedFiles_ >= m_totalFiles_) {
-            m_displayedFiles_ = m_totalFiles_;
-            emit progressUpdate(m_totalFiles_, m_totalFiles_);
-            m_progressTimer_.stop();
-            return;
-        }
-
-        // Otherwise, smooth lerp toward current processed count
-        if (m_displayedFiles_ < m_processedFiles_) {
-            double gap = static_cast<double>(m_processedFiles_) - m_displayedFiles_;
-            double step = qMax(gap * 0.05, 1.0); // jump 5% of the gap per 30ms
-
-            m_displayedFiles_ += step;
-            if (m_displayedFiles_ > m_processedFiles_) {
-                m_displayedFiles_ = m_processedFiles_;
-            }
-
-            emit progressUpdate(static_cast<int>(m_displayedFiles_), m_totalFiles_);
-        }
     }
 }

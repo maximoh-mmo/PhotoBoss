@@ -22,8 +22,10 @@ namespace photoboss {
         std::shared_ptr<HashedImageResult> item;
         
         int processedCount = 0;
-        QElapsedTimer timer;
-        timer.start();
+        QElapsedTimer throttleTimer;
+        throttleTimer.start();
+        QElapsedTimer groupEmitTimer;
+        groupEmitTimer.start();
 		bool firstEmit = false;
         
         while (m_input_.wait_and_pop(item)) {
@@ -36,7 +38,10 @@ namespace photoboss {
 
             engine.addImage(item);
             processedCount++;
-            emit progress(processedCount, processedCount);
+
+            if (shouldEmitProgress(throttleTimer, settings::ResultProgressEmitIntervalMs)) {
+                emit progress(processedCount, processedCount);
+            }
 
             // Push thumbnail request
             auto thumbReq = std::make_shared<ThumbnailRequest>();
@@ -49,7 +54,7 @@ namespace photoboss {
             m_items_.push_back(std::move(item));
    
 
-            if (timer.elapsed() > 500) {
+            if (groupEmitTimer.elapsed() > 500) {
                 auto tempGroups = engine.getGroups();
                 for (const auto& g : tempGroups) {
                     if (g.images.size() > 1) {
@@ -63,10 +68,11 @@ namespace photoboss {
                         }
                     }
                 }
-                timer.restart();
+                groupEmitTimer.restart();
             }
         }
-
+        
+        emit progress(processedCount, processedCount);
         emit status(QString("Compiling final groups..."));
         
         auto groups = engine.getGroups();

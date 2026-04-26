@@ -141,8 +141,6 @@ namespace photoboss
             }
             });
 
-        connect(m_pipeline_controller_.get(), &PipelineController::progressUpdate, this, &MainWindow::UpdateProgressBar);
-
         connect(m_pipeline_controller_.get(), &PipelineController::groupAdded,
             this, &MainWindow::onGroupAdded, Qt::QueuedConnection);
 
@@ -436,17 +434,33 @@ namespace photoboss
         }
     }
 
-    void MainWindow::progressPhase(PipelineController::Phase phase, int count, int total)
+void MainWindow::progressPhase(PipelineController::Phase phase, int count, int total)
     {
         if (m_phase_indicators_.contains(phase)) {
             if (phase == PipelineController::Phase::Find) {
                 for (QMap<PipelineController::Phase, ProgressCounterWidget*>::iterator p = m_phase_indicators_.begin(); p != m_phase_indicators_.end(); ++p) {
                     if (p.key() != phase) {
                          p.value()->setTotal(total);
-					}
-				}
+ 					}
+ 				}
             }
             m_phase_indicators_[phase]->setProgress(count);
-		}
+ 		}
+
+        // Update progress bar with cumulative progress from all 3 phases
+        if (m_progress_bar_) {
+            int findProgress = m_phase_indicators_[PipelineController::Phase::Find]->getProgress();
+            int findTotal = m_phase_indicators_[PipelineController::Phase::Find]->getTotal();
+            int analyzeProgress = m_phase_indicators_[PipelineController::Phase::Analyze]->getProgress();
+            int analyzeTotal = m_phase_indicators_[PipelineController::Phase::Analyze]->getTotal();
+            int groupProgress = m_phase_indicators_[PipelineController::Phase::Group]->getProgress();
+            int groupTotal = m_phase_indicators_[PipelineController::Phase::Group]->getTotal();
+
+            int cumulativeCurrent = findProgress + analyzeProgress + groupProgress;
+            int cumulativeTotal = findTotal + analyzeTotal + groupTotal;
+
+            m_progress_bar_->setMaximum(cumulativeTotal);
+            m_progress_bar_->setValue(cumulativeCurrent);
+        }
     }
 }

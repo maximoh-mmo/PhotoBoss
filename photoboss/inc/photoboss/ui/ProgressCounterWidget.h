@@ -16,6 +16,9 @@ namespace photoboss {
 		void setTotal(int total);
 		void reset(int total = 0);
 		void finish();
+
+		int getProgress() const { return m_progress_; }
+		int getTotal() const { return m_total_; }
 	
 	private:
 		void buildUi();

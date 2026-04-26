@@ -163,6 +163,7 @@
   <ItemGroup>
     <ClCompile Include="src\ui\ProgressCounterWidget.cpp" />
     <ClCompile Include="src\util\OrientImage.cpp" />
+    <ClCompile Include="src\util\StorageInfo.cpp" />
     <ClCompile Include="src\ui\GroupWidget.cpp" />
     <ClCompile Include="src\pipeline\stages\ThumbnailGenerator.cpp" />
     <ClCompile Include="src\ui\ImageThumbWidget.cpp" />

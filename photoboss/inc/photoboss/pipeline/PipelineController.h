@@ -1,7 +1,6 @@
 #pragma once
 #include <QObject>
 #include <QThread>
-#include <QTimer>
 #include <memory>
 #include <vector>
 #include <atomic>
@@ -93,11 +92,10 @@ namespace photoboss {
         void groupUpdated(const ImageGroup& group);
         void thumbnailReady(const ThumbnailResult& result);
 		void status(const QString& message);
-		void progressUpdate(int current, int total);
         void pipelineStateChanged(PipelineState state);
 
-        // Phase-specific updates for UI indicators
-        void phaseUpdate(PipelineController::Phase,int count, int total);      // Files discovered
+        // Phase-specific updates for UI indicators (cumulative across phases)
+        void phaseUpdate(PipelineController::Phase phase, int phaseProgress, int phaseTotal);
         
     private:
         void createPipeline(const ScanRequest& request);
@@ -115,14 +113,16 @@ namespace photoboss {
         std::atomic<int> m_activeThumbnailWorkers_{ 0 };
 
         quint64 m_scanId_ = -1;
-        quint64 m_totalFiles_ = 0;
-        quint64 m_processedFiles_ = 0;
 
-        QTimer m_progressTimer_;
-        double m_displayedFiles_ = 0.0;
-        
+        // Cumulative progress tracking across all phases
+        quint64 m_findProgress_ = 0;
+        quint64 m_findTotal_ = 0;
+        quint64 m_analyzeProgress_ = 0;
+        quint64 m_analyzeTotal_ = 0;
+        quint64 m_groupProgress_ = 0;
+        quint64 m_groupTotal_ = 0;
+
     private slots:
-        void onProgressTimerTick();
         void onThumbnailWorkerFinished();
     };
 }

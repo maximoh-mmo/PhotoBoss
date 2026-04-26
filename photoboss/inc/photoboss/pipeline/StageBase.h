@@ -1,5 +1,8 @@
 #pragma once
 #include <QObject>
+#include <QElapsedTimer>
+#include <QTimer>
+#include "util/AppSettings.h"
 /// <summary>
 /// 
 /// Base for a stage in the processing pipeline.
@@ -46,6 +49,14 @@ namespace photoboss {
     protected:
         virtual void run() = 0;
         virtual void onStop() = 0;
+
+        bool shouldEmitProgress(QElapsedTimer& timer, int intervalMs) {
+            if (timer.elapsed() >= intervalMs) {
+                timer.restart();
+                return true;
+            }
+            return false;
+        }
     
     private:
         QString m_id_;
