@@ -180,6 +180,7 @@
     <ClCompile Include="src\pipeline\stages\CacheLookup.cpp" />
     <ClCompile Include="src\pipeline\stages\DirectoryScanner.cpp" />
     <ClCompile Include="src\pipeline\PipelineController.cpp" />
+    <ClCompile Include="src\pipeline\PipelineFactory.cpp" />
     <ClCompile Include="src\pipeline\stages\ResultProcessor.cpp" />
     <ClCompile Include="src\pipeline\stages\DiskReader.cpp" />
     <ClCompile Include="src\pipeline\stages\HashWorker.cpp" />
@@ -213,6 +214,7 @@
     <QtMoc Include="inc\photoboss\pipeline\StageBase.h" />
     <ClInclude Include="inc\photoboss\caching\SqliteHashCache.h" />
     <QtMoc Include="inc\photoboss\pipeline\PipelineController.h" />
+    <QtMoc Include="inc\photoboss\pipeline\PipelineFactory.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\ResultProcessor.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\DiskReader.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\HashWorker.h" />
