@@ -17,6 +17,7 @@
 #include "ui/PreviewPane.h"
 #include "ui/ProgressCounterWidget.h"
 #include "pipeline/PipelineController.h"
+#include "ui/UiStatusModel.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -47,10 +48,9 @@ namespace photoboss {
         void OnBrowse();
         void UpdateProgressBar(int current, int total);
 
-        void progressPhase(PipelineController::Phase phase, int count, int total);
-
     private slots:
         void processBatch();
+        void processUiUpdates();
         void onPipelineStateChanged(PipelineController::PipelineState state);
         void onDeleteClicked();
         void onGroupSelectionChanged();
@@ -96,6 +96,12 @@ namespace photoboss {
 
         std::deque<ImageGroup> m_pendingGroups_;
         QTimer* m_batchTimer_ = nullptr;
+        // Cache of the previous UI snapshot for early‑out
+        UiStatusModel::Snapshot m_lastSnapshot_;
+        // Remember previous selection count to avoid redundant delete‑button updates
+        int m_lastSelectionCount_ = -1;
+        QTimer* m_uiPollTimer_ = nullptr;
+        std::unique_ptr<UiStatusModel> m_statusModel_ = nullptr;
 
     };
 }

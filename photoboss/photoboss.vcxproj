@@ -64,11 +64,11 @@
   </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <QtToolsDesignTime>false</QtToolsDesignTime>
-    <QtModules>core;sql;widgets;concurrent</QtModules>
+    <QtModules>core;sql;widgets;concurrent;opengl;openglwidgets</QtModules>
   </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <QtToolsDesignTime>false</QtToolsDesignTime>
-    <QtModules>core;sql;widgets;concurrent</QtModules>
+    <QtModules>core;sql;widgets;concurrent;opengl;openglwidgets</QtModules>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') OR !Exists('$(QtMsBuild)\Qt.props')">
     <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
@@ -162,12 +162,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\ui\ProgressCounterWidget.cpp" />
+    <ClCompile Include="src\ui\ShaderSpinnerWidget.cpp" />
+    <ClCompile Include="src\ui\UiStatusModel.cpp" />
     <ClCompile Include="src\util\OrientImage.cpp" />
     <ClCompile Include="src\util\StorageInfo.cpp" />
     <ClCompile Include="src\ui\GroupWidget.cpp" />
     <ClCompile Include="src\pipeline\stages\ThumbnailGenerator.cpp" />
     <ClCompile Include="src\ui\ImageThumbWidget.cpp" />
-    <ClCompile Include="src\ui\WaitingSpinnerWidget.cpp" />
     <ClCompile Include="src\pipeline\SimilarityEngine.cpp" />
     <ClCompile Include="src\hashmethods\AverageHash.cpp" />
     <ClCompile Include="src\hashmethods\DifferenceHash.cpp" />
@@ -203,11 +204,12 @@
     <QtMoc Include="inc\photoboss\ui\GroupWidget.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\ThumbnailGenerator.h" />
     <QtMoc Include="inc\photoboss\ui\ImageThumbWidget.h" />
-    <QtMoc Include="inc\photoboss\ui\WaitingSpinnerWidget.h" />
     <QtMoc Include="inc\photoboss\ui\PreviewPane.h" />
     <QtMoc Include="inc\photoboss\ui\DeleteConfirmDialog.h" />
     <ClInclude Include="inc\photoboss\types\ExifData.h" />
     <QtMoc Include="inc\photoboss\ui\ProgressCounterWidget.h" />
+    <QtMoc Include="inc\photoboss\ui\UiStatusModel.h" />
+    <QtMoc Include="inc\photoboss\ui\ShaderSpinnerWidget.h" />
     <ClInclude Include="inc\photoboss\util\humanSize.h" />
     <ClInclude Include="inc\photoboss\util\OrientImage.h" />
     <ClInclude Include="inc\photoboss\util\StorageInfo.h" />

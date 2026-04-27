@@ -81,9 +81,6 @@
     <ClCompile Include="src\pipeline\stages\ThumbnailGenerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ui\WaitingSpinnerWidget.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\ui\DeleteConfirmDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -103,6 +100,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\pipeline\PipelineFactory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\UiStatusModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\ShaderSpinnerWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -149,9 +152,6 @@
     <QtMoc Include="inc\photoboss\pipeline\stages\ThumbnailGenerator.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\ui\WaitingSpinnerWidget.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
     <QtMoc Include="inc\photoboss\ui\DeleteConfirmDialog.h">
       <Filter>Header Files</Filter>
     </QtMoc>
@@ -165,6 +165,12 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="inc\photoboss\pipeline\stages\FileEnumerator.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="inc\photoboss\ui\UiStatusModel.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="inc\photoboss\ui\ShaderSpinnerWidget.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

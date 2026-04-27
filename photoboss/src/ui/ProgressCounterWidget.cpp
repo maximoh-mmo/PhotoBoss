@@ -28,14 +28,13 @@ namespace photoboss
 		m_progressLabel_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 		m_progressLabel_->setScaledContents(false);
 
-		m_spinner_ = new WaitingSpinnerWidget(this,true,false);
-		m_spinner_->hide();
+		m_spinner_ = new ShaderSpinnerWidget(this);
+		m_spinner_->setFixedSize(24, 24);
+		m_spinner_->show();
 
 		QHBoxLayout* layout = new QHBoxLayout(this);
 		layout->setContentsMargins(2, 2, 2, 2);
 		layout->setSpacing(6);
-
-		layout->addWidget(m_spinner_);
 
 		QWidget* textContainer = new QWidget(this);
 		QVBoxLayout* textLayout = new QVBoxLayout(textContainer);
@@ -47,74 +46,65 @@ namespace photoboss
 		textContainer->setLayout(textLayout);
 
 		layout->addWidget(textContainer);
+		layout->addWidget(m_spinner_);
 		setColour(Qt::gray);
 	}
 
 	void ProgressCounterWidget::setProgress(int progress)
 	{
-		m_progress_ = progress;
-		if (!m_active_) {
-			if (m_progress_ > 0) {
-				setActive(true);
-			}
-		}
-		if (m_total_ == 0) {
-			m_progressLabel_->setText(QString::number(m_progress_));
+		if (progress < 0) {
+			progress = 0;
 			return;
 		}
-		else {
+		if (m_state_ == NotStarted) {
+			m_state_ = InProgress;
+			m_spinner_->start();
+			setColour(Qt::yellow);
+		}
+		m_progress_ = progress;
+		if (m_total_ > 0) {
 			m_progressLabel_->setText(QString::number(m_progress_) + " / " + QString::number(m_total_));
-			if (m_progress_ >= m_total_) {
-				m_spinner_->stop();
-				setColour(Qt::green);
+			if(m_progress_ == m_total_) {
+				if (m_state_ != Finished) {
+					m_state_ = Finished;
+					m_spinner_->stop();
+					setColour(Qt::green);
+				}
 			}
+		}
+		else {
+			m_progressLabel_->setText(QString::number(m_progress_));
 		}
 	}
 	void ProgressCounterWidget::setTotal(int total)
 	{
 		m_total_ = total;
-		if (m_total_ == 0) {
-			m_progressLabel_->setText(QString::number(m_progress_));
-			return;
-		}
-		else {
-			m_progressLabel_->setText(QString::number(m_progress_) + " / " + QString::number(m_total_));
-			if (m_progress_ >= m_total_) {
-				m_spinner_->stop();
-				setColour(Qt::green);
-			}
-		}
 	}
 
-	void ProgressCounterWidget::setActive(bool active)
-	{
-		m_active_ = active;
-		if (m_active_) {
-			m_spinner_->start();
-			m_spinner_->show();
-			setColour(Qt::yellow);
-		}
-		else {
-			m_spinner_->stop();
-			m_spinner_->hide();
-		}
-	}
 	void ProgressCounterWidget::setColour(QColor colour) {
 		m_spinner_->setColor(colour);
 		this->setStyleSheet("color : " + colour.name() + ";");
 	}
 
-	void ProgressCounterWidget::finish()
+	void ProgressCounterWidget::reset() 
 	{
-		m_spinner_->stop();
-		setColour(Qt::green);
-	}
-	void ProgressCounterWidget::reset(int total) 
-	{
-		m_spinner_->hide();
 		setColour(Qt::gray);
 		m_progress_ = 0;
-		m_total_ = total;
+		m_total_ = 0;
 		m_progressLabel_->setText("0");
+		m_state_ = NotStarted;
+	}
+	void ProgressCounterWidget::switchState()
+	{
+		if (m_state_ == NotStarted) {
+			setTotal(10);
+			setProgress(1);
+		}
+		else if (m_state_ == InProgress) {
+			setProgress(10);
+		}
+		else {
+			reset();
+		}
 	}
 }

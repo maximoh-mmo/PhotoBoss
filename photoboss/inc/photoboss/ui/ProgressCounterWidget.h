@@ -3,32 +3,34 @@
 #include <QWidget.h>
 #include <QLabel.h>
 #include <qlayout.h>
-#include "ui/WaitingSpinnerWidget.h"
+#include "ui/ShaderSpinnerWidget.h"
 
 namespace photoboss {
 	
 	class ProgressCounterWidget : public QFrame
 	{
+		enum ProgressState {
+			NotStarted,
+			InProgress,
+			Finished
+		};
+
 		Q_OBJECT
 	public:
 		explicit ProgressCounterWidget(const QString& title, QWidget* parent = nullptr);
 		void setProgress(int progress);
 		void setTotal(int total);
-		void reset(int total = 0);
-		void finish();
-
-		int getProgress() const { return m_progress_; }
-		int getTotal() const { return m_total_; }
-	
+		void reset();
+		void switchState();
 	private:
 		void buildUi();
 		void setColour(QColor color);
-		void setActive(bool active);
 
+		ProgressState m_state_ = NotStarted;
 		int m_progress_ = 0;
 		int m_total_ = 0;
 		QString m_title_;
-		WaitingSpinnerWidget* m_spinner_ = nullptr;
+		ShaderSpinnerWidget* m_spinner_ = nullptr;
 		QLabel* m_titleLabel_ = nullptr;
 		QLabel* m_progressLabel_ = nullptr;
 		QLabel* m_totalLabel_ = nullptr;

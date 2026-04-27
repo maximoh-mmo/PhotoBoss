@@ -8,6 +8,7 @@
 #include "ui/ImageThumbWidget.h"
 #include "ui/DeleteConfirmDialog.h"
 #include "ui/ProgressCounterWidget.h"
+#include "ui/UiStatusModel.h"
 #include "util/StorageInfo.h"
 
 #include <QFileDialog>
@@ -94,10 +95,20 @@ namespace photoboss
         bodyLayout->setContentsMargins(0, 0, 0, 0);
         bodyLayout->addWidget(m_splitter_);
 
+        // Model that holds UI‑state for polling
+        m_statusModel_ = std::make_unique<UiStatusModel>(this);
+
+        // UI poll timer – 30 fps
+        m_uiPollTimer_ = new QTimer(this);
+        m_uiPollTimer_->setInterval(settings::UiPollIntervalMs);
+        connect(m_uiPollTimer_, &QTimer::timeout, this, &MainWindow::processUiUpdates);
+        // The original batch timer is retained for possible legacy use but will no longer be started.
         m_batchTimer_ = new QTimer(this);
         m_batchTimer_->setInterval(settings::MainWindowBatchTimerInterval); // 50fps-ish
-        connect(m_batchTimer_, &QTimer::timeout, this, &MainWindow::processBatch);
-        // We start it in onGroupAdded as needed
+        // No connection – processing is now done in processUiUpdates
+        // We start the poll timer in onPipelineStateChanged when Running.
+        // The old onGroupAdded logic that started the batch timer is removed.
+
 
         m_btn_delete_->setVisible(false);
         m_delete_count_label_->setVisible(false);
@@ -140,48 +151,34 @@ namespace photoboss
 
         connect(m_factory_scan_button_, &QPushButton::clicked, this, [this]() {
             auto state = m_pipeline_controller_->state();
-            if (state == PipelineController::PipelineState::Running) {
-                m_pipeline_controller_->stop();
-            }
-            else if (state == PipelineController::PipelineState::Stopped) {
-                const QString folder = GetCurrentFolder();
-                if (!folder.isEmpty()) {
-                    clearResults();
-                    m_pipeline_factory_->create(PipelineFactory::Config{ {folder, m_ui_->subfolders->isChecked()}, StorageInfo::isFastStorage(folder) ? PipelineFactory::StorageStrategy::Parallel : PipelineFactory::StorageStrategy::Sequential},0);
-                }
+            for (const auto& spinner : m_phase_indicators_) {
+                spinner->switchState();
             }
             });
 
-        connect(m_pipeline_controller_.get(), &PipelineController::status, this, [this](const QString& message) {
-            m_status_bar_->showMessage(message);
-            if (message.contains("Finished Scanning files")) {
-				m_phase_indicators_[PipelineController::Phase::Find]->finish();
-            }
-            });
+        // Forward status messages to the model (no UI side‑effect here)
+        connect(m_pipeline_controller_.get(), &PipelineController::status, this,
+            [this](const QString& message){ m_statusModel_->setStatusMessage(message); }, Qt::QueuedConnection);
 
+        // Forward updates to the model for polling
         connect(m_pipeline_controller_.get(), &PipelineController::groupAdded,
-            this, &MainWindow::onGroupAdded, Qt::QueuedConnection);
-
+            this, [this](const ImageGroup& g){ m_statusModel_->addPendingGroup(g); }, Qt::QueuedConnection);
         connect(m_pipeline_controller_.get(), &PipelineController::groupUpdated,
-            this, &MainWindow::onGroupUpdated, Qt::QueuedConnection);
-
+            this, [this](const ImageGroup& g){ m_statusModel_->updateGroup(g); }, Qt::QueuedConnection);
         connect(m_pipeline_controller_.get(), &PipelineController::thumbnailReady,
-            this, &MainWindow::onThumbnailReady, Qt::QueuedConnection);
-
+            this, [this](const ThumbnailResult& r){ m_statusModel_->setThumbnail(r); }, Qt::QueuedConnection);
+        connect(m_pipeline_controller_.get(), &PipelineController::phaseUpdate,
+            this, [this](PipelineController::Phase p, int c, int t){ m_statusModel_->setPhaseProgress(p, c, t); }, Qt::QueuedConnection);
+        // pipelineStateChanged still handled directly (button enable/disable)
         connect(m_pipeline_controller_.get(), &PipelineController::pipelineStateChanged,
             this, &MainWindow::onPipelineStateChanged, Qt::QueuedConnection);
 
         connect(m_btn_delete_, &QPushButton::clicked, this, &MainWindow::onDeleteClicked);
 
-        // Status bar - just display messages
+        // Show status messages (still needed for user feedback)
         connect(m_pipeline_controller_.get(), &PipelineController::status, this,
-            [this](const QString& message) {
-                m_status_bar_->showMessage(message);
-            });
+            [this](const QString& message){ m_status_bar_->showMessage(message); });
 
-        // Phase-specific signals - direct connections, no parsing
-        connect(m_pipeline_controller_.get(), &PipelineController::phaseUpdate,
-            this, &MainWindow::progressPhase);
     }
 
     void MainWindow::OnCurrentFolderChanged()
@@ -199,44 +196,113 @@ namespace photoboss
 
     void MainWindow::processBatch()
     {
-        if (m_pendingGroups_.empty()) return;
+        // Deprecated: original batch processing is now handled by polling.
+        // Kept for compatibility; does nothing.
+    }
 
-        int count = 0;
-        while (!m_pendingGroups_.empty() && count < settings::MainWindowBatchProcessSize) {
-            ImageGroup group = m_pendingGroups_.front();
-            m_pendingGroups_.pop_front();
+    // New polling‑driven UI update method
+    void MainWindow::processUiUpdates()
+    {
+        // 1️⃣ Get current snapshot
+        UiStatusModel::Snapshot snap = m_statusModel_->snapshot();
 
-            if (m_groupWidgets_.contains(group.id)) continue;
+        // 2️⃣ Early‑out if nothing changed since last poll
+        if (snap == m_lastSnapshot_)
+            return; // no UI work required
+        // Keep a copy for the next iteration
+        m_lastSnapshot_ = snap;
+
+        // 3️⃣ Process pending groups (batch limited)
+        int processed = 0;
+        while (!snap.pendingGroups.empty() && processed < settings::MainWindowBatchProcessSize) {
+            ImageGroup group = snap.pendingGroups.front();
+            snap.pendingGroups.pop_front(); // local copy only
+            if (m_groupWidgets_.contains(group.id)) { ++processed; continue; }
 
             auto* widget = new GroupWidget(group, m_thumbnail_container_);
             m_thumbnail_layout_->addWidget(widget);
             m_groupWidgets_[group.id] = widget;
-
-            // Connect selection changes to update delete button state
             connect(widget, &GroupWidget::selectionChanged, this, &MainWindow::onGroupSelectionChanged);
-
-            // Track if we found duplicates (groups with >1 image)
-            if (group.images.size() > 1) {
-                m_scan_found_duplicates_ = true;
-            }
-
-            // Register thumbnails for async update and check cache
+            if (group.images.size() > 1) m_scan_found_duplicates_ = true;
             for (const auto& entry : group.images) {
-                // Find the ImageThumbWidget inside the GroupWidget
                 for (auto* thumb : widget->findChildren<ImageThumbWidget*>()) {
                     if (thumb->Image().path == entry.path) {
-                        if (m_thumbnailCache_.contains(entry.path)) {
+                        if (m_thumbnailCache_.contains(entry.path))
                             thumb->setThumbnail(m_thumbnailCache_[entry.path]);
-                        }
-                        else {
+                        else
                             m_thumbnailWaiters_.insert(entry.path, thumb);
+                    }
+                }
+            }
+            connect(widget, &GroupWidget::previewImage, m_preview_pane_, &PreviewPane::showImage);
+            ++processed;
+        }
+
+        // 4️⃣ Updated groups
+        for (auto it = snap.updatedGroups.constBegin(); it != snap.updatedGroups.constEnd(); ++it) {
+            quint64 id = it.key();
+            const ImageGroup& group = it.value();
+            if (m_groupWidgets_.contains(id)) {
+                m_groupWidgets_[id]->updateGroup(group);
+                auto* widget = m_groupWidgets_[id];
+                for (const auto& entry : group.images) {
+                    bool alreadyWaiting = false;
+                    auto waiters = m_thumbnailWaiters_.values(entry.path);
+                    for (auto* w : waiters) {
+                        if (w->parentWidget() == widget) { alreadyWaiting = true; break; }
+                    }
+                    if (!alreadyWaiting) {
+                        for (auto* thumb : widget->findChildren<ImageThumbWidget*>()) {
+                            if (thumb->Image().path == entry.path) {
+                                if (m_thumbnailCache_.contains(entry.path))
+                                    thumb->setThumbnail(m_thumbnailCache_[entry.path]);
+                                else
+                                    m_thumbnailWaiters_.insert(entry.path, thumb);
+                            }
                         }
                     }
                 }
             }
+        }
 
-            connect(widget, &GroupWidget::previewImage, m_preview_pane_, &PreviewPane::showImage);
-            count++;
+        // 5️⃣ Thumbnails
+        for (auto it = snap.thumbnailCache.constBegin(); it != snap.thumbnailCache.constEnd(); ++it) {
+            const QString& path = it.key();
+            const QPixmap& pix = it.value();
+            auto waiters = m_thumbnailWaiters_.values(path);
+            for (auto* thumb : waiters) thumb->setThumbnail(pix);
+            m_thumbnailWaiters_.remove(path);
+        }
+
+        // 6️⃣ Phase progress
+        int cumCur = 0, cumTot = 0;
+        for (auto it = snap.phaseProgress.constBegin(); it != snap.phaseProgress.constEnd(); ++it) {
+            if (m_phase_indicators_.contains(it.key())) {
+                if (it.key() == PipelineController::Phase::Find) {
+                    cumTot = 3 * it.value().second;
+				}
+				cumCur += it.value().first;
+                m_phase_indicators_[it.key()]->setProgress(it.value().first);
+                m_phase_indicators_[it.key()]->setTotal(it.value().second);
+            }
+        }
+
+        // 7️⃣ Status bar
+        m_status_bar_->showMessage(snap.statusMessage);
+
+        // 8️⃣ Cumulative progress bar
+        if (m_progress_bar_) {
+            m_progress_bar_->setMaximum(cumTot);
+            m_progress_bar_->setValue(cumCur);
+        }
+
+        // 9️⃣ Delete button – update only when state or selection changed
+        static PipelineController::PipelineState lastState = PipelineController::PipelineState::Stopped;
+        int curSelection = countSelectedForDeletion();
+        if (snap.pipelineState != lastState || curSelection != m_lastSelectionCount_) {
+            updateDeleteButtonState();
+            m_lastSelectionCount_ = curSelection;
+            lastState = snap.pipelineState;
         }
     }
 
@@ -317,6 +383,9 @@ namespace photoboss
             m_browse_button_->setEnabled(false);
             m_btn_delete_->setVisible(false);
             resetPhaseIndicators();
+            // start UI polling
+            if (m_uiPollTimer_ && !m_uiPollTimer_->isActive())
+                m_uiPollTimer_->start();
             break;
 
         case PipelineController::PipelineState::Stopping:
@@ -329,6 +398,9 @@ namespace photoboss
             m_scan_button_->setText(tr("Start Scan"));
             m_scan_button_->setEnabled(true);
             m_browse_button_->setEnabled(true);
+            // Stop UI polling when not running
+            if (m_uiPollTimer_ && m_uiPollTimer_->isActive())
+                m_uiPollTimer_->stop();
             // Leave progress bar at 100% to show completion
 
             if (m_scan_found_duplicates_) {
@@ -347,11 +419,7 @@ namespace photoboss
     void MainWindow::updateDeleteButtonState()
     {
         int count = countSelectedForDeletion();
-        qDebug() << "[Delete Button] Count:" << count
-            << "Duplicates found:" << m_scan_found_duplicates_
-            << "Group count:" << m_groupWidgets_.size()
-            << "Pipeline state:" << static_cast<int>(m_pipeline_controller_->state());
-
+       
         if (m_delete_count_label_) {
             if (count > 0) {
                 m_delete_count_label_->setText(QString("%1 file(s) marked for deletion").arg(count));
@@ -369,12 +437,10 @@ namespace photoboss
             if (canDelete) {
                 m_btn_delete_->setVisible(true);
                 m_btn_delete_->setEnabled(true);
-                qDebug() << "[Delete Button] Setting visible and enabled";
             }
             else {
                 m_btn_delete_->setVisible(false);
                 m_btn_delete_->setEnabled(false);
-                qDebug() << "[Delete Button] Setting hidden/disabled";
             }
         }
     }
@@ -449,36 +515,6 @@ namespace photoboss
     {
         for (auto& indicator : m_phase_indicators_) {
             indicator->reset();
-        }
-    }
-
-void MainWindow::progressPhase(PipelineController::Phase phase, int count, int total)
-    {
-        if (m_phase_indicators_.contains(phase)) {
-            if (phase == PipelineController::Phase::Find) {
-                for (QMap<PipelineController::Phase, ProgressCounterWidget*>::iterator p = m_phase_indicators_.begin(); p != m_phase_indicators_.end(); ++p) {
-                    if (p.key() != phase) {
-                         p.value()->setTotal(total);
- 					}
- 				}
-            }
-            m_phase_indicators_[phase]->setProgress(count);
- 		}
-
-        // Update progress bar with cumulative progress from all 3 phases
-        if (m_progress_bar_) {
-            int findProgress = m_phase_indicators_[PipelineController::Phase::Find]->getProgress();
-            int findTotal = m_phase_indicators_[PipelineController::Phase::Find]->getTotal();
-            int analyzeProgress = m_phase_indicators_[PipelineController::Phase::Analyze]->getProgress();
-            int analyzeTotal = m_phase_indicators_[PipelineController::Phase::Analyze]->getTotal();
-            int groupProgress = m_phase_indicators_[PipelineController::Phase::Group]->getProgress();
-            int groupTotal = m_phase_indicators_[PipelineController::Phase::Group]->getTotal();
-
-            int cumulativeCurrent = findProgress + analyzeProgress + groupProgress;
-            int cumulativeTotal = findTotal + analyzeTotal + groupTotal;
-
-            m_progress_bar_->setMaximum(cumulativeTotal);
-            m_progress_bar_->setValue(cumulativeCurrent);
         }
     }
 }

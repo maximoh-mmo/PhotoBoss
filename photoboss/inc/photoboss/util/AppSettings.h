@@ -35,6 +35,7 @@ namespace photoboss::settings {
     static inline constexpr int MainWindowBatchProcessSize = 10;
     static inline constexpr int MainWindowBatchTimerInterval = 50; // ms
     static inline constexpr int MainWindowProgressTimerInterval = 30; // ms
+    static inline constexpr int UiPollIntervalMs = 33; // 30 fps
 
     // Progress throttling (time-based, per stage)
     static inline constexpr int ScannerProgressEmitIntervalMs = 200;   // 5/sec - Find phase

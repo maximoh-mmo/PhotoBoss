@@ -4,8 +4,9 @@
 #include <QOpenGLShaderProgram>
 #include <QPropertyAnimation>
 #include <QColor>
+#include <QOpenGLFunctions_3_3_Core>
 
-class ShaderSpinnerWidget : public QOpenGLWidget {
+class ShaderSpinnerWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
     Q_OBJECT
     Q_PROPERTY(float angle READ angle WRITE setAngle)
 
