@@ -22,7 +22,6 @@ void ShaderSpinnerWidget::start() {
 
 void ShaderSpinnerWidget::stop() {
     m_anim->stop();
-    hide();
 }
 
 void ShaderSpinnerWidget::setColor(const QColor& c) {
