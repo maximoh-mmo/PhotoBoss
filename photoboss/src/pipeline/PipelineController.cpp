@@ -55,6 +55,13 @@ namespace photoboss {
 
         Token t;
         if (m_pipeline_) {
+            m_pipeline_->scan.clear();
+            m_pipeline_->disk.clear();
+            m_pipeline_->readQueue.clear();
+            m_pipeline_->cacheStoreQueue.clear();
+            m_pipeline_->resultQueue.clear();
+            m_pipeline_->thumbnailQueue.clear();
+
             m_pipeline_->scan.request_shutdown(t);
 			m_pipeline_->disk.request_shutdown(t);
             m_pipeline_->readQueue.request_shutdown(t);
