@@ -17,6 +17,9 @@ class CacheLookup;
 class CacheStore;
 class HashWorker;
 class ThumbnailGenerator;
+namespace pipeline::factory {
+    class FactoryHashWorker;
+}
 
 class PipelineFactory : public QObject {
     Q_OBJECT
@@ -56,6 +59,7 @@ public:
         DiskReader* reader = nullptr;
         ResultProcessor* resultProcessor = nullptr;
         std::vector<HashWorker*> hashWorkers;
+        std::vector<pipeline::factory::FactoryHashWorker*> factoryHashWorkers;
         std::vector<ThumbnailGenerator*> thumbnailGenerators;
 
         std::vector<QThread*> hashWorkerThreads;

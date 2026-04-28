@@ -2,7 +2,7 @@
 #include "pipeline/stages/ExifRead.h"
 #include "pipeline/stages/FileEnumerator.h"
 #include "pipeline/stages/DiskReader.h"
-#include "pipeline/stages/HashWorker.h"
+#include "pipeline/factory/FactoryHashWorker.h"
 #include "pipeline/stages/ResultProcessor.h"
 #include "pipeline/stages/CacheLookup.h"
 #include "pipeline/stages/CacheStore.h"
@@ -99,14 +99,14 @@ void PipelineFactory::createHashWorkers(Pipeline& pipeline, const Config& config
         : 1;
 
     for (int i = 0; i < workers; ++i) {
-        HashWorker* worker = new HashWorker(
+        pipeline::factory::FactoryHashWorker* worker = new pipeline::factory::FactoryHashWorker(
             pipeline.readQueue,
             pipeline.cacheStoreQueue
         );
         QThread* thread = new QThread();
         pipeline.hashWorkerThreads.push_back(thread);
         worker->moveToThread(thread);
-        pipeline.hashWorkers.push_back(worker);
+		pipeline.factoryHashWorkers.push_back(worker);
     }
 }
 

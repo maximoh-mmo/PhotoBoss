@@ -161,6 +161,9 @@
     <QtMoc Include="inc\photoboss\ui\MainWindow.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\pipeline\factory\FactoryHashWorker.cpp" />
+    <ClCompile Include="src\pipeline\factory\HashEngine.cpp" />
+    <ClCompile Include="src\pipeline\factory\ImageLoader.cpp" />
     <ClCompile Include="src\ui\ProgressCounterWidget.cpp" />
     <ClCompile Include="src\ui\ShaderSpinnerWidget.cpp" />
     <ClCompile Include="src\ui\UiStatusModel.cpp" />
@@ -200,6 +203,9 @@
     <ClInclude Include="inc\photoboss\hashing\AverageHash.h" />
     <ClInclude Include="inc\photoboss\hashing\HashCatalog.h" />
     <ClInclude Include="inc\photoboss\hashing\PerceptualImage.h" />
+    <QtMoc Include="inc\photoboss\pipeline\factory\FactoryHashWorker.h" />
+    <ClInclude Include="inc\photoboss\pipeline\factory\HashEngine.h" />
+    <ClInclude Include="inc\photoboss\pipeline\factory\ImageLoader.h" />
     <ClInclude Include="inc\photoboss\pipeline\SimilarityEngine.h" />
     <QtMoc Include="inc\photoboss\ui\GroupWidget.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\ThumbnailGenerator.h" />
