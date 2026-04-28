@@ -150,11 +150,11 @@ namespace photoboss
             });
 
         connect(m_factory_scan_button_, &QPushButton::clicked, this, [this]() {
-            auto state = m_pipeline_controller_->state();
-            for (const auto& spinner : m_phase_indicators_) {
-                spinner->switchState();
+            // Show debug information for each phase indicator's labels and spinner
+            for (auto& indicator : m_phase_indicators_) {
+                indicator->switchState();
             }
-            });
+        });
 
         // Forward status messages to the model (no UI side‑effect here)
         connect(m_pipeline_controller_.get(), &PipelineController::status, this,

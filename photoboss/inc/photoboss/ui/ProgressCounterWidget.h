@@ -22,6 +22,7 @@ namespace photoboss {
 		void setTotal(int total);
 		void reset();
 		void switchState();
+
 	private:
 		void buildUi();
 		void setColour(QColor color);

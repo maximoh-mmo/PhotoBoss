@@ -113,6 +113,8 @@ void ShaderSpinnerWidget::initializeGL() {
 }
 
 void ShaderSpinnerWidget::paintGL() {
+    QColor bg = this->palette().color(QPalette::Window);
+    glClearColor(bg.redF(), bg.greenF(), bg.blueF(), 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     m_program.bind();

@@ -1,5 +1,6 @@
 #include "ui/ProgressCounterWidget.h"
 #include <QLabel.h>
+#include <qstyle.h>
 
 namespace photoboss
 {
@@ -25,21 +26,28 @@ namespace photoboss
 		m_progressLabel_->setObjectName("progressLabel");
 		m_progressLabel_->setText("0");
 		m_progressLabel_->setAlignment(Qt::AlignCenter);
+		m_progressLabel_->setFixedHeight(16);
 		m_progressLabel_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 		m_progressLabel_->setScaledContents(false);
 
 		m_spinner_ = new ShaderSpinnerWidget(this);
-		m_spinner_->setFixedSize(24, 24);
-		m_spinner_->show();
+		// Make spinner square matching twice the label height
+		int labelHeight = m_titleLabel_->sizeHint().height();
+		int spinnerSize = labelHeight * 2;
+		m_spinner_->setFixedSize(spinnerSize, spinnerSize);
+		QColor parentBg = this->palette().color(QPalette::Window);
+        m_spinner_->setStyleSheet(QString("background-color: %1;").arg(parentBg.name()));
+        m_spinner_->show();
 
 		QHBoxLayout* layout = new QHBoxLayout(this);
-		layout->setContentsMargins(2, 2, 2, 2);
-		layout->setSpacing(6);
+		layout->setAlignment(Qt::AlignCenter);
+		layout->setContentsMargins(2,2,2,2);
+		layout->setSpacing(0);
 
 		QWidget* textContainer = new QWidget(this);
 		QVBoxLayout* textLayout = new QVBoxLayout(textContainer);
-		textLayout->setContentsMargins(2, 2, 2, 2);
-		textLayout->setSpacing(6);
+		textLayout->setContentsMargins(32+16+2, 2, 18, 2);
+		textLayout->setSpacing(0);
 		
 		textLayout->addWidget(m_titleLabel_);
 		textLayout->addWidget(m_progressLabel_);
