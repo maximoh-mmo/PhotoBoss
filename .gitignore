@@ -364,3 +364,6 @@ FodyWeavers.xsd
 
 # Blog post drafts
 blog posts/*.md
+
+# Todo lists
+todo/*.md
