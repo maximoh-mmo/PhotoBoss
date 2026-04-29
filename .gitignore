@@ -366,4 +366,4 @@ FodyWeavers.xsd
 blog posts/*.md
 
 # Todo lists
-todo/*.md
+todo/*/*.md
