@@ -8,7 +8,7 @@
 #include "hashing/HashCatalog.h"
 #include "types/DataTypes.h"   // HashedImageResult, DiskReadResult, HashSource, etc.
 
-namespace photoboss::pipeline::factory {
+namespace photoboss {
 
 /**
  * Pure‑logic class that knows which hash methods require raw bytes and which

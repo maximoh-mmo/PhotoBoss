@@ -1,6 +1,7 @@
 #include "ui/mainwindow.h"
 #include "ui_mainwindow.h"
-#include "pipeline/PipelineController.h"
+#include "pipeline/stages/DirectoryScanner.h"
+#include "pipeline/stages/ThumbnailGenerator.h"
 #include "pipeline/PipelineFactory.h"
 #include "hashing/HashMethod.h"
 #include "ui/GroupWidget.h"
@@ -8,7 +9,7 @@
 #include "ui/ImageThumbWidget.h"
 #include "ui/DeleteConfirmDialog.h"
 #include "ui/ProgressCounterWidget.h"
-#include "ui/UiStatusModel.h"
+#include "ui/UiUpdateQueue.h"
 #include "util/StorageInfo.h"
 
 #include <QFileDialog>
@@ -21,7 +22,7 @@ namespace photoboss
         : QMainWindow(parent), m_ui_(new Ui::MainWindow)
 
     {
-        m_pipeline_controller_ = std::make_unique<PipelineController>(this);
+        m_pipeline_controller_ = std::make_unique<FactoryPipelineController>(this);
 		m_pipeline_factory_ = std::make_unique<PipelineFactory>(this);
 
         m_ui_->setupUi(this);
@@ -47,9 +48,9 @@ namespace photoboss
         m_delete_count_label_ = m_ui_->deleteCountLabel;
 
         // Phase indicator labels
-        m_phase_indicators_[PipelineController::Phase::Find] = new ProgressCounterWidget("Scan Progress", this);
-        m_phase_indicators_[PipelineController::Phase::Analyze] = new ProgressCounterWidget("Analyse Progress", this);
-        m_phase_indicators_[PipelineController::Phase::Group] = new ProgressCounterWidget("Group Progress", this);
+        m_phase_indicators_[pipeline::Phase::Find] = new ProgressCounterWidget("Scan Progress", this);
+        m_phase_indicators_[pipeline::Phase::Analyze] = new ProgressCounterWidget("Analyse Progress", this);
+        m_phase_indicators_[pipeline::Phase::Group] = new ProgressCounterWidget("Group Progress", this);
 		QWidget* container = new QWidget(m_ui_->phaseStrip);
         QHBoxLayout* layout = new QHBoxLayout(container);
         for (auto& indicator : m_phase_indicators_) {
@@ -95,20 +96,7 @@ namespace photoboss
         bodyLayout->setContentsMargins(0, 0, 0, 0);
         bodyLayout->addWidget(m_splitter_);
 
-        // Model that holds UI‑state for polling
-        m_statusModel_ = std::make_unique<UiStatusModel>(this);
-
-        // UI poll timer – 30 fps
-        m_uiPollTimer_ = new QTimer(this);
-        m_uiPollTimer_->setInterval(settings::UiPollIntervalMs);
-        connect(m_uiPollTimer_, &QTimer::timeout, this, &MainWindow::processUiUpdates);
-        // The original batch timer is retained for possible legacy use but will no longer be started.
-        m_batchTimer_ = new QTimer(this);
-        m_batchTimer_->setInterval(settings::MainWindowBatchTimerInterval); // 50fps-ish
-        // No connection – processing is now done in processUiUpdates
-        // We start the poll timer in onPipelineStateChanged when Running.
-        // The old onGroupAdded logic that started the batch timer is removed.
-
+        m_statusQueue_ = std::make_unique<UiUpdateQueue>(this);
 
         m_btn_delete_->setVisible(false);
         m_delete_count_label_->setVisible(false);
@@ -136,10 +124,10 @@ namespace photoboss
         connect(m_browse_button_, &QPushButton::clicked, this, &MainWindow::OnBrowse);
         connect(m_scan_button_, &QPushButton::clicked, this, [this]() {
             auto state = m_pipeline_controller_->state();
-            if (state == PipelineController::PipelineState::Running) {
+            if (state == pipeline::PipelineState::Running) {
                 m_pipeline_controller_->stop();
             }
-            else if (state == PipelineController::PipelineState::Stopped) {
+            else if (state == pipeline::PipelineState::Stopped) {
                 const QString folder = GetCurrentFolder();
                 if (!folder.isEmpty()) {
                     clearResults();
@@ -156,27 +144,40 @@ namespace photoboss
             }
         });
 
-        // Forward status messages to the model (no UI side‑effect here)
-        connect(m_pipeline_controller_.get(), &PipelineController::status, this,
-            [this](const QString& message){ m_statusModel_->setStatusMessage(message); }, Qt::QueuedConnection);
+        // Forward status messages to the queue (no UI side‑effect here)
+        connect(m_pipeline_controller_.get(), &FactoryPipelineController::status, this,
+            [this](const QString& message){ m_statusQueue_->setStatusMessage(message); }, Qt::QueuedConnection);
 
-        // Forward updates to the model for polling
-        connect(m_pipeline_controller_.get(), &PipelineController::groupAdded,
-            this, [this](const ImageGroup& g){ m_statusModel_->addPendingGroup(g); }, Qt::QueuedConnection);
-        connect(m_pipeline_controller_.get(), &PipelineController::groupUpdated,
-            this, [this](const ImageGroup& g){ m_statusModel_->updateGroup(g); }, Qt::QueuedConnection);
-        connect(m_pipeline_controller_.get(), &PipelineController::thumbnailReady,
-            this, [this](const ThumbnailResult& r){ m_statusModel_->setThumbnail(r); }, Qt::QueuedConnection);
-        connect(m_pipeline_controller_.get(), &PipelineController::phaseUpdate,
-            this, [this](PipelineController::Phase p, int c, int t){ m_statusModel_->setPhaseProgress(p, c, t); }, Qt::QueuedConnection);
-        // pipelineStateChanged still handled directly (button enable/disable)
-        connect(m_pipeline_controller_.get(), &PipelineController::pipelineStateChanged,
+        // Direct connections from pipeline workers to the queue (bypass controller forwarding)
+        if (auto* scanner = m_pipeline_controller_->scanner()) {
+            connect(scanner, &DirectoryScanner::groupFound,
+                m_statusQueue_.get(), &UiUpdateQueue::addPendingGroup, Qt::QueuedConnection);
+        }
+        // Hash workers may emit group updates – example connection (adjust signal name as needed)
+        // Assuming HashWorker has a signal `groupUpdated(const ImageGroup&)`
+        // for (auto* worker : m_pipeline_controller_->hashWorkers()) {
+        //     connect(worker, &HashWorker::groupUpdated,
+        //         m_statusQueue_.get(), &UiUpdateQueue::updateGroup, Qt::QueuedConnection);
+        // }
+        // Thumbnail generator emits thumbnailReady
+        if (auto* thumbGen = m_pipeline_controller_->thumbnailGenerator()) {
+            connect(thumbGen, &ThumbnailGenerator::thumbnailReady,
+                m_statusQueue_.get(), &UiUpdateQueue::setThumbnail, Qt::QueuedConnection);
+        }
+        // Phase progress updates – using controller's phaseUpdate signal (still forwarded)
+        connect(m_pipeline_controller_.get(), &FactoryPipelineController::phaseUpdate,
+            m_statusQueue_.get(),
+            [this](Pipeline::Phase p, int c, int t){ m_statusQueue_->setPhaseProgress(p, c, t); }, Qt::QueuedConnection);
+        // Pipeline state changes – still handled directly by MainWindow for UI button states
+        connect(m_pipeline_controller_.get(), &FactoryPipelineController::pipelineStateChanged,
             this, &MainWindow::onPipelineStateChanged, Qt::QueuedConnection);
 
-        connect(m_btn_delete_, &QPushButton::clicked, this, &MainWindow::onDeleteClicked);
+        // Connect the queue's snapshot signal to the UI slot
+        connect(m_statusQueue_.get(), &UiUpdateQueue::snapshotReady,
+                this, &MainWindow::applySnapshot, Qt::QueuedConnection);
 
         // Show status messages (still needed for user feedback)
-        connect(m_pipeline_controller_.get(), &PipelineController::status, this,
+        connect(m_pipeline_controller_.get(), &FactoryPipelineController::status, this,
             [this](const QString& message){ m_status_bar_->showMessage(message); });
 
     }
@@ -201,110 +202,108 @@ namespace photoboss
     }
 
     // New polling‑driven UI update method
-    void MainWindow::processUiUpdates()
-    {
-        // 1️⃣ Get current snapshot
-        UiStatusModel::Snapshot snap = m_statusModel_->snapshot();
+// New slot that receives a snapshot directly from UiUpdateQueue
+void MainWindow::applySnapshot(const UiUpdateQueue::Snapshot& snap)
+{
+    // The snapshot is already guaranteed to contain at least one change.
+    // Keep a copy for potential later comparisons (optional).
+    m_lastSnapshot_ = snap;
 
-        // 2️⃣ Early‑out if nothing changed since last poll
-        if (snap == m_lastSnapshot_)
-            return; // no UI work required
-        // Keep a copy for the next iteration
-        m_lastSnapshot_ = snap;
+    // 1️⃣ Process pending groups (batch limited)
+    int processed = 0;
+    while (!snap.pendingGroups.empty() && processed < settings::MainWindowBatchProcessSize) {
+        ImageGroup group = snap.pendingGroups.front();
+        // NOTE: snap is const, so we work on a copy of the deque element.
+        // No need to pop from the original container.
+        if (m_groupWidgets_.contains(group.id)) { ++processed; continue; }
 
-        // 3️⃣ Process pending groups (batch limited)
-        int processed = 0;
-        while (!snap.pendingGroups.empty() && processed < settings::MainWindowBatchProcessSize) {
-            ImageGroup group = snap.pendingGroups.front();
-            snap.pendingGroups.pop_front(); // local copy only
-            if (m_groupWidgets_.contains(group.id)) { ++processed; continue; }
-
-            auto* widget = new GroupWidget(group, m_thumbnail_container_);
-            m_thumbnail_layout_->addWidget(widget);
-            m_groupWidgets_[group.id] = widget;
-            connect(widget, &GroupWidget::selectionChanged, this, &MainWindow::onGroupSelectionChanged);
-            if (group.images.size() > 1) m_scan_found_duplicates_ = true;
-            for (const auto& entry : group.images) {
-                for (auto* thumb : widget->findChildren<ImageThumbWidget*>()) {
-                    if (thumb->Image().path == entry.path) {
-                        if (m_thumbnailCache_.contains(entry.path))
-                            thumb->setThumbnail(m_thumbnailCache_[entry.path]);
-                        else
-                            m_thumbnailWaiters_.insert(entry.path, thumb);
-                    }
+        auto* widget = new GroupWidget(group, m_thumbnail_container_);
+        m_thumbnail_layout_->addWidget(widget);
+        m_groupWidgets_[group.id] = widget;
+        connect(widget, &GroupWidget::selectionChanged, this, &MainWindow::onGroupSelectionChanged);
+        if (group.images.size() > 1) m_scan_found_duplicates_ = true;
+        for (const auto& entry : group.images) {
+            for (auto* thumb : widget->findChildren<ImageThumbWidget*>()) {
+                if (thumb->Image().path == entry.path) {
+                    if (m_thumbnailCache_.contains(entry.path))
+                        thumb->setThumbnail(m_thumbnailCache_[entry.path]);
+                    else
+                        m_thumbnailWaiters_.insert(entry.path, thumb);
                 }
             }
-            connect(widget, &GroupWidget::previewImage, m_preview_pane_, &PreviewPane::showImage);
-            ++processed;
         }
+        connect(widget, &GroupWidget::previewImage, m_preview_pane_, &PreviewPane::showImage);
+        ++processed;
+    }
 
-        // 4️⃣ Updated groups
-        for (auto it = snap.updatedGroups.constBegin(); it != snap.updatedGroups.constEnd(); ++it) {
-            quint64 id = it.key();
-            const ImageGroup& group = it.value();
-            if (m_groupWidgets_.contains(id)) {
-                m_groupWidgets_[id]->updateGroup(group);
-                auto* widget = m_groupWidgets_[id];
-                for (const auto& entry : group.images) {
-                    bool alreadyWaiting = false;
-                    auto waiters = m_thumbnailWaiters_.values(entry.path);
-                    for (auto* w : waiters) {
-                        if (w->parentWidget() == widget) { alreadyWaiting = true; break; }
-                    }
-                    if (!alreadyWaiting) {
-                        for (auto* thumb : widget->findChildren<ImageThumbWidget*>()) {
-                            if (thumb->Image().path == entry.path) {
-                                if (m_thumbnailCache_.contains(entry.path))
-                                    thumb->setThumbnail(m_thumbnailCache_[entry.path]);
-                                else
-                                    m_thumbnailWaiters_.insert(entry.path, thumb);
-                            }
+    // 2️⃣ Updated groups
+    for (auto it = snap.updatedGroups.constBegin(); it != snap.updatedGroups.constEnd(); ++it) {
+        quint64 id = it.key();
+        const ImageGroup& group = it.value();
+        if (m_groupWidgets_.contains(id)) {
+            m_groupWidgets_[id]->updateGroup(group);
+            auto* widget = m_groupWidgets_[id];
+            for (const auto& entry : group.images) {
+                bool alreadyWaiting = false;
+                auto waiters = m_thumbnailWaiters_.values(entry.path);
+                for (auto* w : waiters) {
+                    if (w->parentWidget() == widget) { alreadyWaiting = true; break; }
+                }
+                if (!alreadyWaiting) {
+                    for (auto* thumb : widget->findChildren<ImageThumbWidget*>()) {
+                        if (thumb->Image().path == entry.path) {
+                            if (m_thumbnailCache_.contains(entry.path))
+                                thumb->setThumbnail(m_thumbnailCache_[entry.path]);
+                            else
+                                m_thumbnailWaiters_.insert(entry.path, thumb);
                         }
                     }
                 }
             }
         }
+    }
 
-        // 5️⃣ Thumbnails
-        for (auto it = snap.thumbnailCache.constBegin(); it != snap.thumbnailCache.constEnd(); ++it) {
-            const QString& path = it.key();
-            const QPixmap& pix = it.value();
-            auto waiters = m_thumbnailWaiters_.values(path);
-            for (auto* thumb : waiters) thumb->setThumbnail(pix);
-            m_thumbnailWaiters_.remove(path);
-        }
+    // 3️⃣ Thumbnails
+    for (auto it = snap.thumbnailCache.constBegin(); it != snap.thumbnailCache.constEnd(); ++it) {
+        const QString& path = it.key();
+        const QPixmap& pix = it.value();
+        auto waiters = m_thumbnailWaiters_.values(path);
+        for (auto* thumb : waiters) thumb->setThumbnail(pix);
+        m_thumbnailWaiters_.remove(path);
+    }
 
-        // 6️⃣ Phase progress
-        int cumCur = 0, cumTot = 0;
-        for (auto it = snap.phaseProgress.constBegin(); it != snap.phaseProgress.constEnd(); ++it) {
-            if (m_phase_indicators_.contains(it.key())) {
-                if (it.key() == PipelineController::Phase::Find) {
-                    cumTot = 3 * it.value().second;
-				}
-				cumCur += it.value().first;
-                m_phase_indicators_[it.key()]->setProgress(it.value().first);
-                m_phase_indicators_[it.key()]->setTotal(it.value().second);
+    // 4️⃣ Phase progress
+    int cumCur = 0, cumTot = 0;
+    for (auto it = snap.phaseProgress.constBegin(); it != snap.phaseProgress.constEnd(); ++it) {
+        if (m_phase_indicators_.contains(it.key())) {
+            if (it.key() == Pipeline::Phase::Find) {
+                cumTot = 3 * it.value().second;
             }
-        }
-
-        // 7️⃣ Status bar
-        m_status_bar_->showMessage(snap.statusMessage);
-
-        // 8️⃣ Cumulative progress bar
-        if (m_progress_bar_) {
-            m_progress_bar_->setMaximum(cumTot);
-            m_progress_bar_->setValue(cumCur);
-        }
-
-        // 9️⃣ Delete button – update only when state or selection changed
-        static PipelineController::PipelineState lastState = PipelineController::PipelineState::Stopped;
-        int curSelection = countSelectedForDeletion();
-        if (snap.pipelineState != lastState || curSelection != m_lastSelectionCount_) {
-            updateDeleteButtonState();
-            m_lastSelectionCount_ = curSelection;
-            lastState = snap.pipelineState;
+            cumCur += it.value().first;
+            m_phase_indicators_[it.key()]->setProgress(it.value().first);
+            m_phase_indicators_[it.key()]->setTotal(it.value().second);
         }
     }
+
+    // 5️⃣ Status bar
+    m_status_bar_->showMessage(snap.statusMessage);
+
+    // 6️⃣ Cumulative progress bar
+    if (m_progress_bar_) {
+        m_progress_bar_->setMaximum(cumTot);
+        m_progress_bar_->setValue(cumCur);
+    }
+
+    // 7️⃣ Delete button – update only when state or selection changed
+    static Pipeline::PipelineState lastState = Pipeline::PipelineState::Stopped;
+    int curSelection = countSelectedForDeletion();
+    if (snap.pipelineState != lastState || curSelection != m_lastSelectionCount_) {
+        updateDeleteButtonState();
+        m_lastSelectionCount_ = curSelection;
+        lastState = snap.pipelineState;
+    }
+}
+
 
     void MainWindow::onGroupAdded(const ImageGroup& group)
     {
@@ -374,27 +373,28 @@ namespace photoboss
         m_scan_found_duplicates_ = false;
     }
 
-    void MainWindow::onPipelineStateChanged(PipelineController::PipelineState state)
+    void MainWindow::onPipelineStateChanged(Pipeline::PipelineState state)
     {
         switch (state) {
-        case PipelineController::PipelineState::Running:
+        case Pipeline::PipelineState::Running:
             m_scan_button_->setText(tr("Stop Scan"));
             m_scan_button_->setEnabled(true);
             m_browse_button_->setEnabled(false);
             m_btn_delete_->setVisible(false);
             resetPhaseIndicators();
-            // start UI polling
-            if (m_uiPollTimer_ && !m_uiPollTimer_->isActive())
-                m_uiPollTimer_->start();
+            // start UI polling – disabled during refactor
+            // if (m_uiPollTimer_ && !m_uiPollTimer_->isActive())
+            //     m_uiPollTimer_->start();
             break;
 
-        case PipelineController::PipelineState::Stopping:
+
+        case Pipeline::PipelineState::Stopping:
             m_scan_button_->setText(tr("Stopping..."));
             m_scan_button_->setEnabled(false);
             m_browse_button_->setEnabled(false);
             break;
 
-        case PipelineController::PipelineState::Stopped:
+        case Pipeline::PipelineState::Stopped:
             m_scan_button_->setText(tr("Start Scan"));
             m_scan_button_->setEnabled(true);
             m_browse_button_->setEnabled(true);
@@ -433,7 +433,7 @@ namespace photoboss
         if (m_btn_delete_) {
             // Only enable delete button when pipeline is fully stopped
             bool canDelete = count > 0 && m_scan_found_duplicates_
-                && m_pipeline_controller_->state() == PipelineController::PipelineState::Stopped;
+                && m_pipeline_controller_->state() == Pipeline::PipelineState::Stopped;
             if (canDelete) {
                 m_btn_delete_->setVisible(true);
                 m_btn_delete_->setEnabled(true);

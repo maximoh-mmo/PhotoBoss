@@ -11,7 +11,7 @@
 #include "pipeline/factory/HashEngine.h"
 #include "util/Queue.h"
 
-namespace photoboss::pipeline::factory {
+namespace photoboss {
 
 /**
  * Orchestrator used by the factory pipeline. It pulls DiskReadResult items from

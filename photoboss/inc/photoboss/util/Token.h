@@ -3,7 +3,7 @@ namespace photoboss
 {
     class Token {
     private:
-        friend class PipelineController;
+        friend class Pipeline;
         Token() = default;
     };
 }

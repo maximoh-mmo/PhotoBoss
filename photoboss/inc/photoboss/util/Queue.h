@@ -3,6 +3,7 @@
 #include <mutex>
 #include <condition_variable>
 #include "util/Token.h"
+#include "util/IQueue.h"
 
 /// <summary>
 /// A Thread-safe queue supporting bounded and unbounded modes, with proper shutdown handling.
@@ -13,7 +14,7 @@
 /// </summary>
 /// <typeparam name="T"></typeparam>
 template <typename T>
-class Queue
+class Queue : public IQueue
 {
 public:
     Queue(const Queue&) = delete;
@@ -78,7 +79,7 @@ public:
     }
 
     // Clears the queue and notifies waiting threads
-    void clear() {
+    void clear() override {
         std::unique_lock lock(m_mutex_);
         m_deque_.clear();
         m_notEmpty_.notify_all();
@@ -125,7 +126,7 @@ public:
     }
 
     // Request Shutdown
-    void request_shutdown(const photoboss::Token&) {
+    void request_shutdown(const photoboss::Token&) override {
         shutdown();
     }
 
@@ -139,7 +140,7 @@ private:
     std::condition_variable m_notFull_;
 
     // Signal Shutdown and wake all waiting threads
-    void shutdown() {
+    void shutdown() override {
         std::unique_lock lock(m_mutex_);
         b_shutdown_ = true;
         m_notEmpty_.notify_all();

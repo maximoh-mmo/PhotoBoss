@@ -161,12 +161,13 @@
     <QtMoc Include="inc\photoboss\ui\MainWindow.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="inc\photoboss\pipeline\Pipeline.cpp" />
     <ClCompile Include="src\pipeline\factory\FactoryHashWorker.cpp" />
     <ClCompile Include="src\pipeline\factory\HashEngine.cpp" />
     <ClCompile Include="src\pipeline\factory\ImageLoader.cpp" />
     <ClCompile Include="src\ui\ProgressCounterWidget.cpp" />
     <ClCompile Include="src\ui\ShaderSpinnerWidget.cpp" />
-    <ClCompile Include="src\ui\UiStatusModel.cpp" />
+    <ClCompile Include="src\ui\UiUpdateQueue.cpp" />
     <ClCompile Include="src\util\OrientImage.cpp" />
     <ClCompile Include="src\util\StorageInfo.cpp" />
     <ClCompile Include="src\ui\GroupWidget.cpp" />
@@ -185,7 +186,6 @@
     <ClCompile Include="src\pipeline\stages\DirectoryScanner.cpp" />
     <ClCompile Include="src\pipeline\stages\ExifRead.cpp" />
     <ClCompile Include="src\pipeline\stages\FileEnumerator.cpp" />
-    <ClCompile Include="src\pipeline\PipelineController.cpp" />
     <ClCompile Include="src\pipeline\PipelineFactory.cpp" />
     <ClCompile Include="src\pipeline\stages\ResultProcessor.cpp" />
     <ClCompile Include="src\pipeline\stages\DiskReader.cpp" />
@@ -195,6 +195,7 @@
     <ClCompile Include="src\ui\MainWindow.cpp" />
     <ClCompile Include="src\ui\PreviewPane.cpp" />
     <ClCompile Include="src\ui\DeleteConfirmDialog.cpp" />
+    <ClCompile Include="src\pipeline\FactoryPipelineController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\photoboss\caching\IHashCache.h" />
@@ -204,8 +205,10 @@
     <ClInclude Include="inc\photoboss\hashing\HashCatalog.h" />
     <ClInclude Include="inc\photoboss\hashing\PerceptualImage.h" />
     <QtMoc Include="inc\photoboss\pipeline\factory\FactoryHashWorker.h" />
+    <QtMoc Include="inc\photoboss\pipeline\FactoryPipelineController.h" />
     <ClInclude Include="inc\photoboss\pipeline\factory\HashEngine.h" />
     <ClInclude Include="inc\photoboss\pipeline\factory\ImageLoader.h" />
+    <QtMoc Include="inc\photoboss\pipeline\Pipeline.h" />
     <ClInclude Include="inc\photoboss\pipeline\SimilarityEngine.h" />
     <QtMoc Include="inc\photoboss\ui\GroupWidget.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\ThumbnailGenerator.h" />
@@ -214,9 +217,10 @@
     <QtMoc Include="inc\photoboss\ui\DeleteConfirmDialog.h" />
     <ClInclude Include="inc\photoboss\types\ExifData.h" />
     <QtMoc Include="inc\photoboss\ui\ProgressCounterWidget.h" />
-    <QtMoc Include="inc\photoboss\ui\UiStatusModel.h" />
     <QtMoc Include="inc\photoboss\ui\ShaderSpinnerWidget.h" />
+    <QtMoc Include="inc\photoboss\ui\UiUpdateQueue.h" />
     <ClInclude Include="inc\photoboss\util\humanSize.h" />
+    <ClInclude Include="inc\photoboss\util\IQueue.h" />
     <ClInclude Include="inc\photoboss\util\OrientImage.h" />
     <ClInclude Include="inc\photoboss\util\StorageInfo.h" />
     <ClInclude Include="inc\photoboss\util\Token.h" />
@@ -224,7 +228,6 @@
     <QtMoc Include="inc\photoboss\pipeline\stages\CacheStore.h" />
     <QtMoc Include="inc\photoboss\pipeline\StageBase.h" />
     <ClInclude Include="inc\photoboss\caching\SqliteHashCache.h" />
-    <QtMoc Include="inc\photoboss\pipeline\PipelineController.h" />
     <QtMoc Include="inc\photoboss\pipeline\PipelineFactory.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\ResultProcessor.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\DiskReader.h" />

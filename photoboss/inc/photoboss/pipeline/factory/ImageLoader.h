@@ -6,7 +6,7 @@
 
 #include "types/DataTypes.h"   // DiskReadResult, FileIdentity, etc.
 
-namespace photoboss::pipeline::factory {
+namespace photoboss {
 
 /**
  * Very small helper that knows how to turn a DiskReadResult (raw bytes) into a

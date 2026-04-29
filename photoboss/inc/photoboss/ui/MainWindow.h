@@ -16,17 +16,18 @@
 #include <deque>
 #include "ui/PreviewPane.h"
 #include "ui/ProgressCounterWidget.h"
-#include "pipeline/PipelineController.h"
-#include "ui/UiStatusModel.h"
+#include "pipeline/Pipeline.h"
+#include "ui/UiUpdateQueue.h"
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 namespace photoboss {
-	class PipelineController;
 	class PipelineFactory;
     class GroupWidget;
-	class ImageThumbWidget;
+    class ImageThumbWidget;
+    class FactoryPipelineController;
 
     class MainWindow : public QMainWindow {
         Q_OBJECT
@@ -50,8 +51,8 @@ namespace photoboss {
 
     private slots:
         void processBatch();
-        void processUiUpdates();
-        void onPipelineStateChanged(PipelineController::PipelineState state);
+        void applySnapshot(const UiUpdateQueue::Snapshot& snap);
+        void onPipelineStateChanged(Pipeline::PipelineState state);
         void onDeleteClicked();
         void onGroupSelectionChanged();
 
@@ -63,7 +64,7 @@ namespace photoboss {
 
 
         Ui::MainWindow* m_ui_ = nullptr;
-        std::unique_ptr<PipelineController> m_pipeline_controller_ = nullptr;
+        std::unique_ptr<FactoryPipelineController> m_pipeline_controller_ = nullptr;
 		std::unique_ptr<PipelineFactory> m_pipeline_factory_ = nullptr;
 
         QString m_current_folder_;
@@ -78,7 +79,7 @@ namespace photoboss {
         QLabel* m_delete_count_label_ = nullptr;
 
         // Phase indicators
-		QMap<PipelineController::Phase, ProgressCounterWidget*> m_phase_indicators_;
+		QMap<Pipeline::Phase, ProgressCounterWidget*> m_phase_indicators_;
 
         QScrollArea* m_body_ = nullptr;
         QSplitter* m_splitter_ = nullptr;
@@ -97,11 +98,11 @@ namespace photoboss {
         std::deque<ImageGroup> m_pendingGroups_;
         QTimer* m_batchTimer_ = nullptr;
         // Cache of the previous UI snapshot for early‑out
-        UiStatusModel::Snapshot m_lastSnapshot_;
+        UiUpdateQueue::Snapshot m_lastSnapshot_;
         // Remember previous selection count to avoid redundant delete‑button updates
         int m_lastSelectionCount_ = -1;
         QTimer* m_uiPollTimer_ = nullptr;
-        std::unique_ptr<UiStatusModel> m_statusModel_ = nullptr;
+        std::unique_ptr<UiUpdateQueue> m_statusQueue_ = nullptr;
 
     };
 }

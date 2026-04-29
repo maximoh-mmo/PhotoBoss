@@ -3,7 +3,6 @@
 #include "util/Queue.h"
 #include "types/DataTypes.h"
 #include "pipeline/StageBase.h"
-#include "pipeline/PipelineController.h"
 #include "types/GroupTypes.h"
 #include "hashing/HashMethod.h"
 

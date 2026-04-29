@@ -10,6 +10,7 @@
 #include "pipeline/StageBase.h"
 #include "caching/SqliteHashCache.h"
 #include "util/AppSettings.h"
+#include "pipeline/Pipeline.h"
 
 #ifdef Q_PRIVATE_SLOTS
 #undef Q_PRIVATE_SLOTS
@@ -17,134 +18,156 @@
 
 namespace photoboss {
 
-PipelineFactory::PipelineFactory(QObject* parent)
-    : QObject(parent)
-{
-}
-
-PipelineFactory::~PipelineFactory()
-{
-}
-
-std::unique_ptr<PipelineFactory::Pipeline> PipelineFactory::create(const Config& config, quint64 scanId)
-{
-    auto pipeline = std::make_unique<Pipeline>();
-
-    createFileEnumerator(*pipeline, config);
-    createExifReaders(*pipeline, config);
-    createCacheLookup(*pipeline, config, scanId);
-    createDiskReader(*pipeline, config);
-    createHashWorkers(*pipeline, config);
-    createCacheStore(*pipeline, config, scanId);
-    createThumbnailGenerators(*pipeline, config);
-    createResultProcessor(*pipeline, config);
-
-    return pipeline;
-}
-
-void PipelineFactory::createFileEnumerator(Pipeline& pipeline, const Config& config)
-{
-    pipeline.enumerator = new FileEnumerator(
-        config.request,
-        pipeline.pathsQueue
-    );
-    pipeline.enumerator->moveToThread(&pipeline.enumeratorThread);
-}
-
-void PipelineFactory::createExifReaders(Pipeline& pipeline, const Config& config)
-{
-    pipeline.exifQueue.register_producer();
-
-    const int workerCount = config.storage == StorageStrategy::Parallel
-        ? std::max(1, QThread::idealThreadCount() - 1)
-        : 1;
-
-    for (int i = 0; i < workerCount; ++i) {
-        ExifRead* reader = new ExifRead(
-            pipeline.pathsQueue,
-            pipeline.exifQueue
-        );
-        QThread* thread = new QThread();
-        pipeline.exifReaderThreads.push_back(thread);
-        reader->moveToThread(thread);
-        pipeline.exifReaders.push_back(reader);
+    PipelineFactory::PipelineFactory(QObject* parent)
+        : QObject(parent)
+    {
     }
-}
 
-void PipelineFactory::createCacheLookup(Pipeline& pipeline, const Config& config, quint64 scanId)
-{
-    pipeline.cacheLookup = new CacheLookup(
-        pipeline.exifQueue,
-        pipeline.disk,
-        pipeline.resultQueue,
-        "CacheLookup",
-        scanId
-    );
-    pipeline.cacheLookup->moveToThread(&pipeline.cacheLookupThread);
-}
-
-void PipelineFactory::createDiskReader(Pipeline& pipeline, const Config& config)
-{
-    pipeline.reader = new DiskReader(
-        pipeline.disk,
-        pipeline.readQueue
-    );
-    pipeline.reader->moveToThread(&pipeline.readerThread);
-}
-
-void PipelineFactory::createHashWorkers(Pipeline& pipeline, const Config& config)
-{
-    const int workers = config.storage == StorageStrategy::Parallel
-        ? std::max(1, QThread::idealThreadCount() - 1)
-        : 1;
-
-    for (int i = 0; i < workers; ++i) {
-        pipeline::factory::FactoryHashWorker* worker = new pipeline::factory::FactoryHashWorker(
-            pipeline.readQueue,
-            pipeline.cacheStoreQueue
-        );
-        QThread* thread = new QThread();
-        pipeline.hashWorkerThreads.push_back(thread);
-        worker->moveToThread(thread);
-		pipeline.factoryHashWorkers.push_back(worker);
+    PipelineFactory::~PipelineFactory()
+    {
     }
-}
 
-void PipelineFactory::createCacheStore(Pipeline& pipeline, const Config& config, quint64 scanId)
-{
-    pipeline.cacheStore = new CacheStore(
-        pipeline.cacheStoreQueue,
-        pipeline.resultQueue,
-        "CacheStore",
-        scanId
-    );
-    pipeline.cacheStore->moveToThread(&pipeline.cacheStoreThread);
-}
+    std::unique_ptr<Pipeline> PipelineFactory::create(const Config& config)
+    {
+        auto pipeline = std::make_unique<Pipeline>();
 
-void PipelineFactory::createThumbnailGenerators(Pipeline& pipeline, const Config& config)
-{
-    const int workers = std::max(2, QThread::idealThreadCount() / 2);
-
-    for (int i = 0; i < workers; ++i) {
-        ThumbnailGenerator* worker = new ThumbnailGenerator(
-            pipeline.thumbnailQueue,
-            "ThumbnailWorker"
+        Queue<std::shared_ptr<QStringList>> pathsQueue;
+        auto enumerator = new FileEnumerator(
+            config.request,
+            pathsQueue
         );
-        QThread* thread = new QThread();
-        pipeline.thumbnailWorkerThreads.push_back(thread);
-        worker->moveToThread(thread);
-        pipeline.thumbnailGenerators.push_back(worker);
+
+        QThread enumeratorThread;
+        enumerator->moveToThread(&enumeratorThread);
+        
+        pipeline->AddQueue(&pathsQueue);
+        pipeline->AddStage(enumerator);
+        pipeline->AddThread(&enumeratorThread);
+
+        const int workerCount = config.storage == StorageStrategy::Parallel
+            ? std::max(1, QThread::idealThreadCount() - 1)
+            : 1;
+
+        Queue<FileIdentityBatchPtr> exifQueue;
+        std::vector<QThread*> exifReaderThreads;
+        std::vector<ExifRead*> exifReaders;
+
+        for (int i = 0; i < workerCount; ++i) {
+            ExifRead* reader = new ExifRead(
+                pathsQueue,
+                exifQueue
+            );
+            QThread* thread = new QThread();
+            exifReaderThreads.push_back(thread);
+            reader->moveToThread(thread);
+            exifReaders.push_back(reader);
+        }
+		pipeline->AddQueue(&exifQueue);
+		for (auto reader : exifReaders) {
+            pipeline->AddStage(reader);
+        }
+        for (auto thread : exifReaderThreads) {
+            pipeline->AddThread(thread);
+		}
+
+        Queue<FileIdentityBatchPtr> disk;
+        Queue<std::shared_ptr<HashedImageResult>> resultQueue;
+        CacheLookup* cacheLookup = new CacheLookup(
+            exifQueue,
+            disk,
+            resultQueue,
+            "CacheLookup",
+			pipeline->ScanId()
+        );
+
+        QThread cacheLookupThread;
+        cacheLookup->moveToThread(&cacheLookupThread);
+		pipeline->AddQueue(&disk);
+		pipeline->AddQueue(&resultQueue);
+		pipeline->AddStage(cacheLookup);
+        pipeline->AddThread(&cacheLookupThread);
+
+        Queue<std::unique_ptr<DiskReadResult>> readQueue;
+        DiskReader* reader = new DiskReader(
+            disk,
+            readQueue
+        );
+
+        QThread readerThread;
+        reader->moveToThread(&readerThread);
+        pipeline->AddQueue(&readQueue);
+        pipeline->AddStage(reader);
+        pipeline->AddThread(&readerThread);
+
+        int workers = config.storage == StorageStrategy::Parallel
+            ? std::max(1, QThread::idealThreadCount() - 1)
+            : 1;
+
+        Queue<std::shared_ptr<HashedImageResult>> cacheStoreQueue;
+        std::vector<FactoryHashWorker*> factoryHashWorkers;
+        std::vector<QThread*> hashWorkerThreads;
+        for (int i = 0; i < workers; ++i) {
+            FactoryHashWorker* worker = new FactoryHashWorker(
+                readQueue,
+                cacheStoreQueue
+            );
+            QThread* thread = new QThread();
+            hashWorkerThreads.push_back(thread);
+            worker->moveToThread(thread);
+            factoryHashWorkers.push_back(worker);
+        }
+		pipeline->AddQueue(&cacheStoreQueue);
+        for (auto worker : factoryHashWorkers) {
+            pipeline->AddStage(worker);
+		}
+        for (auto thread : hashWorkerThreads) {
+            pipeline->AddThread(thread);
+        }
+
+        QThread cacheStoreThread;
+        CacheStore* cacheStore = new CacheStore(
+            cacheStoreQueue,
+            resultQueue,
+            "CacheStore",
+            pipeline->ScanId()
+        );
+        cacheStore->moveToThread(&cacheStoreThread);
+        pipeline->AddStage(cacheStore);
+        pipeline->AddThread(&cacheStoreThread);
+
+        workers = std::max(2, QThread::idealThreadCount() / 2);
+        std::vector<QThread*> thumbnailWorkerThreads;
+        Queue<ThumbnailRequestPtr> thumbnailQueue;
+        std::vector<ThumbnailGenerator*> thumbnailGenerators;
+
+        for (int i = 0; i < workers; ++i) {
+            ThumbnailGenerator* worker = new ThumbnailGenerator(
+                thumbnailQueue,
+                "ThumbnailWorker"
+            );
+            QThread* thread = new QThread();
+            thumbnailWorkerThreads.push_back(thread);
+            worker->moveToThread(thread);
+            thumbnailGenerators.push_back(worker);
+        }
+		pipeline->AddQueue(&thumbnailQueue);
+        for (auto worker : thumbnailGenerators) {
+			pipeline->AddStage(worker);
+		}
+        for (auto thread : thumbnailWorkerThreads) {
+            pipeline->AddThread(thread);
+        }
+
+        QThread resultThread;
+
+        ResultProcessor* resultProcessor = new ResultProcessor(
+            resultQueue,
+            thumbnailQueue,
+            "ResultProcessor"
+        );
+        resultProcessor->moveToThread(&resultThread);
+
+		return pipeline;
+
     }
-}
-
-void PipelineFactory::createResultProcessor(Pipeline& pipeline, const Config& config)
-{
-    pipeline.resultProcessor = new ResultProcessor(
-        pipeline.resultQueue,
-        pipeline.thumbnailQueue,
-        "ResultProcessor"
-    );
-    pipeline.resultProcessor->moveToThread(&pipeline.resultThread);
-}
-
 }

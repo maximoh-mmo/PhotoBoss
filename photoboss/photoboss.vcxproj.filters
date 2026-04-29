@@ -33,9 +33,6 @@
     <ClCompile Include="src\pipeline\stages\ResultProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\pipeline\PipelineController.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\pipeline\stages\DirectoryScanner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -102,9 +99,6 @@
     <ClCompile Include="src\pipeline\PipelineFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ui\UiStatusModel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\ui\ShaderSpinnerWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -115,6 +109,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\pipeline\factory\ImageLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pipeline\FactoryPipelineController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\UiUpdateQueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="inc\photoboss\pipeline\Pipeline.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -132,9 +135,6 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="inc\photoboss\pipeline\stages\ResultProcessor.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="inc\photoboss\pipeline\PipelineController.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="inc\photoboss\pipeline\stages\DirectoryScanner.h">
@@ -176,13 +176,19 @@
     <QtMoc Include="inc\photoboss\pipeline\stages\FileEnumerator.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\ui\UiStatusModel.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
     <QtMoc Include="inc\photoboss\ui\ShaderSpinnerWidget.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="inc\photoboss\pipeline\factory\FactoryHashWorker.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="inc\photoboss\pipeline\FactoryPipelineController.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="inc\photoboss\ui\UiUpdateQueue.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="inc\photoboss\pipeline\Pipeline.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
@@ -260,6 +266,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\photoboss\pipeline\factory\ImageLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\util\IQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

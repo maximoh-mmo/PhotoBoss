@@ -1,7 +1,7 @@
 #include "pipeline/factory/FactoryHashWorker.h"
 #include <QDebug>
 
-namespace photoboss::pipeline::factory {
+namespace photoboss {
 
 FactoryHashWorker::FactoryHashWorker(Queue<std::unique_ptr<DiskReadResult>>& inputQueue,
                                      Queue<std::shared_ptr<HashedImageResult>>& outputQueue,

@@ -1,7 +1,7 @@
 #include "pipeline/factory/HashEngine.h"
 #include <QDebug>
 
-namespace photoboss::pipeline::factory {
+namespace photoboss {
 
 HashEngine::HashEngine(std::vector<HashCatalog::Entry> methods) {
     // Separate the methods by the type of input they require.
