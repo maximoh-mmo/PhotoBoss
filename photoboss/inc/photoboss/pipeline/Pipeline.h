@@ -2,6 +2,7 @@
 #include "util/Queue.h"
 #include "types/DataTypes.h"
 #include <qthread.h>
+#include <memory>
 #include "StageBase.h"
 
 namespace photoboss {
@@ -27,19 +28,20 @@ namespace photoboss {
 		~Pipeline();
 
         void AddStage(StageBase* stage) { allStages.push_back(std::move(stage)); }
-        void AddQueue(IQueue* queue) { allQueues.push_back(std::move(queue)); }
+        void AddQueue(std::unique_ptr<IQueue> queue) { allQueues.push_back(std::move(queue)); }
         void AddThread(QThread* thread) { allThreads.push_back(std::move(thread)); }
 
-        void clearQueues();
-        void requestShutdown();
-        void SetPipelineState(PipelineState state) { this->state = state; }
-        PipelineState GetPipelineState() const { return state; }
+		void start();
+		void stop();
+        PipelineState State() const { return state; }
 		Phase GetPhase() const { return currentPhase; }
 		quint64 ScanId() const { return m_scanId_; }
 
     private:
+        void clearQueues();
+        void requestShutdown();
         std::vector<StageBase*> allStages;
-        std::vector<IQueue*> allQueues;
+        std::vector<std::unique_ptr<IQueue>> allQueues;
         std::vector<QThread*> allThreads;
 		Phase currentPhase = Phase::Find;
 		PipelineState state = PipelineState::Stopped;

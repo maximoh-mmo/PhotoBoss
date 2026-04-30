@@ -21,13 +21,11 @@ namespace photoboss {
     class StageBase : public QObject {
         Q_OBJECT
     public:
-        explicit StageBase(QString id, QObject* parent = nullptr)
-            : m_id_(std::move(id)), QObject(parent) {
+        explicit StageBase(QObject* parent = nullptr)
+            : QObject(parent) {
         }
         ~StageBase() override = default;
     
-        QString stageId() const { return m_id_; }
-
         void Run() {
             try {
                 run();
@@ -57,8 +55,5 @@ namespace photoboss {
             }
             return false;
         }
-    
-    private:
-        QString m_id_;
     };
 }

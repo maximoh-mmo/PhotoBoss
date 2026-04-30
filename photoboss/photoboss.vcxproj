@@ -219,6 +219,7 @@
     <QtMoc Include="inc\photoboss\ui\ProgressCounterWidget.h" />
     <QtMoc Include="inc\photoboss\ui\ShaderSpinnerWidget.h" />
     <QtMoc Include="inc\photoboss\ui\UiUpdateQueue.h" />
+    <ClInclude Include="inc\photoboss\ui\IUiUpdateSink.h" />
     <ClInclude Include="inc\photoboss\util\humanSize.h" />
     <ClInclude Include="inc\photoboss\util\IQueue.h" />
     <ClInclude Include="inc\photoboss\util\OrientImage.h" />

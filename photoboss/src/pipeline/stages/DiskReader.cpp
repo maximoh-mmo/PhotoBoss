@@ -10,7 +10,7 @@ namespace photoboss {
         Queue<FileIdentityBatchPtr>& input_queue,
         Queue<std::unique_ptr<DiskReadResult>>& queue,
         QObject* parent)
-        : StageBase("DiskReader",parent), m_input_queue_(input_queue), m_output_queue_(queue) {
+        : StageBase(parent), m_input_queue_(input_queue), m_output_queue_(queue) {
         m_output_queue_.register_producer();
     }
 

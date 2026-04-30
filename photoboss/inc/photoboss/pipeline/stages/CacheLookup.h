@@ -16,7 +16,6 @@ namespace photoboss
 			Queue<FileIdentityBatchPtr>& input,
 			Queue<FileIdentityBatchPtr>& diskOut,
 			Queue< std::shared_ptr<HashedImageResult>>& resultOut,
-			QString id,
 			quint64 scanId,
 			QObject* parent = nullptr
 		);

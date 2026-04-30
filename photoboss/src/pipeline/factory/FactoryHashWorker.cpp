@@ -6,7 +6,7 @@ namespace photoboss {
 FactoryHashWorker::FactoryHashWorker(Queue<std::unique_ptr<DiskReadResult>>& inputQueue,
                                      Queue<std::shared_ptr<HashedImageResult>>& outputQueue,
                                      QObject* parent)
-    : StageBase("FactoryHashWorker", parent)
+    : StageBase(parent)
     , m_inputQueue(inputQueue)
     , m_outputQueue(outputQueue)
     , m_imageLoader()

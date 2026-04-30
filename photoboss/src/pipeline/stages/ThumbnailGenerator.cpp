@@ -7,9 +7,8 @@ namespace photoboss {
 
     ThumbnailGenerator::ThumbnailGenerator(
         Queue<ThumbnailRequestPtr>& input,
-        QString id,
         QObject* parent
-    ) : StageBase(std::move(id), parent), m_input_(input)
+    ) : StageBase(parent), m_input_(input)
     {
     }
 

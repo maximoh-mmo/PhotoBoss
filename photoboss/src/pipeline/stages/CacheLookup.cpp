@@ -4,8 +4,8 @@
 namespace photoboss
 {
 	CacheLookup::CacheLookup(Queue<FileIdentityBatchPtr>& input, Queue<FileIdentityBatchPtr>& diskOut, 
-        Queue<std::shared_ptr<HashedImageResult>>& resultOut, QString id, quint64 scanId, QObject* parent)
-		: StageBase(id, parent),
+        Queue<std::shared_ptr<HashedImageResult>>& resultOut, quint64 scanId, QObject* parent)
+		: StageBase(parent),
 		m_inputQueue_(input),
 		m_diskReadQueue_(diskOut),
 		m_resultQueue_(resultOut),

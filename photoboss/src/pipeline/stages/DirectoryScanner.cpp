@@ -9,7 +9,7 @@
 namespace photoboss {
 
     DirectoryScanner::DirectoryScanner(ScanRequest request, Queue<FileIdentityBatchPtr>& outputQueue, QObject* parent) :
-        StageBase("DirectoryScanner", parent),
+        StageBase(parent),
         m_request_(std::move(request)),
         m_output_(outputQueue)
     {

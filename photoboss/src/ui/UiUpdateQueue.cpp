@@ -14,8 +14,8 @@ void UiUpdateQueue::scheduleSnapshotEmit()
         m_emitPending = true;
         // Use QueuedConnection so the call is executed on the UI thread
         QMetaObject::invokeMethod(this,
-                                  &UiUpdateQueue::maybeEmitSnapshot,
-                                  Qt::QueuedConnection);
+            &UiUpdateQueue::maybeEmitSnapshot,
+            Qt::QueuedConnection);
     }
 }
 

@@ -35,7 +35,6 @@ namespace photoboss {
         explicit ResultProcessor(
             Queue<std::shared_ptr<HashedImageResult>>& queue,
             Queue<ThumbnailRequestPtr>& thumbnailQueue,
-            QString id, 
             QObject* parent = nullptr
         );
 

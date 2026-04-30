@@ -167,9 +167,6 @@
     <QtMoc Include="inc\photoboss\ui\ProgressCounterWidget.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\pipeline\PipelineFactory.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
     <QtMoc Include="inc\photoboss\pipeline\stages\ExifRead.h">
       <Filter>Header Files</Filter>
     </QtMoc>
@@ -185,10 +182,13 @@
     <QtMoc Include="inc\photoboss\pipeline\FactoryPipelineController.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\ui\UiUpdateQueue.h">
+    <QtMoc Include="inc\photoboss\pipeline\Pipeline.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\pipeline\Pipeline.h">
+    <QtMoc Include="inc\photoboss\pipeline\PipelineFactory.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="inc\photoboss\ui\UiUpdateQueue.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
@@ -269,6 +269,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\photoboss\util\IQueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\photoboss\ui\IUiUpdateSink.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

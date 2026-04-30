@@ -8,7 +8,7 @@ FileEnumerator::FileEnumerator(
     ScanRequest request,
     Queue<std::shared_ptr<QStringList>>& outputQueue,
     QObject* parent)
-    : StageBase("FileEnumerator", parent)
+    : StageBase(parent)
     , m_request_(std::move(request))
     , m_outputQueue_(outputQueue)
 {

@@ -15,7 +15,6 @@ namespace photoboss
 		CacheStore(
 			Queue<std::shared_ptr<HashedImageResult>>& input,
 			Queue<std::shared_ptr<HashedImageResult>>& output,
-			QString id,
 			quint64 scanId,
 			QObject* parent = nullptr
 		);

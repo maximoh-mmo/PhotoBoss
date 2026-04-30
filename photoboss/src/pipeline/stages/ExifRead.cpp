@@ -9,7 +9,7 @@ ExifRead::ExifRead(
     Queue<std::shared_ptr<QStringList>>& inputQueue,
     Queue<FileIdentityBatchPtr>& outputQueue,
     QObject* parent)
-    : StageBase("ImageMetadataReader", parent)
+    : StageBase(parent)
     , m_inputQueue_(inputQueue)
     , m_outputQueue_(outputQueue)
 {

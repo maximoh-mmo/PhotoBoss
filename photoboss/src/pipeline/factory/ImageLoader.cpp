@@ -3,7 +3,7 @@
 #include <QImageReader>
 #include <QFileInfo>
 
-namespace photoboss::pipeline::factory {
+namespace photoboss {
 
 std::optional<QImage> ImageLoader::load(const DiskReadResult &item) const {
     // Build the full path from the FileIdentity stored in DiskReadResult.

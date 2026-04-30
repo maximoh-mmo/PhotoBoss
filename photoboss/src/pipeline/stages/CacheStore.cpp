@@ -6,9 +6,9 @@ namespace photoboss
     CacheStore::CacheStore(
         Queue<std::shared_ptr<HashedImageResult>>& input,
         Queue<std::shared_ptr<HashedImageResult>>& output,
-        QString id, quint64 scanId, QObject* parent
+        quint64 scanId, QObject* parent
     ) :
-        StageBase(id, parent),
+        StageBase(parent),
         m_cache_(std::make_unique<SqliteHashCache>(scanId)),
         m_output_(output),
         m_input_(input)

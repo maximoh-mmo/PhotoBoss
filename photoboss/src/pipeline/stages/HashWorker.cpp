@@ -12,7 +12,7 @@ namespace photoboss {
 HashWorker::HashWorker(Queue<std::unique_ptr<DiskReadResult>> &inputQueue,
                        Queue<std::shared_ptr<HashedImageResult>> &outputQueue,
                        QObject *parent)
-    : StageBase("HashWorker", parent), m_input_(inputQueue),
+    : StageBase(parent), m_input_(inputQueue),
       m_output_(outputQueue),
       m_hashMethods_(std::move(HashCatalog::createAll())) {
   m_output_.register_producer();

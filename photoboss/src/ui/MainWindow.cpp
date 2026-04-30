@@ -11,6 +11,8 @@
 #include "ui/ProgressCounterWidget.h"
 #include "ui/UiUpdateQueue.h"
 #include "util/StorageInfo.h"
+#include "pipeline/FactoryPipelineController.h"
+#include "pipeline/Pipeline.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -48,9 +50,9 @@ namespace photoboss
         m_delete_count_label_ = m_ui_->deleteCountLabel;
 
         // Phase indicator labels
-        m_phase_indicators_[pipeline::Phase::Find] = new ProgressCounterWidget("Scan Progress", this);
-        m_phase_indicators_[pipeline::Phase::Analyze] = new ProgressCounterWidget("Analyse Progress", this);
-        m_phase_indicators_[pipeline::Phase::Group] = new ProgressCounterWidget("Group Progress", this);
+        m_phase_indicators_[Pipeline::Phase::Find] = new ProgressCounterWidget("Scan Progress", this);
+        m_phase_indicators_[Pipeline::Phase::Analyze] = new ProgressCounterWidget("Analyse Progress", this);
+        m_phase_indicators_[Pipeline::Phase::Group] = new ProgressCounterWidget("Group Progress", this);
 		QWidget* container = new QWidget(m_ui_->phaseStrip);
         QHBoxLayout* layout = new QHBoxLayout(container);
         for (auto& indicator : m_phase_indicators_) {
@@ -124,10 +126,10 @@ namespace photoboss
         connect(m_browse_button_, &QPushButton::clicked, this, &MainWindow::OnBrowse);
         connect(m_scan_button_, &QPushButton::clicked, this, [this]() {
             auto state = m_pipeline_controller_->state();
-            if (state == pipeline::PipelineState::Running) {
+            if (state == Pipeline::PipelineState::Running) {
                 m_pipeline_controller_->stop();
             }
-            else if (state == pipeline::PipelineState::Stopped) {
+            else if (state == Pipeline::PipelineState::Stopped) {
                 const QString folder = GetCurrentFolder();
                 if (!folder.isEmpty()) {
                     clearResults();
@@ -144,41 +146,9 @@ namespace photoboss
             }
         });
 
-        // Forward status messages to the queue (no UI side‑effect here)
-        connect(m_pipeline_controller_.get(), &FactoryPipelineController::status, this,
-            [this](const QString& message){ m_statusQueue_->setStatusMessage(message); }, Qt::QueuedConnection);
-
-        // Direct connections from pipeline workers to the queue (bypass controller forwarding)
-        if (auto* scanner = m_pipeline_controller_->scanner()) {
-            connect(scanner, &DirectoryScanner::groupFound,
-                m_statusQueue_.get(), &UiUpdateQueue::addPendingGroup, Qt::QueuedConnection);
-        }
-        // Hash workers may emit group updates – example connection (adjust signal name as needed)
-        // Assuming HashWorker has a signal `groupUpdated(const ImageGroup&)`
-        // for (auto* worker : m_pipeline_controller_->hashWorkers()) {
-        //     connect(worker, &HashWorker::groupUpdated,
-        //         m_statusQueue_.get(), &UiUpdateQueue::updateGroup, Qt::QueuedConnection);
-        // }
-        // Thumbnail generator emits thumbnailReady
-        if (auto* thumbGen = m_pipeline_controller_->thumbnailGenerator()) {
-            connect(thumbGen, &ThumbnailGenerator::thumbnailReady,
-                m_statusQueue_.get(), &UiUpdateQueue::setThumbnail, Qt::QueuedConnection);
-        }
-        // Phase progress updates – using controller's phaseUpdate signal (still forwarded)
-        connect(m_pipeline_controller_.get(), &FactoryPipelineController::phaseUpdate,
-            m_statusQueue_.get(),
-            [this](Pipeline::Phase p, int c, int t){ m_statusQueue_->setPhaseProgress(p, c, t); }, Qt::QueuedConnection);
-        // Pipeline state changes – still handled directly by MainWindow for UI button states
-        connect(m_pipeline_controller_.get(), &FactoryPipelineController::pipelineStateChanged,
-            this, &MainWindow::onPipelineStateChanged, Qt::QueuedConnection);
-
         // Connect the queue's snapshot signal to the UI slot
         connect(m_statusQueue_.get(), &UiUpdateQueue::snapshotReady,
                 this, &MainWindow::applySnapshot, Qt::QueuedConnection);
-
-        // Show status messages (still needed for user feedback)
-        connect(m_pipeline_controller_.get(), &FactoryPipelineController::status, this,
-            [this](const QString& message){ m_status_bar_->showMessage(message); });
 
     }
 

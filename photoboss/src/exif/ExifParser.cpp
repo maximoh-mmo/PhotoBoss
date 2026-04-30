@@ -1,5 +1,6 @@
 #include "exif/ExifParser.h"
 #include <QDateTime>
+#include <QDebug>
 
 namespace photoboss {
 namespace exif {
@@ -51,7 +52,11 @@ ExifData ExifParser::parse(const QString& filePath)
             result.cameraModel = QString::fromStdString(itModel->toString()).trimmed();
         }
     }
-    catch (const Exiv2::Error&) {
+    catch (const Exiv2::Error& e) {
+        qWarning() << "Exiv2::Error parsing" << filePath << ":" << QString::fromStdString(e.what());
+    }
+    catch (const std::exception& e) {
+        qWarning() << "std::exception parsing" << filePath << ":" << e.what();
     }
 
     return result;

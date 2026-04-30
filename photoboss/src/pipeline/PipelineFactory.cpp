@@ -11,6 +11,7 @@
 #include "caching/SqliteHashCache.h"
 #include "util/AppSettings.h"
 #include "pipeline/Pipeline.h"
+#include "ui/IUiUpdateSink.h"
 
 #ifdef Q_PRIVATE_SLOTS
 #undef Q_PRIVATE_SLOTS
@@ -19,7 +20,7 @@
 namespace photoboss {
 
     PipelineFactory::PipelineFactory(QObject* parent)
-        : QObject(parent)
+		: QObject(parent)
     {
     }
 
@@ -27,147 +28,140 @@ namespace photoboss {
     {
     }
 
-    std::unique_ptr<Pipeline> PipelineFactory::create(const Config& config)
+	std::unique_ptr<Pipeline> PipelineFactory::create(const Config& config, IUiUpdateSink* sink)
     {
         auto pipeline = std::make_unique<Pipeline>();
+        
+        auto pathsQueue = std::make_unique<Queue<std::shared_ptr<QStringList>>>();
+        auto exifQueue = std::make_unique<Queue<FileIdentityBatchPtr>>();
+        auto disk = std::make_unique<Queue<FileIdentityBatchPtr>>();
+        auto resultQueue = std::make_unique<Queue<std::shared_ptr<HashedImageResult>>>();
+        auto readQueue = std::make_unique<Queue<std::unique_ptr<DiskReadResult>>>();
+        auto cacheStoreQueue = std::make_unique<Queue<std::shared_ptr<HashedImageResult>>>();
+        auto thumbnailQueue = std::make_unique<Queue<ThumbnailRequestPtr>>();
 
-        Queue<std::shared_ptr<QStringList>> pathsQueue;
+        // Get raw pointers for stages (ownership transferred to pipeline later)
+        Queue<std::shared_ptr<QStringList>>* pathsQueuePtr = pathsQueue.get();
+        Queue<FileIdentityBatchPtr>* exifQueuePtr = exifQueue.get();
+        Queue<FileIdentityBatchPtr>* diskPtr = disk.get();
+        Queue<std::shared_ptr<HashedImageResult>>* resultQueuePtr = resultQueue.get();
+        Queue<std::unique_ptr<DiskReadResult>>* readQueuePtr = readQueue.get();
+        Queue<std::shared_ptr<HashedImageResult>>* cacheStoreQueuePtr = cacheStoreQueue.get();
+        Queue<ThumbnailRequestPtr>* thumbnailQueuePtr = thumbnailQueue.get();
+
         auto enumerator = new FileEnumerator(
             config.request,
-            pathsQueue
+            *pathsQueuePtr
         );
-
-        QThread enumeratorThread;
-        enumerator->moveToThread(&enumeratorThread);
-        
-        pipeline->AddQueue(&pathsQueue);
-        pipeline->AddStage(enumerator);
-        pipeline->AddThread(&enumeratorThread);
 
         const int workerCount = config.storage == StorageStrategy::Parallel
             ? std::max(1, QThread::idealThreadCount() - 1)
             : 1;
 
-        Queue<FileIdentityBatchPtr> exifQueue;
-        std::vector<QThread*> exifReaderThreads;
-        std::vector<ExifRead*> exifReaders;
-
         for (int i = 0; i < workerCount; ++i) {
             ExifRead* reader = new ExifRead(
-                pathsQueue,
-                exifQueue
+                *pathsQueuePtr,
+                *exifQueuePtr
             );
-            QThread* thread = new QThread();
-            exifReaderThreads.push_back(thread);
-            reader->moveToThread(thread);
-            exifReaders.push_back(reader);
-        }
-		pipeline->AddQueue(&exifQueue);
-		for (auto reader : exifReaders) {
-            pipeline->AddStage(reader);
-        }
-        for (auto thread : exifReaderThreads) {
-            pipeline->AddThread(thread);
-		}
 
-        Queue<FileIdentityBatchPtr> disk;
-        Queue<std::shared_ptr<HashedImageResult>> resultQueue;
+            QThread* thread = new QThread();
+			moveToThread(pipeline.get(), reader, thread);
+        }
+
         CacheLookup* cacheLookup = new CacheLookup(
-            exifQueue,
-            disk,
-            resultQueue,
-            "CacheLookup",
+            *exifQueuePtr,
+            *diskPtr,
+            *resultQueuePtr,
 			pipeline->ScanId()
         );
 
-        QThread cacheLookupThread;
-        cacheLookup->moveToThread(&cacheLookupThread);
-		pipeline->AddQueue(&disk);
-		pipeline->AddQueue(&resultQueue);
-		pipeline->AddStage(cacheLookup);
-        pipeline->AddThread(&cacheLookupThread);
-
-        Queue<std::unique_ptr<DiskReadResult>> readQueue;
         DiskReader* reader = new DiskReader(
-            disk,
-            readQueue
+            *diskPtr,
+            *readQueuePtr
         );
 
-        QThread readerThread;
-        reader->moveToThread(&readerThread);
-        pipeline->AddQueue(&readQueue);
-        pipeline->AddStage(reader);
-        pipeline->AddThread(&readerThread);
+        ResultProcessor* resultProcessor = new ResultProcessor(
+            *resultQueuePtr,
+            *thumbnailQueuePtr
+        );
+
+        CacheStore* cacheStore = new CacheStore(
+            *cacheStoreQueuePtr,
+            *resultQueuePtr,
+            pipeline->ScanId()
+        );
 
         int workers = config.storage == StorageStrategy::Parallel
             ? std::max(1, QThread::idealThreadCount() - 1)
             : 1;
-
-        Queue<std::shared_ptr<HashedImageResult>> cacheStoreQueue;
-        std::vector<FactoryHashWorker*> factoryHashWorkers;
-        std::vector<QThread*> hashWorkerThreads;
+        
         for (int i = 0; i < workers; ++i) {
             FactoryHashWorker* worker = new FactoryHashWorker(
-                readQueue,
-                cacheStoreQueue
+                *readQueuePtr,
+                *cacheStoreQueuePtr
             );
-            QThread* thread = new QThread();
-            hashWorkerThreads.push_back(thread);
-            worker->moveToThread(thread);
-            factoryHashWorkers.push_back(worker);
+			moveToThread(pipeline.get(), worker);
         }
-		pipeline->AddQueue(&cacheStoreQueue);
-        for (auto worker : factoryHashWorkers) {
-            pipeline->AddStage(worker);
-		}
-        for (auto thread : hashWorkerThreads) {
-            pipeline->AddThread(thread);
-        }
-
-        QThread cacheStoreThread;
-        CacheStore* cacheStore = new CacheStore(
-            cacheStoreQueue,
-            resultQueue,
-            "CacheStore",
-            pipeline->ScanId()
-        );
-        cacheStore->moveToThread(&cacheStoreThread);
-        pipeline->AddStage(cacheStore);
-        pipeline->AddThread(&cacheStoreThread);
 
         workers = std::max(2, QThread::idealThreadCount() / 2);
-        std::vector<QThread*> thumbnailWorkerThreads;
-        Queue<ThumbnailRequestPtr> thumbnailQueue;
-        std::vector<ThumbnailGenerator*> thumbnailGenerators;
-
+        
         for (int i = 0; i < workers; ++i) {
             ThumbnailGenerator* worker = new ThumbnailGenerator(
-                thumbnailQueue,
-                "ThumbnailWorker"
+                *thumbnailQueuePtr
             );
             QThread* thread = new QThread();
-            thumbnailWorkerThreads.push_back(thread);
-            worker->moveToThread(thread);
-            thumbnailGenerators.push_back(worker);
-        }
-		pipeline->AddQueue(&thumbnailQueue);
-        for (auto worker : thumbnailGenerators) {
-			pipeline->AddStage(worker);
-		}
-        for (auto thread : thumbnailWorkerThreads) {
-            pipeline->AddThread(thread);
+            moveToThread(pipeline.get(), worker, thread);
         }
 
-        QThread resultThread;
+        moveToThread(pipeline.get(), enumerator);
+        moveToThread(pipeline.get(), cacheLookup);
+        moveToThread(pipeline.get(), reader);
+        moveToThread(pipeline.get(), cacheStore);
+        moveToThread(pipeline.get(), resultProcessor);
 
-        ResultProcessor* resultProcessor = new ResultProcessor(
-            resultQueue,
-            thumbnailQueue,
-            "ResultProcessor"
-        );
-        resultProcessor->moveToThread(&resultThread);
+        if (sink) {
+            QObject::connect(enumerator,
+                &FileEnumerator::status,
+                [sink](const QString& msg) { sink->setStatusMessage(msg); });
+            QObject::connect(cacheStore,
+				&CacheStore::status,
+                [sink](const QString& msg) { sink->setStatusMessage(msg); });
+            QObject::connect(resultProcessor,
+                &ResultProcessor::status,
+                [sink](const QString& msg) { sink->setStatusMessage(msg); });
+            QObject::connect(cacheLookup,
+                &CacheLookup::progress,
+                [sink](int current, int total) { sink->setPhaseProgress(Pipeline::Phase::Analyze, current, total); });
+            QObject::connect(resultProcessor,
+                &ResultProcessor::progress,
+				[sink](int current, int total) { sink->setPhaseProgress(Pipeline::Phase::Group, current, total); });
+        }
+
+		// Transfer queue ownership to pipeline
+		pipeline->AddQueue(std::move(pathsQueue));
+		pipeline->AddQueue(std::move(exifQueue));
+		pipeline->AddQueue(std::move(disk));
+		pipeline->AddQueue(std::move(resultQueue));
+		pipeline->AddQueue(std::move(readQueue));
+		pipeline->AddQueue(std::move(cacheStoreQueue));
+		pipeline->AddQueue(std::move(thumbnailQueue));
 
 		return pipeline;
+    }
 
+    void PipelineFactory::moveToThread(Pipeline* pipeline, StageBase* stage, QThread* thread)
+    {
+        if (!thread) {
+            thread = new QThread();
+        }
+        stage->moveToThread(thread);
+        QObject::connect(thread, &QThread::started,
+            stage, &StageBase::Run,
+            Qt::QueuedConnection);
+        QObject::connect(thread, &QThread::finished,
+            stage, &QObject::deleteLater,
+            Qt::QueuedConnection);
+		pipeline->AddThread(thread);
+        pipeline->AddStage(stage);
     }
 }

@@ -12,7 +12,6 @@ namespace photoboss {
     public:
         explicit ThumbnailGenerator(
             Queue<ThumbnailRequestPtr>& input,
-            QString id,
             QObject* parent = nullptr
         );
 

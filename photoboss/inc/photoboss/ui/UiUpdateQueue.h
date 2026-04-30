@@ -6,10 +6,12 @@
 #include <QMap>
 #include <QMultiMap>
 #include <deque>
+#include <vector>
 
 #include "types/DataTypes.h"
 #include "types/GroupTypes.h"
 #include "pipeline/Pipeline.h"
+#include "ui/IUiUpdateSink.h"
 
 namespace photoboss {
 class ImageThumbWidget;
@@ -23,8 +25,8 @@ class ImageThumbWidget;
  * Consumers (e.g. MainWindow) connect to the `snapshotReady`
  * signal and apply the data to the UI in one batch.
  */
-class UiUpdateQueue : public QObject {
-    Q_OBJECT
+class UiUpdateQueue : public QObject, public IUiUpdateSink {
+	Q_OBJECT
 public:
     explicit UiUpdateQueue(QObject* parent = nullptr);
 
@@ -59,7 +61,7 @@ private slots:
 private:
     void scheduleSnapshotEmit();
 
-    mutable QMutex m_mutex;
+    mutable QRecursiveMutex m_mutex;
     bool m_dirty = false;          // true when any mutator changed state
     bool m_emitPending = false;    // true when a queued emit is already scheduled
 
@@ -70,7 +72,7 @@ private:
     QMultiMap<QString, ImageThumbWidget*> m_thumbnailWaiters;
     QMap<Pipeline::Phase, std::pair<int,int>> m_phaseProgress;
     QString m_statusMessage;
-    Pipeline::PipelineState m_pipelineState = Pipeline::PipelineState::Stopped;
+	Pipeline::PipelineState m_pipelineState = Pipeline::PipelineState::Stopped;
 };
 
 } // namespace photoboss

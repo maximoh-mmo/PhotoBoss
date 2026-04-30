@@ -7,9 +7,8 @@
 namespace photoboss {
     ResultProcessor::ResultProcessor(Queue<std::shared_ptr<HashedImageResult>>& queue,
         Queue<ThumbnailRequestPtr>& thumbnailQueue,
-        QString id,
         QObject* parent) :
-        StageBase(std::move(id), parent),
+        StageBase(parent),
         m_input_(queue),
         m_thumbnailOutput_(thumbnailQueue),
         m_items_()
