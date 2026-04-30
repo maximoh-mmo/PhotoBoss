@@ -1,4 +1,5 @@
 #include "ui/UiUpdateQueue.h"
+#include <QDebug>
 
 namespace photoboss {
 
@@ -17,7 +18,7 @@ void UiUpdateQueue::reset()
     m_phaseProgress.clear();
     m_statusMessage.clear();
     m_pipelineState = Pipeline::PipelineState::Stopped;
-    m_totalFilesFromFind = 0;
+    m_totalFiles = 0;
     m_dirty = true;
     lock.unlock();
     scheduleSnapshotEmit();
@@ -40,7 +41,7 @@ void UiUpdateQueue::addPendingGroup(const ImageGroup& group)
     QMutexLocker lock(&m_mutex);
     m_pendingGroups.push_back(group);
     m_dirty = true;
-    lock.unlock(); // unlock before scheduling to avoid holding the mutex during invoke
+    lock.unlock();
     scheduleSnapshotEmit();
 }
 
@@ -51,6 +52,14 @@ void UiUpdateQueue::updateGroup(const ImageGroup& group)
     m_dirty = true;
     lock.unlock();
     scheduleSnapshotEmit();
+}
+
+void UiUpdateQueue::commitProcessed(int count)
+{
+    QMutexLocker lock(&m_mutex);
+    for (int i = 0; i < count && !m_pendingGroups.empty(); ++i) {
+        m_pendingGroups.pop_front();
+    }
 }
 
 void UiUpdateQueue::setThumbnail(const ThumbnailResult& result)
@@ -66,23 +75,26 @@ void UiUpdateQueue::setPhaseProgress(Pipeline::Phase phase, int count, int total
 {
     QMutexLocker lock(&m_mutex);
 
-    // Track total files from Find phase completion
-    if (phase == Pipeline::Phase::Find && count > 0 && count == total) {
-        m_totalFilesFromFind = total;
-    }
-
     // For Analyze and Group phases, use the Find phase total as expected total
     // if no explicit total is provided
     int displayTotal = total;
-    if (displayTotal == 0 && count > 0) {
-        if (phase == Pipeline::Phase::Analyze && m_totalFilesFromFind > 0) {
-            displayTotal = m_totalFilesFromFind;
-        } else if (phase == Pipeline::Phase::Group && m_totalFilesFromFind > 0) {
-            displayTotal = m_totalFilesFromFind;
+    if (m_totalFiles == 0 && count > 0) {
+        if (phase == Pipeline::Phase::Analyze && m_totalFiles > 0) {
+            displayTotal = m_totalFiles;
+        } else if (phase == Pipeline::Phase::Group && m_totalFiles > 0) {
+            displayTotal = m_totalFiles;
         }
     }
-
     m_phaseProgress[phase] = { count, displayTotal };
+    m_dirty = true;
+    lock.unlock();
+    scheduleSnapshotEmit();
+}
+
+void UiUpdateQueue::setFileTotal(int total)
+{
+    QMutexLocker lock(&m_mutex);
+    m_totalFiles = total;
     m_dirty = true;
     lock.unlock();
     scheduleSnapshotEmit();

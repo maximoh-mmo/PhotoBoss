@@ -38,8 +38,12 @@ public:
     void updateGroup(const ImageGroup& group);
     void setThumbnail(const ThumbnailResult& result);
     void setPhaseProgress(Pipeline::Phase phase, int count, int total);
+    void setFileTotal(int total);
     void setStatusMessage(const QString& msg);
     void setPipelineState(Pipeline::PipelineState state);
+
+    // Commit processed groups – removes them from the pending queue
+    void commitProcessed(int count);
 
     // Snapshot – copy of all data for UI consumption
     struct Snapshot {
@@ -69,7 +73,7 @@ private:
     bool m_emitPending = false;    // true when a queued emit is already scheduled
 
     // Track total files from Find phase for use in subsequent phases
-    int m_totalFilesFromFind = 0;
+    int m_totalFiles = 0;
 
     // internal storage – same layout as the original UiStatusModel
     std::deque<ImageGroup> m_pendingGroups;
