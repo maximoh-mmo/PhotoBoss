@@ -13,6 +13,7 @@ namespace photoboss
 		virtual void updateGroup(const ImageGroup& group) = 0;
 		virtual void setThumbnail(const ThumbnailResult& result) = 0;
 		virtual void setPhaseProgress(Pipeline::Phase phase, int current, int total) = 0;
+		virtual void setFileTotal(int total) = 0;
 		// Optionally, a method for status messages
 		virtual void setStatusMessage(const QString& message) = 0;
 		virtual void setPipelineState(Pipeline::PipelineState state) = 0;

@@ -97,12 +97,15 @@ namespace photoboss {
             ? std::max(1, QThread::idealThreadCount() - 1)
             : 1;
         
+		std::vector<HashWorker*> hashWorkers;
         for (int i = 0; i < workers; ++i) {
             HashWorker* worker = new HashWorker(
                 *readQueuePtr,
                 *cacheStoreQueuePtr
             );
-			moveToThread(pipeline.get(), worker);
+			hashWorkers.push_back(worker);
+			QThread* thread = new QThread();
+			moveToThread(pipeline.get(), worker, thread);
         }
 
         workers = std::max(2, QThread::idealThreadCount() / 2);
@@ -138,7 +141,11 @@ namespace photoboss {
 
             QObject::connect(enumerator,
                 &StageBase::progress,
-                [sink](int current, int total) { sink->setPhaseProgress(Pipeline::Phase::Find, current, total); });
+                [sink](int current, int total) { sink->setFileTotal(total); });
+
+            QObject::connect(exifReaders[0],
+                &ExifRead::progress,
+				[sink](int current, int total) { sink->setPhaseProgress(Pipeline::Phase::Find, current, total); });
 
             QObject::connect(cacheLookup,
                 &CacheLookup::progress,

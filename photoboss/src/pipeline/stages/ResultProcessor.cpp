@@ -19,10 +19,10 @@ namespace photoboss {
     void ResultProcessor::run() {
         SimilarityEngine engine;
         std::shared_ptr<HashedImageResult> item;
-         
+
         int processedCount = 0;
         bool firstEmit = false;
-         
+
         while (m_input_.wait_and_pop(item)) {
             Q_ASSERT(!item->hashes.empty());
 
@@ -37,94 +37,51 @@ namespace photoboss {
 
             m_items_.push_back(std::move(item));
 
-            auto tempGroups = engine.getGroups();
-            for (const auto& g : tempGroups) {
-                if (g.images.size() > 1) {
-                    if (!m_emittedGroups_.contains(g.id)) {
-                        emit groupAdded(g);
-                        m_emittedGroups_.insert(g.id);
-                        m_emittedSizes_[g.id] = static_cast<int>(g.images.size());
-                        // Emit thumbnails for newly confirmed group
-                        for (const auto& img : g.images) {
-                            // Only emit thumbnail if we haven't already requested one for this image
-                            if (!m_thumbnailRequested_.contains(img.path)) {
-                                auto thumbReq = std::make_shared<ThumbnailRequest>();
-                                thumbReq->path = img.path;
-                                thumbReq->rotation = img.rotation;
-                                thumbReq->width = settings::ThumbnailWidth;
-                                thumbReq->height = settings::ThumbnailWidth;
-                                m_thumbnailOutput_.push(std::move(thumbReq));
-                                m_thumbnailRequested_.insert(img.path);
-                            }
-                        }
+            auto delta = engine.getGroupDelta();
+
+            for (const auto& g : delta.newlyFormed) {
+                emit groupAdded(g);
+                m_emittedGroups_.insert(g.id);
+                m_emittedSizes_[g.id] = static_cast<int>(g.images.size());
+                for (const auto& img : g.images) {
+                    if (!m_thumbnailRequested_.contains(img.path)) {
+                        auto thumbReq = std::make_shared<ThumbnailRequest>();
+                        thumbReq->path = img.path;
+                        thumbReq->rotation = img.rotation;
+                        thumbReq->width = settings::ThumbnailWidth;
+                        thumbReq->height = settings::ThumbnailWidth;
+                        m_thumbnailOutput_.push(std::move(thumbReq));
+                        m_thumbnailRequested_.insert(img.path);
                     }
-                    else if (m_emittedSizes_[g.id] < static_cast<int>(g.images.size())) {
-                        emit groupUpdated(g);
-                        m_emittedSizes_[g.id] = static_cast<int>(g.images.size());
-                        // Emit thumbnails for newly added images to existing group
-                        int prevSize = m_emittedSizes_[g.id];
-                        int newSize = static_cast<int>(g.images.size());
-                        for (int i = prevSize; i < newSize; i++) {
-                            const auto& img = g.images[i];
-                            // Only emit thumbnail if we haven't already requested one for this image
-                            if (!m_thumbnailRequested_.contains(img.path)) {
-                                auto thumbReq = std::make_shared<ThumbnailRequest>();
-                                thumbReq->path = img.path;
-                                thumbReq->rotation = img.rotation;
-                                thumbReq->width = settings::ThumbnailWidth;
-                                thumbReq->height = settings::ThumbnailWidth;
-                                m_thumbnailOutput_.push(std::move(thumbReq));
-                                m_thumbnailRequested_.insert(img.path);
-                            }
-                        }
+                }
+            }
+
+            for (const auto& g : delta.grown) {
+                emit groupUpdated(g);
+                int prevSize = m_emittedSizes_[g.id];
+                m_emittedSizes_[g.id] = static_cast<int>(g.images.size());
+                int newSize = static_cast<int>(g.images.size());
+                for (int i = prevSize; i < newSize; i++) {
+                    const auto& img = g.images[i];
+                    if (!m_thumbnailRequested_.contains(img.path)) {
+                        auto thumbReq = std::make_shared<ThumbnailRequest>();
+                        thumbReq->path = img.path;
+                        thumbReq->rotation = img.rotation;
+                        thumbReq->width = settings::ThumbnailWidth;
+                        thumbReq->height = settings::ThumbnailWidth;
+                        m_thumbnailOutput_.push(std::move(thumbReq));
+                        m_thumbnailRequested_.insert(img.path);
                     }
                 }
             }
         }
+
         emit status(QString("Compiling final groups..."));
         auto groups = engine.getGroups();
         std::vector<ImageGroup> result;
         for (const auto& g : groups) {
             if (g.images.size() > 1) {
                 result.push_back(g);
-                if (!m_emittedGroups_.contains(g.id)) {
-                    emit groupAdded(g);
-                    m_emittedGroups_.insert(g.id);
-                    m_emittedSizes_[g.id] = static_cast<int>(g.images.size());
-                    // Emit thumbnails for newly confirmed group
-                    for (const auto& img : g.images) {
-                        // Only emit thumbnail if we haven't already requested one for this image
-                        if (!m_thumbnailRequested_.contains(img.path)) {
-                            auto thumbReq = std::make_shared<ThumbnailRequest>();
-                            thumbReq->path = img.path;
-                            thumbReq->rotation = img.rotation;
-                            thumbReq->width = settings::ThumbnailWidth;
-                            thumbReq->height = settings::ThumbnailWidth;
-                            m_thumbnailOutput_.push(std::move(thumbReq));
-                            m_thumbnailRequested_.insert(img.path);
-                        }
-                    }
-                }
-                else if (m_emittedSizes_[g.id] < static_cast<int>(g.images.size())) {
-                    emit groupUpdated(g);
-                    m_emittedSizes_[g.id] = static_cast<int>(g.images.size());
-                    // Emit thumbnails for newly added images to existing group
-                    int prevSize = m_emittedSizes_[g.id];
-                    int newSize = static_cast<int>(g.images.size());
-                    for (int i = prevSize; i < newSize; i++) {
-                        const auto& img = g.images[i];
-                        // Only emit thumbnail if we haven't already requested one for this image
-                        if (!m_thumbnailRequested_.contains(img.path)) {
-                            auto thumbReq = std::make_shared<ThumbnailRequest>();
-                            thumbReq->path = img.path;
-                            thumbReq->rotation = img.rotation;
-                            thumbReq->width = settings::ThumbnailWidth;
-                            thumbReq->height = settings::ThumbnailWidth;
-                            m_thumbnailOutput_.push(std::move(thumbReq));
-                            m_thumbnailRequested_.insert(img.path);
-                        }
-                    }
-                }
             }
         }
         emit groupingFinished(result);

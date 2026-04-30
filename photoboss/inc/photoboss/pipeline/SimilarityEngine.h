@@ -1,5 +1,8 @@
 #pragma once
 
+#include <set>
+#include <map>
+
 #include "types/DataTypes.h"
 #include "types/GroupTypes.h"
 #include "util/AppSettings.h"
@@ -39,6 +42,13 @@ namespace photoboss {
 
         std::vector<ImageGroup> getGroups() const;
 
+        struct GroupDelta {
+            std::vector<ImageGroup> newlyFormed;  // Clusters that just crossed from 1 to >1 members
+            std::vector<ImageGroup> grown;        // Clusters that were already multi-image and grew
+        };
+
+        GroupDelta getGroupDelta();
+
     private:
         struct ImageNode {
             HashedImageResult* result;
@@ -65,6 +75,10 @@ namespace photoboss {
         std::list<ImageNode> m_nodes_;
         std::unordered_map<QString, ExactGroup> m_exactGroups_;
         std::vector<SimilarityGroup> m_clusters_;
+
+        // Delta tracking for incremental updates
+        std::set<quint64> m_previouslyMultiImageClusterIds;
+        std::map<quint64, size_t> m_previousClusterSizes;
 
         struct WeightedHash {
             std::unique_ptr<HashMethod> method;

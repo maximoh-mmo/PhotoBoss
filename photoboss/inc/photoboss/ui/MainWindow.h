@@ -50,7 +50,6 @@ namespace photoboss {
         void UpdateProgressBar(int current, int total);
 
     private slots:
-        void processBatch();
         void applySnapshot(const UiUpdateQueue::Snapshot& snap);
         void onPipelineStateChanged(Pipeline::PipelineState state);
         void onDeleteClicked();

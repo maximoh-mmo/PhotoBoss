@@ -31,7 +31,9 @@ namespace photoboss {
 
     void SimilarityEngine::addImage(const std::shared_ptr<HashedImageResult>& img)
     {
-        if (!img || !img->hashes.count("SHA256")) return;
+        if (!img || !img->hashes.count("SHA256")) {
+            return;
+        }
 
         m_nodes_.push_back({img.get(), img->resolution, img->fileIdentity.size()});
         ImageNode* node = &m_nodes_.back();
@@ -98,6 +100,33 @@ namespace photoboss {
         }
 
         return out;
+    }
+
+    SimilarityEngine::GroupDelta SimilarityEngine::getGroupDelta()
+    {
+        GroupDelta delta;
+
+        for (const auto& cluster : m_clusters_) {
+            bool wasMulti = m_previouslyMultiImageClusterIds.contains(cluster.id);
+            bool isMulti = cluster.members.size() > 1;
+            size_t prevSize = 0;
+            auto it = m_previousClusterSizes.find(cluster.id);
+            if (it != m_previousClusterSizes.end()) {
+                prevSize = it->second;
+            }
+            if (!wasMulti && isMulti) {
+                delta.newlyFormed.push_back(buildGroup(cluster));
+            } else if (isMulti && cluster.members.size() > prevSize) {
+                delta.grown.push_back(buildGroup(cluster));
+            }
+
+            if (isMulti) {
+                m_previouslyMultiImageClusterIds.insert(cluster.id);
+                m_previousClusterSizes[cluster.id] = cluster.members.size();
+            }
+        }
+
+        return delta;
     }
 
     // ------------------------------------------------------------
