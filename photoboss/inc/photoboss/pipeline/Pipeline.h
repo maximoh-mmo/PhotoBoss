@@ -6,12 +6,11 @@
 #include "StageBase.h"
 
 namespace photoboss {
-    class DirectoryScanner;
     class DiskReader;
     class ResultProcessor;
     class CacheLookup;
     class CacheStore;
-    class FactoryHashWorker;
+    class HashWorker;
 	class ThumbnailGenerator;
 	class FileEnumerator;
 	class ExifRead;

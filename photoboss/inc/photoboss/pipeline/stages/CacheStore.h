@@ -7,7 +7,6 @@
 
 namespace photoboss
 {
-
 	class CacheStore : public StageBase
 	{
 		Q_OBJECT

@@ -7,6 +7,22 @@ UiUpdateQueue::UiUpdateQueue(QObject* parent)
 {
 }
 
+void UiUpdateQueue::reset()
+{
+    QMutexLocker lock(&m_mutex);
+    m_pendingGroups.clear();
+    m_updatedGroups.clear();
+    m_thumbnailCache.clear();
+    m_thumbnailWaiters.clear();
+    m_phaseProgress.clear();
+    m_statusMessage.clear();
+    m_pipelineState = Pipeline::PipelineState::Stopped;
+    m_totalFilesFromFind = 0;
+    m_dirty = true;
+    lock.unlock();
+    scheduleSnapshotEmit();
+}
+
 // Helper: schedule a single queued emission if none is pending
 void UiUpdateQueue::scheduleSnapshotEmit()
 {
@@ -49,7 +65,24 @@ void UiUpdateQueue::setThumbnail(const ThumbnailResult& result)
 void UiUpdateQueue::setPhaseProgress(Pipeline::Phase phase, int count, int total)
 {
     QMutexLocker lock(&m_mutex);
-    m_phaseProgress[phase] = { count, total };
+
+    // Track total files from Find phase completion
+    if (phase == Pipeline::Phase::Find && count > 0 && count == total) {
+        m_totalFilesFromFind = total;
+    }
+
+    // For Analyze and Group phases, use the Find phase total as expected total
+    // if no explicit total is provided
+    int displayTotal = total;
+    if (displayTotal == 0 && count > 0) {
+        if (phase == Pipeline::Phase::Analyze && m_totalFilesFromFind > 0) {
+            displayTotal = m_totalFilesFromFind;
+        } else if (phase == Pipeline::Phase::Group && m_totalFilesFromFind > 0) {
+            displayTotal = m_totalFilesFromFind;
+        }
+    }
+
+    m_phaseProgress[phase] = { count, displayTotal };
     m_dirty = true;
     lock.unlock();
     scheduleSnapshotEmit();

@@ -162,9 +162,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="inc\photoboss\pipeline\Pipeline.cpp" />
-    <ClCompile Include="src\pipeline\factory\FactoryHashWorker.cpp" />
-    <ClCompile Include="src\pipeline\factory\HashEngine.cpp" />
-    <ClCompile Include="src\pipeline\factory\ImageLoader.cpp" />
+    <ClCompile Include="src\pipeline\stages\HashWorker.cpp" />
+    <ClCompile Include="src\pipeline\HashEngine.cpp" />
+    <ClCompile Include="src\pipeline\stages\ImageLoader.cpp" />
     <ClCompile Include="src\ui\ProgressCounterWidget.cpp" />
     <ClCompile Include="src\ui\ShaderSpinnerWidget.cpp" />
     <ClCompile Include="src\ui\UiUpdateQueue.cpp" />
@@ -183,19 +183,17 @@
     <ClCompile Include="src\pipeline\stages\CacheStore.cpp" />
     <ClCompile Include="src\caching\SqliteHashCache.cpp" />
     <ClCompile Include="src\pipeline\stages\CacheLookup.cpp" />
-    <ClCompile Include="src\pipeline\stages\DirectoryScanner.cpp" />
     <ClCompile Include="src\pipeline\stages\ExifRead.cpp" />
     <ClCompile Include="src\pipeline\stages\FileEnumerator.cpp" />
     <ClCompile Include="src\pipeline\PipelineFactory.cpp" />
     <ClCompile Include="src\pipeline\stages\ResultProcessor.cpp" />
     <ClCompile Include="src\pipeline\stages\DiskReader.cpp" />
-    <ClCompile Include="src\pipeline\stages\HashWorker.cpp" />
     <ClCompile Include="src\hashmethods\PerceptualHash.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\ui\MainWindow.cpp" />
     <ClCompile Include="src\ui\PreviewPane.cpp" />
     <ClCompile Include="src\ui\DeleteConfirmDialog.cpp" />
-    <ClCompile Include="src\pipeline\FactoryPipelineController.cpp" />
+    <ClCompile Include="src\pipeline\PipelineController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\photoboss\caching\IHashCache.h" />
@@ -204,10 +202,10 @@
     <ClInclude Include="inc\photoboss\hashing\AverageHash.h" />
     <ClInclude Include="inc\photoboss\hashing\HashCatalog.h" />
     <ClInclude Include="inc\photoboss\hashing\PerceptualImage.h" />
-    <QtMoc Include="inc\photoboss\pipeline\factory\FactoryHashWorker.h" />
-    <QtMoc Include="inc\photoboss\pipeline\FactoryPipelineController.h" />
-    <ClInclude Include="inc\photoboss\pipeline\factory\HashEngine.h" />
-    <ClInclude Include="inc\photoboss\pipeline\factory\ImageLoader.h" />
+    <QtMoc Include="inc\photoboss\pipeline\stages\HashWorker.h" />
+    <QtMoc Include="inc\photoboss\pipeline\PipelineController.h" />
+    <ClInclude Include="inc\photoboss\pipeline\HashEngine.h" />
+    <ClInclude Include="inc\photoboss\pipeline\stages\ImageLoader.h" />
     <QtMoc Include="inc\photoboss\pipeline\Pipeline.h" />
     <ClInclude Include="inc\photoboss\pipeline\SimilarityEngine.h" />
     <QtMoc Include="inc\photoboss\ui\GroupWidget.h" />
@@ -232,8 +230,6 @@
     <QtMoc Include="inc\photoboss\pipeline\PipelineFactory.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\ResultProcessor.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\DiskReader.h" />
-    <QtMoc Include="inc\photoboss\pipeline\stages\HashWorker.h" />
-    <QtMoc Include="inc\photoboss\pipeline\stages\DirectoryScanner.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\ExifRead.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\FileEnumerator.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\CacheLookup.h" />

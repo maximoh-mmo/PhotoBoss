@@ -16,17 +16,18 @@
 
 namespace photoboss {
 
-    class FactoryPipelineController : public QObject {
+    class PipelineController : public QObject {
         Q_OBJECT
 
     public:
 
-            explicit FactoryPipelineController(QObject* parent = nullptr);
-        ~FactoryPipelineController() override;
+            explicit PipelineController(QObject* parent = nullptr);
+        ~PipelineController() override;
 
         void start(const ScanRequest& request);
         void stop();
         Pipeline::PipelineState state() const { return m_pipeline_ ? m_pipeline_->State() : Pipeline::PipelineState::Stopped; }
+        UiUpdateQueue* uiQueue() { return m_uiQueue_.get(); }
 
     private:
         void createPipeline(const ScanRequest& request);

@@ -27,7 +27,7 @@ namespace photoboss {
 	class PipelineFactory;
     class GroupWidget;
     class ImageThumbWidget;
-    class FactoryPipelineController;
+    class PipelineController;
 
     class MainWindow : public QMainWindow {
         Q_OBJECT
@@ -64,7 +64,7 @@ namespace photoboss {
 
 
         Ui::MainWindow* m_ui_ = nullptr;
-        std::unique_ptr<FactoryPipelineController> m_pipeline_controller_ = nullptr;
+        std::unique_ptr<PipelineController> m_pipeline_controller_ = nullptr;
 		std::unique_ptr<PipelineFactory> m_pipeline_factory_ = nullptr;
 
         QString m_current_folder_;
@@ -102,7 +102,6 @@ namespace photoboss {
         // Remember previous selection count to avoid redundant delete‑button updates
         int m_lastSelectionCount_ = -1;
         QTimer* m_uiPollTimer_ = nullptr;
-        std::unique_ptr<UiUpdateQueue> m_statusQueue_ = nullptr;
 
     };
 }

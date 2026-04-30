@@ -2,7 +2,7 @@
 #include "pipeline/stages/ExifRead.h"
 #include "pipeline/stages/FileEnumerator.h"
 #include "pipeline/stages/DiskReader.h"
-#include "pipeline/factory/FactoryHashWorker.h"
+#include "pipeline/stages/HashWorker.h"
 #include "pipeline/stages/ResultProcessor.h"
 #include "pipeline/stages/CacheLookup.h"
 #include "pipeline/stages/CacheStore.h"
@@ -58,11 +58,13 @@ namespace photoboss {
             ? std::max(1, QThread::idealThreadCount() - 1)
             : 1;
 
+        std::vector<ExifRead*> exifReaders;
         for (int i = 0; i < workerCount; ++i) {
             ExifRead* reader = new ExifRead(
                 *pathsQueuePtr,
                 *exifQueuePtr
             );
+            exifReaders.push_back(reader);
 
             QThread* thread = new QThread();
 			moveToThread(pipeline.get(), reader, thread);
@@ -96,7 +98,7 @@ namespace photoboss {
             : 1;
         
         for (int i = 0; i < workers; ++i) {
-            FactoryHashWorker* worker = new FactoryHashWorker(
+            HashWorker* worker = new HashWorker(
                 *readQueuePtr,
                 *cacheStoreQueuePtr
             );
@@ -105,10 +107,12 @@ namespace photoboss {
 
         workers = std::max(2, QThread::idealThreadCount() / 2);
         
+        std::vector<ThumbnailGenerator*> thumbnailWorkers;
         for (int i = 0; i < workers; ++i) {
             ThumbnailGenerator* worker = new ThumbnailGenerator(
                 *thumbnailQueuePtr
             );
+            thumbnailWorkers.push_back(worker);
             QThread* thread = new QThread();
             moveToThread(pipeline.get(), worker, thread);
         }
@@ -120,6 +124,8 @@ namespace photoboss {
         moveToThread(pipeline.get(), resultProcessor);
 
         if (sink) {
+
+            // Status messages
             QObject::connect(enumerator,
                 &FileEnumerator::status,
                 [sink](const QString& msg) { sink->setStatusMessage(msg); });
@@ -129,12 +135,33 @@ namespace photoboss {
             QObject::connect(resultProcessor,
                 &ResultProcessor::status,
                 [sink](const QString& msg) { sink->setStatusMessage(msg); });
+
+            QObject::connect(enumerator,
+                &StageBase::progress,
+                [sink](int current, int total) { sink->setPhaseProgress(Pipeline::Phase::Find, current, total); });
+
             QObject::connect(cacheLookup,
                 &CacheLookup::progress,
-                [sink](int current, int total) { sink->setPhaseProgress(Pipeline::Phase::Analyze, current, total); });
+				[sink](int current, int total) { sink->setPhaseProgress(Pipeline::Phase::Analyze, current, total); });
+
             QObject::connect(resultProcessor,
                 &ResultProcessor::progress,
 				[sink](int current, int total) { sink->setPhaseProgress(Pipeline::Phase::Group, current, total); });
+
+            // Group additions and updates (for immediate UI feedback)
+            QObject::connect(resultProcessor,
+                &ResultProcessor::groupAdded,
+                [sink](const ImageGroup& group) { sink->addPendingGroup(group); });
+            QObject::connect(resultProcessor,
+                &ResultProcessor::groupUpdated,
+                [sink](const ImageGroup& group) { sink->updateGroup(group); });
+
+            // Thumbnail ready (for immediate thumbnail display)
+            for (auto* worker : thumbnailWorkers) {
+                QObject::connect(worker,
+                &ThumbnailGenerator::thumbnailReady,
+                [sink](const ThumbnailResult& result) { sink->setThumbnail(result); });
+            }
         }
 
 		// Transfer queue ownership to pipeline

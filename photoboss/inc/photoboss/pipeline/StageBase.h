@@ -47,13 +47,5 @@ namespace photoboss {
     protected:
         virtual void run() = 0;
         virtual void onStop() = 0;
-
-        bool shouldEmitProgress(QElapsedTimer& timer, int intervalMs) {
-            if (timer.elapsed() >= intervalMs) {
-                timer.restart();
-                return true;
-            }
-            return false;
-        }
     };
 }

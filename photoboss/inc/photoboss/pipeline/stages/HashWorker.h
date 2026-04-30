@@ -1,27 +1,42 @@
 #pragma once
 
-#include "hashing/HashCatalog.h"
+#include <QObject>
+#include <QThread>
+#include <memory>
+#include <optional>
+
 #include "pipeline/StageBase.h"
 #include "types/DataTypes.h"
+#include "pipeline/stages/ImageLoader.h"
+#include "pipeline/HashEngine.h"
 #include "util/Queue.h"
 
 namespace photoboss {
-    class HashWorker : public StageBase {
-        Q_OBJECT
-    public:
-        explicit HashWorker(
-            Queue<std::unique_ptr<DiskReadResult>>& inputQueue,
-            Queue<std::shared_ptr<HashedImageResult>>& outputQueue,
-            QObject* parent = nullptr);
 
-        void run() override;
+/**
+ * Orchestrator used by the factory pipeline. It pulls DiskReadResult items from
+ * the input queue, obtains a QImage via ImageLoader, delegates the actual hash
+ * computation to HashEngine, and finally emits the HashedImageResult downstream.
+ *
+ * The class mirrors the public interface of the legacy HashWorker (run() and
+ * onStop()) so that PipelineFactory can use it interchangeably.
+ */
+class HashWorker : public StageBase {
+    Q_OBJECT
+public:
+    HashWorker(Queue<std::unique_ptr<DiskReadResult>>& inputQueue,
+                     Queue<std::shared_ptr<HashedImageResult>>& outputQueue,
+                     QObject* parent = nullptr);
+    ~HashWorker() override;
 
-    private:
-        Queue<std::unique_ptr<DiskReadResult>>& m_input_;
-        Queue<std::shared_ptr<HashedImageResult>>& m_output_;
-        std::vector<HashCatalog::Entry> m_hashMethods_;
+    void run() override;
+    void onStop() override;
 
-        // Inherited via StageBase
-        void onStop() override;
-    };
-}
+private:
+    Queue<std::unique_ptr<DiskReadResult>>& m_inputQueue;
+    Queue<std::shared_ptr<HashedImageResult>>& m_outputQueue;
+    ImageLoader m_imageLoader;
+    HashEngine m_hashEngine;
+};
+
+} // namespace photoboss::pipeline::factory

@@ -1,6 +1,5 @@
 #include "ui/mainwindow.h"
 #include "ui_mainwindow.h"
-#include "pipeline/stages/DirectoryScanner.h"
 #include "pipeline/stages/ThumbnailGenerator.h"
 #include "pipeline/PipelineFactory.h"
 #include "hashing/HashMethod.h"
@@ -11,7 +10,7 @@
 #include "ui/ProgressCounterWidget.h"
 #include "ui/UiUpdateQueue.h"
 #include "util/StorageInfo.h"
-#include "pipeline/FactoryPipelineController.h"
+#include "pipeline/PipelineController.h"
 #include "pipeline/Pipeline.h"
 
 #include <QFileDialog>
@@ -24,7 +23,7 @@ namespace photoboss
         : QMainWindow(parent), m_ui_(new Ui::MainWindow)
 
     {
-        m_pipeline_controller_ = std::make_unique<FactoryPipelineController>(this);
+        m_pipeline_controller_ = std::make_unique<PipelineController>(this);
 		m_pipeline_factory_ = std::make_unique<PipelineFactory>(this);
 
         m_ui_->setupUi(this);
@@ -44,7 +43,6 @@ namespace photoboss
         m_status_bar_ = m_ui_->statusbar;
         m_browse_button_ = m_ui_->browsebutton;
         m_scan_button_ = m_ui_->scan;
-        m_factory_scan_button_ = m_ui_->factoryScan;
         m_progress_bar_ = m_ui_->progressBar;
         m_btn_delete_ = m_ui_->btnDelete;
         m_delete_count_label_ = m_ui_->deleteCountLabel;
@@ -98,8 +96,6 @@ namespace photoboss
         bodyLayout->setContentsMargins(0, 0, 0, 0);
         bodyLayout->addWidget(m_splitter_);
 
-        m_statusQueue_ = std::make_unique<UiUpdateQueue>(this);
-
         m_btn_delete_->setVisible(false);
         m_delete_count_label_->setVisible(false);
         WireConnections();
@@ -146,8 +142,8 @@ namespace photoboss
             }
         });
 
-        // Connect the queue's snapshot signal to the UI slot
-        connect(m_statusQueue_.get(), &UiUpdateQueue::snapshotReady,
+        // Connect the pipeline's UI queue's snapshot signal to the UI slot
+        connect(m_pipeline_controller_->uiQueue(), &UiUpdateQueue::snapshotReady,
                 this, &MainWindow::applySnapshot, Qt::QueuedConnection);
 
     }
@@ -352,9 +348,6 @@ void MainWindow::applySnapshot(const UiUpdateQueue::Snapshot& snap)
             m_browse_button_->setEnabled(false);
             m_btn_delete_->setVisible(false);
             resetPhaseIndicators();
-            // start UI polling – disabled during refactor
-            // if (m_uiPollTimer_ && !m_uiPollTimer_->isActive())
-            //     m_uiPollTimer_->start();
             break;
 
 

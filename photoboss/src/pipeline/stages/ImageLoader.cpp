@@ -1,4 +1,4 @@
-#include "pipeline/factory/ImageLoader.h"
+#include "pipeline/stages/ImageLoader.h"
 #include "util/OrientImage.h"
 #include <QImageReader>
 #include <QFileInfo>

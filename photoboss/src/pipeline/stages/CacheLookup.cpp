@@ -29,6 +29,7 @@ namespace photoboss
 	void CacheLookup::run()
 	{
         while (true) {
+			int progress_ = 0;
             FileIdentityBatchPtr batch;
 
             if (!m_inputQueue_.wait_and_pop(batch))
@@ -42,6 +43,8 @@ namespace photoboss
             misses->reserve(batch->size());
 
             for (const auto& fileId : *batch) {
+				progress_++;
+				emit progress(progress_, progress_); // Progress is indeterminate at this stage.
                 CacheQuery query(fileId);
 
                 query.hashMethods = m_methods_; // empty means "any"

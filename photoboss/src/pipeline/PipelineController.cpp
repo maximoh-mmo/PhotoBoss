@@ -1,4 +1,4 @@
-#include "pipeline/FactoryPipelineController.h"
+#include "pipeline/PipelineController.h"
 #include "pipeline/PipelineFactory.h"
 #include "util/StorageInfo.h"
 
@@ -17,13 +17,13 @@ namespace photoboss {
     // ---------------------------------------------------------------------------
     // Constructor / Destructor
     // ---------------------------------------------------------------------------
-    FactoryPipelineController::FactoryPipelineController(QObject* parent)
+    PipelineController::PipelineController(QObject* parent)
         : QObject(parent)
     {
         m_uiQueue_ = std::make_unique<UiUpdateQueue>();
     }
 
-    FactoryPipelineController::~FactoryPipelineController()
+    PipelineController::~PipelineController()
     {
         if (state() == Pipeline::PipelineState::Running) {
             stop();
@@ -33,10 +33,13 @@ namespace photoboss {
     // ---------------------------------------------------------------------------
     // Public API
     // ---------------------------------------------------------------------------
-    void FactoryPipelineController::start(const ScanRequest& request)
+    void PipelineController::start(const ScanRequest& request)
     {
         if (state() != Pipeline::PipelineState::Stopped)
             return;
+
+        // Reset UI state for new scan
+        m_uiQueue_->reset();
 
         // obtain a fresh scan‑id (identical to legacy controller)
 
@@ -48,7 +51,7 @@ namespace photoboss {
     // ---------------------------------------------------------------------------
     // stop() – shutdown queues and threads, but don't destroy the pipeline yet (wait for thumbnails to finish)
     // ---------------------------------------------------------------------------
-    void FactoryPipelineController::stop()
+    void PipelineController::stop()
     {
         if (m_pipeline_ == nullptr || m_pipeline_->State() != Pipeline::PipelineState::Running)
             return;
@@ -63,7 +66,7 @@ namespace photoboss {
     // Private helpers
     // ---------------------------------------------------------------------------
 
-    void FactoryPipelineController::createPipeline(const ScanRequest& request)
+    void PipelineController::createPipeline(const ScanRequest& request)
     {
         // ------------------------------------------------------------------
         // 1️ Decide storage strategy and build the factory config

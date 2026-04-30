@@ -1,4 +1,4 @@
-#include "pipeline/factory/HashEngine.h"
+#include "pipeline/HashEngine.h"
 #include <QDebug>
 
 namespace photoboss {

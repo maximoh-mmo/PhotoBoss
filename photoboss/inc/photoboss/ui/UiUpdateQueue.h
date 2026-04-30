@@ -30,6 +30,9 @@ class UiUpdateQueue : public QObject, public IUiUpdateSink {
 public:
     explicit UiUpdateQueue(QObject* parent = nullptr);
 
+    // Reset all state for a new scan
+    void reset();
+
     // Update methods – called from any thread (queued to UI thread)
     void addPendingGroup(const ImageGroup& group);
     void updateGroup(const ImageGroup& group);
@@ -64,6 +67,9 @@ private:
     mutable QRecursiveMutex m_mutex;
     bool m_dirty = false;          // true when any mutator changed state
     bool m_emitPending = false;    // true when a queued emit is already scheduled
+
+    // Track total files from Find phase for use in subsequent phases
+    int m_totalFilesFromFind = 0;
 
     // internal storage – same layout as the original UiStatusModel
     std::deque<ImageGroup> m_pendingGroups;

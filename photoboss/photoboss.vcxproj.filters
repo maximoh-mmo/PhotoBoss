@@ -27,13 +27,7 @@
     <ClCompile Include="src\pipeline\stages\DiskReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\pipeline\stages\HashWorker.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\pipeline\stages\ResultProcessor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\pipeline\stages\DirectoryScanner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\pipeline\stages\CacheLookup.cpp">
@@ -102,16 +96,16 @@
     <ClCompile Include="src\ui\ShaderSpinnerWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\pipeline\factory\FactoryHashWorker.cpp">
+    <ClCompile Include="src\pipeline\stages\HashWorker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\pipeline\factory\HashEngine.cpp">
+    <ClCompile Include="src\pipeline\HashEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\pipeline\factory\ImageLoader.cpp">
+    <ClCompile Include="src\pipeline\stages\ImageLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\pipeline\FactoryPipelineController.cpp">
+    <ClCompile Include="src\pipeline\PipelineController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\UiUpdateQueue.cpp">
@@ -131,13 +125,7 @@
     <QtMoc Include="inc\photoboss\pipeline\stages\DiskReader.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\pipeline\stages\HashWorker.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
     <QtMoc Include="inc\photoboss\pipeline\stages\ResultProcessor.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="inc\photoboss\pipeline\stages\DirectoryScanner.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="inc\photoboss\pipeline\stages\CacheLookup.h">
@@ -176,10 +164,10 @@
     <QtMoc Include="inc\photoboss\ui\ShaderSpinnerWidget.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\pipeline\factory\FactoryHashWorker.h">
+    <QtMoc Include="inc\photoboss\pipeline\stages\HashWorker.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="inc\photoboss\pipeline\FactoryPipelineController.h">
+    <QtMoc Include="inc\photoboss\pipeline\PipelineController.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="inc\photoboss\pipeline\Pipeline.h">
@@ -262,10 +250,10 @@
     <ClInclude Include="inc\photoboss\util\StorageInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\photoboss\pipeline\factory\HashEngine.h">
+    <ClInclude Include="inc\photoboss\pipeline\HashEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\photoboss\pipeline\factory\ImageLoader.h">
+    <ClInclude Include="inc\photoboss\pipeline\stages\ImageLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\photoboss\util\IQueue.h">
