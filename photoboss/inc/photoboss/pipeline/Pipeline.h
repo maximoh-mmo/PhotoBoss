@@ -29,7 +29,7 @@ namespace photoboss {
 
         void AddStage(StageBase* stage) { allStages.push_back(std::move(stage)); }
         void AddQueue(std::unique_ptr<IQueue> queue) { allQueues.push_back(std::move(queue)); }
-        void AddThread(QThread* thread) { allThreads.push_back(std::move(thread)); }
+        void AddThread(QThread* thread);
 
 		void start();
 		void stop();
@@ -43,9 +43,11 @@ namespace photoboss {
     private:
         void clearQueues();
         void requestShutdown();
+        void onThreadFinished();
         std::vector<StageBase*> allStages;
         std::vector<std::unique_ptr<IQueue>> allQueues;
         std::vector<QThread*> allThreads;
+        int m_runningThreads = 0;
 		Phase currentPhase = Phase::Find;
 		PipelineState state = PipelineState::Stopped;
         quint64 m_scanId_;
