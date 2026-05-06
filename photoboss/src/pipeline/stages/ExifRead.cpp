@@ -53,6 +53,7 @@ void ExifRead::run()
 
             batch->push_back(std::move(fileIdentity));
             ++totalProcessed;
+            emit incrementProgress(1);
         }
 
         if (static_cast<int>(batch->size()) >= batchSize) {
@@ -60,15 +61,12 @@ void ExifRead::run()
             batch = std::make_shared<std::vector<FileIdentity>>();
             batch->reserve(batchSize);
         }
-
-        emit progress(totalProcessed, totalProcessed);
     }
 
     if (!batch->empty()) {
         m_outputQueue_.emplace(batch);
     }
 
-    emit progress(totalProcessed, totalProcessed);
     emit status(QString("Metadata read complete for %1 files").arg(totalProcessed));
 
     m_outputQueue_.producer_done();

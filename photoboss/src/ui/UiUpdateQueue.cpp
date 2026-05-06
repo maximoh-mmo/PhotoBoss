@@ -71,21 +71,15 @@ void UiUpdateQueue::setThumbnail(const ThumbnailResult& result)
     scheduleSnapshotEmit();
 }
 
-void UiUpdateQueue::setPhaseProgress(Pipeline::Phase phase, int count, int total)
+void UiUpdateQueue::incrementPhaseProgress(Pipeline::Phase phase, int increment)
 {
     QMutexLocker lock(&m_mutex);
-
-    // For Analyze and Group phases, use the Find phase total as expected total
-    // if no explicit total is provided
-    int displayTotal = total;
-    if (m_totalFiles == 0 && count > 0) {
-        if (phase == Pipeline::Phase::Analyze && m_totalFiles > 0) {
-            displayTotal = m_totalFiles;
-        } else if (phase == Pipeline::Phase::Group && m_totalFiles > 0) {
-            displayTotal = m_totalFiles;
-        }
+    auto& entry = m_phaseProgress[phase];
+    entry.first += increment;
+    // If total hasn't been set yet and we have a file total, use it
+    if (entry.second == 0 && m_totalFiles > 0) {
+        entry.second = m_totalFiles;
     }
-    m_phaseProgress[phase] = { count, displayTotal };
     m_dirty = true;
     lock.unlock();
     scheduleSnapshotEmit();
@@ -95,6 +89,10 @@ void UiUpdateQueue::setFileTotal(int total)
 {
     QMutexLocker lock(&m_mutex);
     m_totalFiles = total;
+    // Propagate this total to all phase progress entries (both existing and future)
+    for (auto& entry : m_phaseProgress) {
+        entry.second = total;
+    }
     m_dirty = true;
     lock.unlock();
     scheduleSnapshotEmit();

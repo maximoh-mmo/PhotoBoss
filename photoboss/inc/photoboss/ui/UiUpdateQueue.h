@@ -34,13 +34,13 @@ public:
     void reset();
 
     // Update methods – called from any thread (queued to UI thread)
-    void addPendingGroup(const ImageGroup& group);
-    void updateGroup(const ImageGroup& group);
-    void setThumbnail(const ThumbnailResult& result);
-    void setPhaseProgress(Pipeline::Phase phase, int count, int total);
-    void setFileTotal(int total);
-    void setStatusMessage(const QString& msg);
-    void setPipelineState(Pipeline::PipelineState state);
+    void addPendingGroup(const ImageGroup& group) override;
+    void updateGroup(const ImageGroup& group) override;
+    void setThumbnail(const ThumbnailResult& result) override;
+    void incrementPhaseProgress(Pipeline::Phase phase, int increment) override;
+    void setFileTotal(int total) override;
+    void setStatusMessage(const QString& msg) override;
+    void setPipelineState(Pipeline::PipelineState state) override;
 
     // Commit processed groups – removes them from the pending queue
     void commitProcessed(int count);

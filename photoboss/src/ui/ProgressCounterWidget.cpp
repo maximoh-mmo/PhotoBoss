@@ -58,8 +58,8 @@ namespace photoboss
 		setColour(Qt::gray);
 	}
 
-	void ProgressCounterWidget::setProgress(int progress)
-	{
+void ProgressCounterWidget::setProgress(int progress)
+{
 		if (progress < 0) {
 			progress = 0;
 			return;
@@ -87,6 +87,14 @@ namespace photoboss
 	void ProgressCounterWidget::setTotal(int total)
 	{
 		m_total_ = total;
+		if (m_total_ > 0 && m_progress_ > 0) {
+			m_progressLabel_->setText(QString::number(m_progress_) + " / " + QString::number(m_total_));
+			if (m_progress_ == m_total_ && m_state_ != Finished) {
+				m_state_ = Finished;
+				m_spinner_->stop();
+				setColour(Qt::green);
+			}
+		}
 	}
 
 	void ProgressCounterWidget::setColour(QColor colour) {
@@ -96,6 +104,7 @@ namespace photoboss
 
 	void ProgressCounterWidget::reset() 
 	{
+		m_spinner_->stop();
 		setColour(Qt::gray);
 		m_progress_ = 0;
 		m_total_ = 0;

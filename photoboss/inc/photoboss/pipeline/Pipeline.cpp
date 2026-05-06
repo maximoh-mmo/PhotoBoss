@@ -28,13 +28,16 @@ void photoboss::Pipeline::start()
         thread->start();
     }
     state = PipelineState::Running;
+    emit stateChanged(PipelineState::Running);
 }
 
 void photoboss::Pipeline::stop()
 {
+    emit stateChanged(PipelineState::Stopping);
     clearQueues();
     requestShutdown();
     state = PipelineState::Stopped;
+    emit stateChanged(PipelineState::Stopped);
 }
 
 void photoboss::Pipeline::clearQueues()

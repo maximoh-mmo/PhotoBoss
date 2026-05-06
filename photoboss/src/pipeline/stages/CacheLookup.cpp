@@ -5,12 +5,12 @@ namespace photoboss
 {
 	CacheLookup::CacheLookup(Queue<FileIdentityBatchPtr>& input, Queue<FileIdentityBatchPtr>& diskOut, 
         Queue<std::shared_ptr<HashedImageResult>>& resultOut, quint64 scanId, QObject* parent)
-		: StageBase(parent),
-		m_inputQueue_(input),
-		m_diskReadQueue_(diskOut),
-		m_resultQueue_(resultOut),
-		m_cache_(std::make_unique<SqliteHashCache>(scanId))
-	{
+: StageBase(parent),
+ 		m_inputQueue_(input),
+ 		m_diskReadQueue_(diskOut),
+ 		m_resultQueue_(resultOut),
+ 		m_cache_(std::make_unique<SqliteHashCache>(scanId))
+ 	{
         for (HashCatalog::Entry& method : HashCatalog::createAll()) {
             m_methods_.append(method.method.get()->key());
         }
@@ -26,10 +26,10 @@ namespace photoboss
         m_diskReadQueue_.producer_done();
     }
 
-	void CacheLookup::run()
+void CacheLookup::run()
 	{
+        int totalProcessed = 0;
         while (true) {
-			int progress_ = 0;
             FileIdentityBatchPtr batch;
 
             if (!m_inputQueue_.wait_and_pop(batch))
@@ -43,15 +43,15 @@ namespace photoboss
             misses->reserve(batch->size());
 
             for (const auto& fileId : *batch) {
-				progress_++;
-				emit progress(progress_, progress_); // Progress is indeterminate at this stage.
+                totalProcessed++;
+                emit incrementProgress(1);
                 CacheQuery query(fileId);
 
                 query.hashMethods = m_methods_; // empty means "any"
 
                 auto result = m_cache_->lookup(query);
 
-                if (result.hit == Lookup::Hit) {                   
+                if (result.hit == Lookup::Hit) {
                     m_resultQueue_.emplace(std::make_shared<HashedImageResult>(std::move(result.hashedImage)));
                 }
                 else {
@@ -59,9 +59,11 @@ namespace photoboss
                 }
             }
 
-            if (!misses->empty()) {
+if (!misses->empty()) {
                 m_diskReadQueue_.emplace(std::move(misses));
             }
         }
+        m_resultQueue_.producer_done();
+        m_diskReadQueue_.producer_done();
 	}
 }

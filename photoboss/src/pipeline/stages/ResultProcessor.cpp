@@ -33,7 +33,7 @@ namespace photoboss {
 
             engine.addImage(item);
             processedCount++;
-            emit progress(processedCount, processedCount);
+            emit incrementProgress(1);
 
             m_items_.push_back(std::move(item));
 

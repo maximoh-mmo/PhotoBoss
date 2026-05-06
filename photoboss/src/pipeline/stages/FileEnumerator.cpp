@@ -49,6 +49,7 @@ void FileEnumerator::run()
 
         batch.push_back(path);
         ++count;
+        emit incrementProgress(1);
 
         if (batch.size() >= batchSize) {
             m_outputQueue_.emplace(std::make_shared<QStringList>(batch));
@@ -60,7 +61,7 @@ void FileEnumerator::run()
         m_outputQueue_.emplace(std::make_shared<QStringList>(batch));
     }
 
-    emit progress(count, count);
+    emit finalCount(count);
     emit status(QString("Enumerated %1 files in directory : %2")
         .arg(count)
         .arg(m_request_.directory));

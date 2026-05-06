@@ -140,20 +140,23 @@ namespace photoboss {
                 [sink](const QString& msg) { sink->setStatusMessage(msg); });
 
             QObject::connect(enumerator,
-                &StageBase::progress,
-                [sink](int current, int total) { sink->setFileTotal(total); });
+                &FileEnumerator::finalCount,
+                [sink](int total) { sink->setFileTotal(total); });
 
-            QObject::connect(exifReaders[0],
-                &ExifRead::progress,
-				[sink](int current, int total) { sink->setPhaseProgress(Pipeline::Phase::Find, current, total); });
+            // Connect ALL workers for phase progress
+            for (auto* reader : exifReaders) {
+                QObject::connect(reader,
+                    &ExifRead::incrementProgress,
+                    [sink](int inc) { sink->incrementPhaseProgress(Pipeline::Phase::Find, inc); });
+            }
 
             QObject::connect(cacheLookup,
-                &CacheLookup::progress,
-				[sink](int current, int total) { sink->setPhaseProgress(Pipeline::Phase::Analyze, current, total); });
+                &CacheLookup::incrementProgress,
+                [sink](int inc) { sink->incrementPhaseProgress(Pipeline::Phase::Analyze, inc); });
 
             QObject::connect(resultProcessor,
-                &ResultProcessor::progress,
-				[sink](int current, int total) { sink->setPhaseProgress(Pipeline::Phase::Group, current, total); });
+                &ResultProcessor::incrementProgress,
+                [sink](int inc) { sink->incrementPhaseProgress(Pipeline::Phase::Group, inc); });
 
             // Group additions and updates (for immediate UI feedback)
             QObject::connect(resultProcessor,
@@ -169,6 +172,9 @@ namespace photoboss {
                 &ThumbnailGenerator::thumbnailReady,
                 [sink](const ThumbnailResult& result) { sink->setThumbnail(result); });
             }
+
+            QObject::connect(pipeline.get(), &Pipeline::stateChanged,
+                [sink](Pipeline::PipelineState s) { sink->setPipelineState(s); });
         }
 
 		// Transfer queue ownership to pipeline

@@ -17,6 +17,7 @@ namespace photoboss {
 
     class Pipeline : public QObject {
         Q_OBJECT
+
     public:
         enum class Phase { Find, Analyze, Group };
         Q_ENUM(Phase)
@@ -35,6 +36,9 @@ namespace photoboss {
         PipelineState State() const { return state; }
 		Phase GetPhase() const { return currentPhase; }
 		quint64 ScanId() const { return m_scanId_; }
+
+    signals:
+        void stateChanged(PipelineState state);
 
     private:
         void clearQueues();

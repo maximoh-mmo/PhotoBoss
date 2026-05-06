@@ -15,7 +15,6 @@
 
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QDebug>
 
 namespace photoboss
 {
@@ -145,6 +144,7 @@ namespace photoboss
     void MainWindow::OnCurrentFolderChanged()
     {
         m_ui_->filepath->setPlainText(m_current_folder_);
+        m_pipeline_controller_->uiQueue()->reset();
     }
 
     void MainWindow::SetCurrentFolder(const QString& folder)
@@ -159,13 +159,11 @@ namespace photoboss
 // New slot that receives a snapshot directly from UiUpdateQueue
 void MainWindow::applySnapshot(const UiUpdateQueue::Snapshot& snap)
 {
-    qDebug() << "MainWindow::applySnapshot - pendingGroups:" << snap.pendingGroups.size();
-
     // The snapshot is already guaranteed to contain at least one change.
     // Keep a copy for potential later comparisons (optional).
     m_lastSnapshot_ = snap;
 
-        // 1️⃣ Process pending groups (batch limited)
+        // 1️ Process pending groups (batch limited)
         int processed = 0;
         while (!snap.pendingGroups.empty() && processed < settings::MainWindowBatchProcessSize) {
             ImageGroup group = snap.pendingGroups.front();
@@ -196,7 +194,7 @@ void MainWindow::applySnapshot(const UiUpdateQueue::Snapshot& snap)
             m_pipeline_controller_->uiQueue()->commitProcessed(processed);
         }
 
-        // 2️⃣ Updated groups
+        // 2️ Updated groups
         for (auto it = snap.updatedGroups.constBegin(); it != snap.updatedGroups.constEnd(); ++it) {
             quint64 id = it.key();
             const ImageGroup& group = it.value();
@@ -223,7 +221,7 @@ void MainWindow::applySnapshot(const UiUpdateQueue::Snapshot& snap)
             }
         }
 
-        // 3️⃣ Thumbnails
+        // 3️ Thumbnails
         for (auto it = snap.thumbnailCache.constBegin(); it != snap.thumbnailCache.constEnd(); ++it) {
             const QString& path = it.key();
             const QPixmap& pix = it.value();
@@ -232,23 +230,30 @@ void MainWindow::applySnapshot(const UiUpdateQueue::Snapshot& snap)
             m_thumbnailWaiters_.remove(path);
         }
 
-        // 4️⃣ Phase progress
+        // 4️ Phase progress
         int cumCur = 0, cumTot = 0;
+        // Reset all phase indicators if no progress data (pipeline reset)
+        if (snap.phaseProgress.isEmpty()) {
+            for (auto* widget : m_phase_indicators_.values()) {
+                widget->reset();
+            }
+        }
         for (auto it = snap.phaseProgress.constBegin(); it != snap.phaseProgress.constEnd(); ++it) {
             if (m_phase_indicators_.contains(it.key())) {
                 if (it.key() == Pipeline::Phase::Find) {
                     cumTot = 3 * it.value().second;
                 }
                 cumCur += it.value().first;
-                m_phase_indicators_[it.key()]->setProgress(it.value().first);
+                // Set total BEFORE progress so the equality check works correctly
                 m_phase_indicators_[it.key()]->setTotal(it.value().second);
+                m_phase_indicators_[it.key()]->setProgress(it.value().first);
             }
         }
 
-        // 5️⃣ Status bar
+        // 5️ Status bar
         m_status_bar_->showMessage(snap.statusMessage);
 
-        // 6️⃣ Cumulative progress bar
+        // 6️ Cumulative progress bar
         if (m_progress_bar_) {
             m_progress_bar_->setMaximum(cumTot);
             m_progress_bar_->setValue(cumCur);
@@ -257,6 +262,7 @@ void MainWindow::applySnapshot(const UiUpdateQueue::Snapshot& snap)
         static Pipeline::PipelineState lastState = Pipeline::PipelineState::Stopped;
         int curSelection = countSelectedForDeletion();
         if (snap.pipelineState != lastState || curSelection != m_lastSelectionCount_) {
+            onPipelineStateChanged(snap.pipelineState);
             updateDeleteButtonState();
             m_lastSelectionCount_ = curSelection;
             lastState = snap.pipelineState;
@@ -348,6 +354,7 @@ void MainWindow::applySnapshot(const UiUpdateQueue::Snapshot& snap)
             m_scan_button_->setText(tr("Stopping..."));
             m_scan_button_->setEnabled(false);
             m_browse_button_->setEnabled(false);
+            resetPhaseIndicators();
             break;
 
         case Pipeline::PipelineState::Stopped:
