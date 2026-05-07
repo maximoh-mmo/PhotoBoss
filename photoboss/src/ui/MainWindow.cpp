@@ -139,6 +139,9 @@ namespace photoboss
         connect(m_pipeline_controller_->uiQueue(), &UiUpdateQueue::snapshotReady,
                 this, &MainWindow::applySnapshot, Qt::QueuedConnection);
 
+        // Connect delete button
+        connect(m_btn_delete_, &QPushButton::clicked, this, &MainWindow::onDeleteClicked);
+
     }
 
     void MainWindow::OnCurrentFolderChanged()

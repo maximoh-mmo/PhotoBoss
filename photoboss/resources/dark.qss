@@ -125,13 +125,19 @@ QLabel#thumbnailLabelFailed {
 }
 
 QLabel#keepBadge {
-    color: var(#4CAF50);
+    background-color: #4CAF50;
+    color: #FFFFFF;
     font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 4px;
 }
 
 QLabel#deleteBadge {
-    color: var(#C0392B);
+    background-color: #C0392B;
+    color: #FFFFFF;
     font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 4px;
 }
 
 QLabel.thumbnailPlaceholder {
