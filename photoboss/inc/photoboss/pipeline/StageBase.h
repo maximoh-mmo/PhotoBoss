@@ -36,6 +36,7 @@ namespace photoboss {
             }
 
             onStop();
+            emit stageFinished();
         }
         // Main execution loop for the stage.
         // Must exit when its input queue is shut down.
@@ -49,6 +50,8 @@ namespace photoboss {
         void status(const QString& message);
 		// Emitted to report errors encountered during processing.
         void error(const QString& message);
+        // Emitted when stage completes all work
+        void stageFinished();
 
     protected:
         virtual void run() = 0;

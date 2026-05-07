@@ -84,10 +84,11 @@ namespace photoboss {
                 result.push_back(g);
             }
         }
-        emit groupingFinished(result);
+emit groupingFinished(result);
+        m_thumbnailOutput_.producer_done();
     }
  
-
+ 
     void ResultProcessor::onStop()
     {
         m_thumbnailOutput_.producer_done();

@@ -198,6 +198,9 @@ namespace photoboss {
         QObject::connect(thread, &QThread::started,
             stage, &StageBase::Run,
             Qt::QueuedConnection);
+        QObject::connect(stage, &StageBase::stageFinished,
+            thread, &QThread::quit,
+            Qt::QueuedConnection);
         QObject::connect(thread, &QThread::finished,
             stage, &QObject::deleteLater,
             Qt::QueuedConnection);
