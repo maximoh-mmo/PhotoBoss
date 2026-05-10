@@ -16,6 +16,7 @@ namespace photoboss
         explicit PreviewPane(QWidget* parent = nullptr);
 
         void showImage(const ImageEntry& entry);
+		void clear();
 
     protected:
         void resizeEvent(QResizeEvent* event) override;

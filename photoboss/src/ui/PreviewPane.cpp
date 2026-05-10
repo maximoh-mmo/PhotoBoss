@@ -55,6 +55,12 @@ namespace photoboss
             );
         }
     }
+    void PreviewPane::clear()
+    {
+        m_imageLabel_->clear();
+        m_metaLabel_->clear();
+        m_currentImage_ = QImage();
+	}
 
     void PreviewPane::resizeEvent(QResizeEvent* event)
     {

@@ -21,7 +21,8 @@ namespace photoboss {
 		void setProgress(int progress);
 		void setTotal(int total);
 		void reset();
-		void switchState();
+		void showSpinner();
+		void stop();
 
 	private:
 		void buildUi();

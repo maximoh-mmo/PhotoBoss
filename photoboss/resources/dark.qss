@@ -14,7 +14,7 @@ QSplitter::handle {
 }
 
 QFrame {
-    background-color: #252525;
+    background-color: #1e1e1e;
     border: none;
 }
 

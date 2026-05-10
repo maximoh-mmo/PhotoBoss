@@ -37,25 +37,27 @@ namespace photoboss
 		m_spinner_->setFixedSize(spinnerSize, spinnerSize);
 		QColor parentBg = this->palette().color(QPalette::Window);
         m_spinner_->setStyleSheet(QString("background-color: %1;").arg(parentBg.name()));
-        m_spinner_->show();
+		QSizePolicy sp_retain = m_spinner_->sizePolicy();
+		sp_retain.setRetainSizeWhenHidden(true);
+		m_spinner_->setSizePolicy(sp_retain);
 
 		QHBoxLayout* layout = new QHBoxLayout(this);
-		layout->setAlignment(Qt::AlignCenter);
+		layout->setAlignment(Qt::AlignLeft);
 		layout->setContentsMargins(2,2,2,2);
 		layout->setSpacing(0);
-
+		layout->addWidget(m_spinner_);
 		QWidget* textContainer = new QWidget(this);
 		QVBoxLayout* textLayout = new QVBoxLayout(textContainer);
-		textLayout->setContentsMargins(32+16+2, 2, 18, 2);
+		textLayout->setContentsMargins(2, 2, 2, 2);
 		textLayout->setSpacing(0);
-		
 		textLayout->addWidget(m_titleLabel_);
 		textLayout->addWidget(m_progressLabel_);
 		textContainer->setLayout(textLayout);
 
 		layout->addWidget(textContainer);
-		layout->addWidget(m_spinner_);
 		setColour(Qt::gray);
+		m_spinner_->hide();
+
 	}
 
 void ProgressCounterWidget::setProgress(int progress)
@@ -64,6 +66,7 @@ void ProgressCounterWidget::setProgress(int progress)
 			progress = 0;
 			return;
 		}
+		
 		if (m_state_ == NotStarted) {
 			m_state_ = InProgress;
 			m_spinner_->start();
@@ -105,23 +108,21 @@ void ProgressCounterWidget::setProgress(int progress)
 	void ProgressCounterWidget::reset() 
 	{
 		m_spinner_->stop();
+		m_spinner_->hide();
 		setColour(Qt::gray);
 		m_progress_ = 0;
 		m_total_ = 0;
 		m_progressLabel_->setText("0");
 		m_state_ = NotStarted;
 	}
-	void ProgressCounterWidget::switchState()
+	void ProgressCounterWidget::showSpinner()
 	{
-		if (m_state_ == NotStarted) {
-			setTotal(10);
-			setProgress(1);
-		}
-		else if (m_state_ == InProgress) {
-			setProgress(10);
-		}
-		else {
-			reset();
-		}
+		m_spinner_->show();
+	}
+
+	void ProgressCounterWidget::stop()
+	{
+		m_spinner_->stop();
+		setColour(Qt::gray);
 	}
 }

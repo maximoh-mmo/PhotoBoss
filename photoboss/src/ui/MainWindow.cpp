@@ -47,15 +47,17 @@ namespace photoboss
         m_delete_count_label_ = m_ui_->deleteCountLabel;
 
         // Phase indicator labels
-        m_phase_indicators_[Pipeline::Phase::Find] = new ProgressCounterWidget("Scan Progress", this);
-        m_phase_indicators_[Pipeline::Phase::Analyze] = new ProgressCounterWidget("Analyse Progress", this);
-        m_phase_indicators_[Pipeline::Phase::Group] = new ProgressCounterWidget("Group Progress", this);
+        m_phase_indicators_[Pipeline::Phase::Find] = new ProgressCounterWidget("Scanning", this);
+        m_phase_indicators_[Pipeline::Phase::Analyze] = new ProgressCounterWidget("Analysis", this);
+        m_phase_indicators_[Pipeline::Phase::Group] = new ProgressCounterWidget("Grouping", this);
 
 		QWidget* container = new QWidget(m_ui_->phaseStrip);
         QHBoxLayout* layout = new QHBoxLayout(container);
         for (auto& indicator : m_phase_indicators_) {
 			layout->addWidget(indicator);
 		}
+		layout->setAlignment(Qt::AlignRight);
+		layout->setContentsMargins(0, 0, 0, 0);
 		m_ui_->phaseStripLayout->addWidget(container);
 
         // Split body area
@@ -69,15 +71,14 @@ namespace photoboss
             m_thumbnail_layout_->contentsMargins().right();
 
         int totalWidth = settings::ThumbnailsPerRow * settings::ThumbnailWidth
-            + (settings::ThumbnailsPerRow - 1) * spacing + margins;
+            + (settings::ThumbnailsPerRow) * spacing + margins;
 
         m_thumbnail_container_->setMinimumWidth(totalWidth);
-        m_thumbnail_container_->setMaximumWidth(totalWidth);
-        m_thumbnail_container_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+        m_thumbnail_container_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
         // Wrap thumbnails in scroll area
         m_thumbnail_scroll_ = new QScrollArea();
-        m_thumbnail_scroll_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+        m_thumbnail_scroll_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
         m_thumbnail_scroll_->setWidgetResizable(true);
         m_thumbnail_scroll_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         m_thumbnail_scroll_->setWidget(m_thumbnail_container_);
@@ -86,7 +87,8 @@ namespace photoboss
 
         // Preview pane
         m_preview_pane_ = new PreviewPane();
-
+		m_preview_pane_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		m_preview_pane_->setMinimumWidth(totalWidth);
         m_splitter_->addWidget(m_preview_pane_);
         m_splitter_->setStretchFactor(0, 0);
         m_splitter_->setStretchFactor(1, 1);
@@ -124,11 +126,18 @@ namespace photoboss
             auto state = m_pipeline_controller_->state();
             if (state == Pipeline::PipelineState::Running) {
                 m_pipeline_controller_->stop();
+                for (auto* widget : m_phase_indicators_) {
+                    widget->stop();
+                }
+
             }
             else if (state == Pipeline::PipelineState::Stopped) {
                 const QString folder = GetCurrentFolder();
                 if (!folder.isEmpty()) {
                     clearResults();
+                    for (auto* widget : m_phase_indicators_) {
+                        widget->showSpinner();
+					}
                     m_pipeline_controller_->start({ folder, m_ui_->subfolders->isChecked() });
                 }
             }
@@ -240,6 +249,7 @@ void MainWindow::applySnapshot(const UiUpdateQueue::Snapshot& snap)
             for (auto* widget : m_phase_indicators_.values()) {
                 widget->reset();
             }
+			cumTot = 1; // Avoid division by zero if we show any progress before real data arrives
         }
         for (auto it = snap.phaseProgress.constBegin(); it != snap.phaseProgress.constEnd(); ++it) {
             if (m_phase_indicators_.contains(it.key())) {
@@ -336,6 +346,7 @@ void MainWindow::applySnapshot(const UiUpdateQueue::Snapshot& snap)
         }
         m_groupWidgets_.clear();
         m_pendingGroups_.clear();
+		m_preview_pane_->clear();
         m_thumbnailWaiters_.clear();
         m_thumbnailCache_.clear();
         m_scan_found_duplicates_ = false;

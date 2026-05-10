@@ -100,6 +100,7 @@ namespace photoboss {
         UiUpdateQueue::Snapshot m_lastSnapshot_;
         // Remember previous selection count to avoid redundant delete‑button updates
         int m_lastSelectionCount_ = -1;
+		int m_largestGroupSize_ = 2;
         QTimer* m_uiPollTimer_ = nullptr;
 
     };

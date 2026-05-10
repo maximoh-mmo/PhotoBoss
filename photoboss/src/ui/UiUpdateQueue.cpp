@@ -18,8 +18,9 @@ void UiUpdateQueue::reset()
     m_phaseProgress.clear();
     m_statusMessage.clear();
     m_pipelineState = Pipeline::PipelineState::Stopped;
-    m_totalFiles = 0;
+    m_totalFiles = 1;
     m_dirty = true;
+	m_statusMessage = "";
     lock.unlock();
     scheduleSnapshotEmit();
 }
