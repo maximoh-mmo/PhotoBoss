@@ -131,10 +131,6 @@ UiUpdateQueue::Snapshot UiUpdateQueue::snapshot() const
     return snap;
 }
 
-bool UiUpdateQueue::operator!=(const Snapshot& other) const
-{
-    return !(this->snapshot() == other);
-}
 
 bool UiUpdateQueue::Snapshot::operator==(const Snapshot& other) const
 {

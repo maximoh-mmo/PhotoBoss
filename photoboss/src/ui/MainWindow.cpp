@@ -111,14 +111,6 @@ namespace photoboss
         }
     }
 
-    void MainWindow::UpdateProgressBar(int current, int total)
-    {
-        if (m_progress_bar_) {
-            m_progress_bar_->setMaximum(total);
-            m_progress_bar_->setValue(current);
-        }
-    }
-
     void MainWindow::WireConnections()
     {
         connect(m_browse_button_, &QPushButton::clicked, this, &MainWindow::OnBrowse);
@@ -260,7 +252,6 @@ void MainWindow::applySnapshot(const UiUpdateQueue::Snapshot& snap)
         if (snap.phaseProgress.isEmpty() &&
             ((lastState == Pipeline::PipelineState::Stopped && snap.pipelineState == Pipeline::PipelineState::Stopped) ||
              (lastState == Pipeline::PipelineState::Running && snap.pipelineState == Pipeline::PipelineState::Stopped))) {
-            qDebug() << "DEBUG: Resetting phase widgets - lastState:" << lastState << "current:" << snap.pipelineState;
             for (auto* widget : m_phase_indicators_.values()) {
                 widget->reset();
             }
@@ -292,48 +283,6 @@ void MainWindow::applySnapshot(const UiUpdateQueue::Snapshot& snap)
             updateDeleteButtonState();
             m_lastSelectionCount_ = curSelection;
             lastState = snap.pipelineState;
-        }
-    }
-
-
-    void MainWindow::onGroupAdded(const ImageGroup& group)
-    {
-        m_pendingGroups_.push_back(group);
-        if (!m_batchTimer_->isActive()) {
-            m_batchTimer_->start(50); // Process batch every 50ms
-        }
-    }
-
-    void MainWindow::onGroupUpdated(const ImageGroup& group)
-    {
-        if (m_groupWidgets_.contains(group.id)) {
-            m_groupWidgets_[group.id]->updateGroup(group);
-
-            // Also update mapping for any new images added to the group
-            auto* widget = m_groupWidgets_[group.id];
-            for (const auto& entry : group.images) {
-                bool alreadyWaiting = false;
-                auto waiters = m_thumbnailWaiters_.values(entry.path);
-                for (auto* w : waiters) {
-                    if (w->parentWidget() == widget) {
-                        alreadyWaiting = true;
-                        break;
-                    }
-                }
-
-                if (!alreadyWaiting) {
-                    for (auto* thumb : widget->findChildren<ImageThumbWidget*>()) {
-                        if (thumb->Image().path == entry.path) {
-                            if (m_thumbnailCache_.contains(entry.path)) {
-                                thumb->setThumbnail(m_thumbnailCache_[entry.path]);
-                            }
-                            else {
-                                m_thumbnailWaiters_.insert(entry.path, thumb);
-                            }
-                        }
-                    }
-                }
-            }
         }
     }
 
@@ -387,8 +336,6 @@ void MainWindow::applySnapshot(const UiUpdateQueue::Snapshot& snap)
             m_scan_button_->setEnabled(true);
             m_browse_button_->setEnabled(true);
             // Stop UI polling when not running
-            if (m_uiPollTimer_ && m_uiPollTimer_->isActive())
-                m_uiPollTimer_->stop();
             // Leave progress bar at 100% to show completion
 
             if (m_scan_found_duplicates_) {
@@ -499,10 +446,4 @@ void MainWindow::applySnapshot(const UiUpdateQueue::Snapshot& snap)
         updateDeleteButtonState();
     }
 
-    void MainWindow::resetPhaseIndicators()
-    {
-        for (auto& indicator : m_phase_indicators_) {
-            indicator->reset();
-        }
-    }
 }

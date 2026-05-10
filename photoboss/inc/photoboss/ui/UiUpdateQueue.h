@@ -57,7 +57,6 @@ public:
         bool operator==(const Snapshot& other) const;
     };
     Snapshot snapshot() const;
-    bool operator!=(const Snapshot& other) const;
 
 signals:
     void snapshotReady(const UiUpdateQueue::Snapshot& snap);

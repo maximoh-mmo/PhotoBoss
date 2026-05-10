@@ -41,13 +41,10 @@ namespace photoboss {
         void Init();
         void OnCurrentFolderChanged();
         void SetCurrentFolder(const QString& folder);
-        void onGroupAdded(const ImageGroup& group);
-        void onGroupUpdated(const ImageGroup& group);
         void onThumbnailReady(const ThumbnailResult& result);
         void clearResults();
         QString GetCurrentFolder() const { return m_current_folder_; }
         void OnBrowse();
-        void UpdateProgressBar(int current, int total);
 
     private slots:
         void applySnapshot(const UiUpdateQueue::Snapshot& snap);
@@ -59,8 +56,6 @@ namespace photoboss {
         void updateDeleteButtonState();
         int countSelectedForDeletion() const;
         QVector<ImageEntry> collectSelectedForDeletion() const;
-        void resetPhaseIndicators();
-
 
         Ui::MainWindow* m_ui_ = nullptr;
         std::unique_ptr<PipelineController> m_pipeline_controller_ = nullptr;
@@ -71,7 +66,6 @@ namespace photoboss {
 
         QPushButton* m_browse_button_ = nullptr;
         QPushButton* m_scan_button_ = nullptr;
-        QPushButton* m_factory_scan_button_ = nullptr;
         QPushButton* m_btn_delete_ = nullptr;
         QProgressBar* m_progress_bar_ = nullptr;
         QStatusBar* m_status_bar_ = nullptr;
@@ -95,13 +89,11 @@ namespace photoboss {
         PreviewPane* m_preview_pane_ = nullptr;
 
         std::deque<ImageGroup> m_pendingGroups_;
-        QTimer* m_batchTimer_ = nullptr;
         // Cache of the previous UI snapshot for early‑out
         UiUpdateQueue::Snapshot m_lastSnapshot_;
         // Remember previous selection count to avoid redundant delete‑button updates
         int m_lastSelectionCount_ = -1;
 		int m_largestGroupSize_ = 2;
-        QTimer* m_uiPollTimer_ = nullptr;
 
     };
 }
