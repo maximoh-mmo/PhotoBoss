@@ -134,9 +134,10 @@ namespace photoboss
             else if (state == Pipeline::PipelineState::Stopped) {
                 const QString folder = GetCurrentFolder();
                 if (!folder.isEmpty()) {
+                    m_pipeline_controller_->uiQueue()->reset();
                     clearResults();
                     for (auto* widget : m_phase_indicators_) {
-                        widget->showSpinner();
+                        widget->prepareForScan();
 					}
                     m_pipeline_controller_->start({ folder, m_ui_->subfolders->isChecked() });
                 }
@@ -157,6 +158,7 @@ namespace photoboss
     {
         m_ui_->filepath->setPlainText(m_current_folder_);
         m_pipeline_controller_->uiQueue()->reset();
+        clearResults();
     }
 
     void MainWindow::SetCurrentFolder(const QString& folder)
@@ -244,12 +246,24 @@ void MainWindow::applySnapshot(const UiUpdateQueue::Snapshot& snap)
 
         // 4️ Phase progress
         int cumCur = 0, cumTot = 0;
-        // Reset all phase indicators if no progress data (pipeline reset)
+        static Pipeline::PipelineState lastState = Pipeline::PipelineState::Stopped;
+
+        // Set determinate 0/1 state when no phase progress data yet
         if (snap.phaseProgress.isEmpty()) {
+            cumTot = 1;
+        }
+
+        // Reset widgets only when:
+        // - Browse: lastState=Stopped, current=Stopped (initial reset)
+        // - Scan completion: lastState=Running, current=Stopped (actual completion)
+        // NOT when: lastState=Stopped, current=Running (pre-scan state after folder selected)
+        if (snap.phaseProgress.isEmpty() &&
+            ((lastState == Pipeline::PipelineState::Stopped && snap.pipelineState == Pipeline::PipelineState::Stopped) ||
+             (lastState == Pipeline::PipelineState::Running && snap.pipelineState == Pipeline::PipelineState::Stopped))) {
+            qDebug() << "DEBUG: Resetting phase widgets - lastState:" << lastState << "current:" << snap.pipelineState;
             for (auto* widget : m_phase_indicators_.values()) {
                 widget->reset();
             }
-			cumTot = 1; // Avoid division by zero if we show any progress before real data arrives
         }
         for (auto it = snap.phaseProgress.constBegin(); it != snap.phaseProgress.constEnd(); ++it) {
             if (m_phase_indicators_.contains(it.key())) {
@@ -272,7 +286,6 @@ void MainWindow::applySnapshot(const UiUpdateQueue::Snapshot& snap)
             m_progress_bar_->setValue(cumCur);
         }
 
-        static Pipeline::PipelineState lastState = Pipeline::PipelineState::Stopped;
         int curSelection = countSelectedForDeletion();
         if (snap.pipelineState != lastState || curSelection != m_lastSelectionCount_) {
             onPipelineStateChanged(snap.pipelineState);
@@ -360,7 +373,6 @@ void MainWindow::applySnapshot(const UiUpdateQueue::Snapshot& snap)
             m_scan_button_->setEnabled(true);
             m_browse_button_->setEnabled(false);
             m_btn_delete_->setVisible(false);
-            resetPhaseIndicators();
             break;
 
 
@@ -368,7 +380,6 @@ void MainWindow::applySnapshot(const UiUpdateQueue::Snapshot& snap)
             m_scan_button_->setText(tr("Stopping..."));
             m_scan_button_->setEnabled(false);
             m_browse_button_->setEnabled(false);
-            resetPhaseIndicators();
             break;
 
         case Pipeline::PipelineState::Stopped:

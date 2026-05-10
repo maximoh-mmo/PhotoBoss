@@ -38,9 +38,6 @@ namespace photoboss {
         if (state() != Pipeline::PipelineState::Stopped)
             return;
 
-        // Reset UI state for new scan
-        m_uiQueue_->reset();
-
         // obtain a fresh scan‑id (identical to legacy controller)
 
         createPipeline(request);

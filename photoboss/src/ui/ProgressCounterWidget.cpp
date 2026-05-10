@@ -115,6 +115,17 @@ void ProgressCounterWidget::setProgress(int progress)
 		m_progressLabel_->setText("0");
 		m_state_ = NotStarted;
 	}
+
+	void ProgressCounterWidget::prepareForScan()
+	{
+		m_spinner_->show();
+		setColour(Qt::gray);
+		m_progress_ = 0;
+		m_total_ = 0;
+		m_progressLabel_->setText("0");
+		m_state_ = NotStarted;
+	}
+
 	void ProgressCounterWidget::showSpinner()
 	{
 		m_spinner_->show();
