@@ -1,4 +1,4 @@
-#include "caching/SqliteHashCache.h"
+ï»¿#include "caching/SqliteHashCache.h"
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
@@ -352,7 +352,7 @@ namespace photoboss
         } while (q.next());
 
         if (foundMethods == requestedMethods) {
-            // cache hit — mark as seen for this scan
+            // cache hit - mark as seen for this scan
             updateScanIdForFile(fileId);
             return { Lookup::Hit, result };
         } 

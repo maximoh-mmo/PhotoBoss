@@ -159,6 +159,8 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="inc\photoboss\ui\MainWindow.h" />
+    <QtMoc Include="inc\photoboss\ui\ThumbnailManager.h" />
+    <QtMoc Include="inc\photoboss\ui\DeletionService.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="inc\photoboss\pipeline\Pipeline.cpp" />
@@ -192,7 +194,9 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\ui\MainWindow.cpp" />
     <ClCompile Include="src\ui\PreviewPane.cpp" />
+    <ClCompile Include="src\ui\ThumbnailManager.cpp" />
     <ClCompile Include="src\ui\DeleteConfirmDialog.cpp" />
+    <ClCompile Include="src\ui\DeletionService.cpp" />
     <ClCompile Include="src\pipeline\PipelineController.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -241,6 +245,9 @@
     <ClInclude Include="inc\photoboss\hashing\DifferenceHash.h" />
     <ClInclude Include="inc\photoboss\hashing\PerceptualHash.h" />
     <ClInclude Include="inc\photoboss\types\GroupTypes.h" />
+    <ClInclude Include="inc\photoboss\ui\UiSnapshot.h" />
+    <ClInclude Include="inc\photoboss\ui\IDeletionStrategy.h" />
+    <ClInclude Include="inc\photoboss\ui\TrashDeletionStrategy.h" />
     <ClInclude Include="inc\photoboss\types\CacheTypes.h" />
   </ItemGroup>
   <ItemGroup>

@@ -12,6 +12,7 @@
 #include "types/GroupTypes.h"
 #include "pipeline/Pipeline.h"
 #include "ui/IUiUpdateSink.h"
+#include "ui/UiSnapshot.h"
 
 namespace photoboss {
 class ImageThumbWidget;
@@ -45,21 +46,12 @@ public:
     // Commit processed groups – removes them from the pending queue
     void commitProcessed(int count);
 
-    // Snapshot – copy of all data for UI consumption
-    struct Snapshot {
-        std::deque<ImageGroup> pendingGroups;
-        QMap<quint64, ImageGroup> updatedGroups;          // keyed by group id
-        QMap<QString, QPixmap> thumbnailCache;
-        QMultiMap<QString, ImageThumbWidget*> thumbnailWaiters;
-        QMap<Pipeline::Phase, std::pair<int,int>> phaseProgress;
-        QString statusMessage;
-        Pipeline::PipelineState pipelineState = Pipeline::PipelineState::Stopped;
-        bool operator==(const Snapshot& other) const;
-    };
-    Snapshot snapshot() const;
+    using Snapshot = UiSnapshot;
+
+    UiSnapshot snapshot() const;
 
 signals:
-    void snapshotReady(const UiUpdateQueue::Snapshot& snap);
+    void snapshotReady(const UiSnapshot& snap);
 
 private slots:
     void maybeEmitSnapshot();

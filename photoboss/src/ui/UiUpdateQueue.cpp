@@ -117,10 +117,10 @@ void UiUpdateQueue::setPipelineState(Pipeline::PipelineState state)
     scheduleSnapshotEmit();
 }
 
-UiUpdateQueue::Snapshot UiUpdateQueue::snapshot() const
+UiSnapshot UiUpdateQueue::snapshot() const
 {
     QMutexLocker lock(&m_mutex);
-    Snapshot snap;
+    UiSnapshot snap;
     snap.pendingGroups = m_pendingGroups;
     snap.updatedGroups = m_updatedGroups;
     snap.thumbnailCache = m_thumbnailCache;
@@ -132,7 +132,7 @@ UiUpdateQueue::Snapshot UiUpdateQueue::snapshot() const
 }
 
 
-bool UiUpdateQueue::Snapshot::operator==(const Snapshot& other) const
+bool UiSnapshot::operator==(const UiSnapshot& other) const
 {
     // Equality is based on data that influences UI rendering.
     // We deliberately exclude containers that contain types without ==
@@ -145,7 +145,7 @@ bool UiUpdateQueue::Snapshot::operator==(const Snapshot& other) const
 
 void UiUpdateQueue::maybeEmitSnapshot()
 {
-    Snapshot snap;
+    UiSnapshot snap;
     {
         QMutexLocker lock(&m_mutex);
         if (!m_dirty) {
