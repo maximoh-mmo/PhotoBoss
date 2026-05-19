@@ -42,6 +42,9 @@ namespace photoboss::settings {
     static inline constexpr int HashingProgressEmitIntervalMs = 100;    // 10/sec - Analyze phase
     static inline constexpr int ResultProgressEmitIntervalMs = 100;    // 10/sec - Group phase
 
+    // Queue capacities (item-based bounds — backpressure control)
+    static inline constexpr int ReadQueueCapacity = 15;          // DiskReadResult (full file bytes) — critical
+
     // Similarity Engine
     static inline constexpr double SimilarityStrongThreshold = 0.97;
     static inline constexpr double SimilarityWeakThreshold = 0.92;

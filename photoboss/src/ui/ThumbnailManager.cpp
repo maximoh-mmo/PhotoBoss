@@ -52,12 +52,11 @@ void ThumbnailManager::processPendingGroup(const ImageGroup& group)
     if (group.images.size() > 1)
         m_scanFoundDuplicates_ = true;
 
+    const auto& thumbsByPath = widget->thumbsByPath();
     for (const auto& entry : group.images) {
-        for (auto* thumb : widget->findChildren<ImageThumbWidget*>()) {
-            if (thumb->Image().path == entry.path) {
-                assignThumbnailToWidget(entry.path, thumb);
-            }
-        }
+        auto* thumb = thumbsByPath.value(entry.path);
+        if (thumb)
+            assignThumbnailToWidget(entry.path, thumb);
     }
 
     connect(widget, &GroupWidget::previewImage, m_previewPane_, &PreviewPane::showImage);
@@ -84,11 +83,10 @@ void ThumbnailManager::processUpdatedGroups(const QMap<quint64, ImageGroup>& upd
                 }
             }
             if (!alreadyWaiting) {
-                for (auto* thumb : widget->findChildren<ImageThumbWidget*>()) {
-                    if (thumb->Image().path == entry.path) {
-                        assignThumbnailToWidget(entry.path, thumb);
-                    }
-                }
+                const auto& thumbsByPath = widget->thumbsByPath();
+                auto* thumb = thumbsByPath.value(entry.path);
+                if (thumb)
+                    assignThumbnailToWidget(entry.path, thumb);
             }
         }
     }

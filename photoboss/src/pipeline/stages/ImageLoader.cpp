@@ -1,20 +1,21 @@
 #include "pipeline/stages/ImageLoader.h"
+#include "util/AppSettings.h"
 #include "util/OrientImage.h"
 #include <QImageReader>
-#include <QFileInfo>
+#include <QBuffer>
 
 namespace photoboss {
 
 std::optional<QImage> ImageLoader::load(const DiskReadResult &item) const {
-    // Build the full path from the FileIdentity stored in DiskReadResult.
     const FileIdentity &fi = item.fileIdentity;
-    QString fullPath = fi.path() + "/" + fi.name();
-    QImageReader reader(fullPath);
+    QBuffer buf(const_cast<QByteArray*>(&item.imageBytes));
+    buf.open(QIODevice::ReadOnly);
+    QImageReader reader(&buf);
+    reader.setScaledSize(QSize(settings::HashSampleSize, settings::HashSampleSize));
     QImage img = reader.read();
     if (img.isNull()) {
-        return std::nullopt; // decode failure – let the caller handle the error.
+        return std::nullopt;
     }
-    // Apply EXIF orientation if it exists; default is 1 (no rotation).
     int orientation = fi.exif().orientation.value_or(1);
     img = OrientImage(img, orientation);
     return img;

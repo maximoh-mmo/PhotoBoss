@@ -1,7 +1,9 @@
 #include "pipeline/SimilarityEngine.h"
 #include "hashing/HashCatalog.h"
 #include <algorithm>
+#include <array>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace photoboss {
 
@@ -29,6 +31,18 @@ namespace photoboss {
         }
     }
 
+    std::array<quint16, 4> SimilarityEngine::extractSubHashes(
+        const QString& phashHex)
+    {
+        quint64 h = phashHex.toULongLong(nullptr, 16);
+        return {{
+            static_cast<quint16>(h & 0xFFFF),
+            static_cast<quint16>((h >> 16) & 0xFFFF),
+            static_cast<quint16>((h >> 32) & 0xFFFF),
+            static_cast<quint16>((h >> 48) & 0xFFFF)
+        }};
+    }
+
     void SimilarityEngine::addImage(const std::shared_ptr<HashedImageResult>& img)
     {
         if (!img || !img->hashes.count("SHA256")) {
@@ -48,12 +62,49 @@ namespace photoboss {
             eg.representative = node;
 
             bool placed = false;
-            for (auto& cluster : m_clusters_) {
-                double sim = confidence(*node->result, *cluster.representative->result);
-                if (sim >= m_cfg.strongThreshold) {
-                    cluster.members.push_back(node);
-                    placed = true;
-                    break;
+            const auto phashIt = img->hashes.find("Perceptual Hash");
+
+            // Try inverted index lookup (pHash must exist and index must be non-empty)
+            if (phashIt != img->hashes.end() && !m_subHashIndex_.empty()) {
+                auto subs = extractSubHashes(phashIt->second);
+                std::unordered_map<size_t, int> matchCount;
+                for (auto sub : subs) {
+                    auto idxIt = m_subHashIndex_.find(sub);
+                    if (idxIt == m_subHashIndex_.end()) continue;
+                    std::set<size_t> seenInBucket;
+                    for (size_t ci : idxIt->second) {
+                        if (seenInBucket.insert(ci).second)
+                            matchCount[ci]++;
+                    }
+                }
+                // Check candidates with >= 2 matching sub-hashes
+                for (const auto& [ci, count] : matchCount) {
+                    if (count >= 2 && ci < m_clusters_.size()) {
+                        double sim = confidence(*node->result, *m_clusters_[ci].representative->result);
+                        if (sim >= m_cfg.strongThreshold) {
+                            m_clusters_[ci].members.push_back(node);
+                            if (better(*node, *m_clusters_[ci].representative))
+                                m_clusters_[ci].representative = node;
+                            m_dirtyClusterIndices_.insert(ci);
+                            placed = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Fallback: scan all clusters only when pHash is missing
+            if (!placed && phashIt == img->hashes.end()) {
+                for (auto& cluster : m_clusters_) {
+                    double sim = confidence(*node->result, *cluster.representative->result);
+                    if (sim >= m_cfg.strongThreshold) {
+                        cluster.members.push_back(node);
+                        if (better(*node, *cluster.representative))
+                            cluster.representative = node;
+                        m_dirtyClusterIndices_.insert(static_cast<size_t>(&cluster - m_clusters_.data()));
+                        placed = true;
+                        break;
+                    }
                 }
             }
 
@@ -63,6 +114,15 @@ namespace photoboss {
                 c.representative = node;
                 c.members.push_back(node);
                 m_clusters_.push_back(std::move(c));
+                m_dirtyClusterIndices_.insert(m_clusters_.size() - 1);
+
+                // Add new cluster to inverted index
+                if (phashIt != img->hashes.end()) {
+                    auto subs = extractSubHashes(phashIt->second);
+                    size_t clusterIdx = m_clusters_.size() - 1;
+                    for (auto sub : subs)
+                        m_subHashIndex_[sub].push_back(clusterIdx);
+                }
             }
 
             m_exactGroups_.insert({sha, std::move(eg)});
@@ -80,9 +140,18 @@ namespace photoboss {
                 // Find cluster containing the ExactGroup
                 if (std::find(cluster.members.begin(), cluster.members.end(), oldRep) != cluster.members.end()) {
                     cluster.members.push_back(node);
+                    m_dirtyClusterIndices_.insert(static_cast<size_t>(&cluster - m_clusters_.data()));
                     // Update representative of cluster if needed
                     if (newlyBetter && cluster.representative == oldRep) {
                         cluster.representative = node;
+                        // Add new rep's sub-hashes to inverted index
+                        const auto& phashIt = img->hashes.find("Perceptual Hash");
+                        if (phashIt != img->hashes.end()) {
+                            auto subs = extractSubHashes(phashIt->second);
+                            size_t ci = static_cast<size_t>(&cluster - m_clusters_.data());
+                            for (auto sub : subs)
+                                m_subHashIndex_[sub].push_back(ci);
+                        }
                     }
                     break;
                 }
@@ -106,7 +175,10 @@ namespace photoboss {
     {
         GroupDelta delta;
 
-        for (const auto& cluster : m_clusters_) {
+        for (size_t ci : m_dirtyClusterIndices_) {
+            if (ci >= m_clusters_.size()) continue;
+            const auto& cluster = m_clusters_[ci];
+
             bool wasMulti = m_previouslyMultiImageClusterIds.contains(cluster.id);
             bool isMulti = cluster.members.size() > 1;
             size_t prevSize = 0;
@@ -126,6 +198,7 @@ namespace photoboss {
             }
         }
 
+        m_dirtyClusterIndices_.clear();
         return delta;
     }
 
@@ -140,8 +213,6 @@ namespace photoboss {
     {
         double score = 0.0;
         double weightSum = 0.0;
-        double phashSim = 0.0;
-        double dhashSim = 0.0;
 
         for (const auto& h : m_hashes_) {
             const QString& key = h.method->key();
@@ -154,23 +225,14 @@ namespace photoboss {
                 b.hashes.at(key)
             );
 
-            if (key == "Perceptual Hash")
-                phashSim = sim;
+            if (key == "Perceptual Hash" && sim < m_cfg.pHashGate)
+                return 0.0;
 
-            if (key == "Difference Hash")
-                dhashSim = sim;
+            if (key == "Difference Hash" && sim < m_cfg.dHashGate)
+                return 0.0;
 
             score += sim * h.weight;
             weightSum += h.weight;
-        }
-
-        // --------------------------------------------------
-        // Hard Gate: if either perceptual or difference hashes 
-        // are below acceptable thresholds return 0
-        // --------------------------------------------------
-
-        if (phashSim < m_cfg.pHashGate || dhashSim < m_cfg.dHashGate) {
-            return 0.0;
         }
 
         return weightSum > 0.0 ? score / weightSum : 0.0;

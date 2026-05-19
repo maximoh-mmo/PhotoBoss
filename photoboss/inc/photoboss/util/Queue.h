@@ -2,6 +2,7 @@
 #include <deque>
 #include <mutex>
 #include <condition_variable>
+#include <cstdio>
 #include "util/Token.h"
 #include "util/IQueue.h"
 
@@ -59,6 +60,8 @@ public:
     // Pop an item, blocks until available or shutdown. Returns false if queue empty & shutdown.
     bool wait_and_pop(T& item) {
         std::unique_lock lock(m_mutex_);
+        if (m_deque_.empty() && !b_shutdown_)
+            ++m_consumerWaitCount_;
         m_notEmpty_.wait(lock, [this]() { return !m_deque_.empty() || b_shutdown_; });
         if (b_shutdown_ && m_deque_.empty()) return false;
         item = std::move(m_deque_.front());
@@ -130,12 +133,24 @@ public:
         shutdown();
     }
 
+    uint64_t producerWaitCount() const override { return m_producerWaitCount_.load(); }
+    uint64_t consumerWaitCount() const override { return m_consumerWaitCount_.load(); }
+
+    ~Queue() override {
+        fprintf(stderr, "Queue[%zu] cap=%zu: prodWaits=%llu consWaits=%llu\n",
+            id(), m_capacity_,
+            (unsigned long long)m_producerWaitCount_.load(),
+            (unsigned long long)m_consumerWaitCount_.load());
+    }
+
 private:
     bool b_shutdown_ = false;
     std::deque<T> m_deque_;
     const size_t m_capacity_;
     mutable std::mutex m_mutex_;
     std::atomic<size_t> m_producers_{ 0 };
+    std::atomic<uint64_t> m_producerWaitCount_{ 0 };
+    std::atomic<uint64_t> m_consumerWaitCount_{ 0 };
     std::condition_variable m_notEmpty_;
     std::condition_variable m_notFull_;
 
@@ -149,6 +164,8 @@ private:
 
     // Wait until there is space in the queue (for bounded) or shutdown
     bool wait_for_space(std::unique_lock<std::mutex>& lock) {
+        if (m_deque_.size() >= m_capacity_ && !b_shutdown_)
+            ++m_producerWaitCount_;
         m_notFull_.wait(lock, [this]() { return m_deque_.size() < m_capacity_ || b_shutdown_; });
         return !b_shutdown_;
     }

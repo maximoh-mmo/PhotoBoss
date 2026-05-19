@@ -36,11 +36,14 @@ namespace photoboss {
     {
         m_header_->setText(tr("Group (%1 images)").arg(group.images.size()));
 
+        size_t oldCount = m_thumbs_.size();
+
         // Add any missing thumbs
-        for (size_t i = m_thumbs_.size(); i < group.images.size(); ++i) {
+        for (size_t i = oldCount; i < group.images.size(); ++i) {
             const auto& entry = group.images[i];
             auto* thumb = new ImageThumbWidget(entry, this);
             m_thumbs_.push_back(thumb);
+            m_thumbsByPath_[entry.path] = thumb;
 
             connect(thumb, &ImageThumbWidget::clicked, this, &GroupWidget::onThumbClicked);
             connect(thumb, &ImageThumbWidget::selectionChanged, this, &GroupWidget::onThumbSelectionChanged);
@@ -57,12 +60,22 @@ namespace photoboss {
             m_currentRow_->addWidget(thumb);
         }
 
-        // Update states for all thumbs
-        for (size_t i = 0; i < group.images.size(); ++i) {
-            if (static_cast<int>(i) == group.bestIndex)
-                m_thumbs_[i]->setState(ImageThumbWidget::State::Keep);
-            else
-                m_thumbs_[i]->setState(ImageThumbWidget::State::Delete);
+        if (m_userModified_) {
+            // User has manually changed selections — only set defaults for newly added thumbs
+            for (size_t i = oldCount; i < m_thumbs_.size(); ++i) {
+                if (static_cast<int>(i) == group.bestIndex)
+                    m_thumbs_[i]->setState(ImageThumbWidget::State::Keep);
+                else
+                    m_thumbs_[i]->setState(ImageThumbWidget::State::Delete);
+            }
+        } else {
+            // Pipeline mode: keep all thumb states in sync with bestIndex
+            for (size_t i = 0; i < m_thumbs_.size(); ++i) {
+                if (static_cast<int>(i) == group.bestIndex)
+                    m_thumbs_[i]->setState(ImageThumbWidget::State::Keep);
+                else
+                    m_thumbs_[i]->setState(ImageThumbWidget::State::Delete);
+            }
         }
     }
 
@@ -73,6 +86,7 @@ namespace photoboss {
 
     void GroupWidget::onThumbSelectionChanged()
     {
+        m_userModified_ = true;
         emit selectionChanged();
     }
 

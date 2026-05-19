@@ -1,4 +1,7 @@
 #pragma once
+#include <atomic>
+#include <cstdint>
+
 class IQueue {
 public:
     virtual ~IQueue() = default;
@@ -6,6 +9,8 @@ public:
 
     virtual void clear() = 0;
     virtual void request_shutdown(const photoboss::Token&) = 0;
+    virtual uint64_t producerWaitCount() const { return 0; }
+    virtual uint64_t consumerWaitCount() const { return 0; }
 protected:
     IQueue() : m_id_(next_id()) {}
 

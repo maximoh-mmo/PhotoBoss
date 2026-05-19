@@ -5,6 +5,8 @@
 #include <QPixmap>
 #include <QMap>
 #include <QMultiMap>
+#include <QTimer>
+#include <QSet>
 #include <deque>
 #include <vector>
 
@@ -48,7 +50,7 @@ public:
 
     using Snapshot = UiSnapshot;
 
-    UiSnapshot snapshot() const;
+    UiSnapshot snapshot();
 
 signals:
     void snapshotReady(const UiSnapshot& snap);
@@ -61,7 +63,8 @@ private:
 
     mutable QRecursiveMutex m_mutex;
     bool m_dirty = false;          // true when any mutator changed state
-    bool m_emitPending = false;    // true when a queued emit is already scheduled
+    QTimer m_throttleTimer_;
+    QSet<quint64> m_modifiedGroupIds_;
 
     // Track total files from Find phase for use in subsequent phases
     int m_totalFiles = 0;

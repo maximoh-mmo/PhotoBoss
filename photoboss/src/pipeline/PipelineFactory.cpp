@@ -36,7 +36,7 @@ namespace photoboss {
         auto exifQueue = std::make_unique<Queue<FileIdentityBatchPtr>>();
         auto disk = std::make_unique<Queue<FileIdentityBatchPtr>>();
         auto resultQueue = std::make_unique<Queue<std::shared_ptr<HashedImageResult>>>();
-        auto readQueue = std::make_unique<Queue<std::unique_ptr<DiskReadResult>>>();
+        auto readQueue = std::make_unique<Queue<std::unique_ptr<DiskReadResult>>>(settings::ReadQueueCapacity);
         auto cacheStoreQueue = std::make_unique<Queue<std::shared_ptr<HashedImageResult>>>();
         auto thumbnailQueue = std::make_unique<Queue<ThumbnailRequestPtr>>();
 

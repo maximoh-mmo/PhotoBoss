@@ -1,6 +1,7 @@
 #pragma once
 #include <QWidget>
 #include <QVector>
+#include <QMap>
 #include <qlayout.h>
 #include <Qlabel>
 #include <qpushbutton>
@@ -17,9 +18,10 @@ namespace photoboss {
 	public:
 		explicit GroupWidget(const ImageGroup& group, QWidget* parent = nullptr);
 
-int countSelectedForDeletion() const;
+        int countSelectedForDeletion() const;
  		QVector<ImageEntry> imagesMarkedForDeleteEntries() const;
 		void updateGroup(const ImageGroup& group);
+		const QMap<QString, ImageThumbWidget*>& thumbsByPath() const { return m_thumbsByPath_; }
 	
 	signals:
 		void previewImage(const ImageEntry& image);
@@ -31,8 +33,10 @@ int countSelectedForDeletion() const;
 
 	private:
 		QVector<ImageThumbWidget*> m_thumbs_;
+		QMap<QString, ImageThumbWidget*> m_thumbsByPath_;
 		QLabel* m_header_;
 		QHBoxLayout* m_currentRow_;
 		QVBoxLayout* m_rootLayout_;
+		bool m_userModified_ = false;
 	};
 }

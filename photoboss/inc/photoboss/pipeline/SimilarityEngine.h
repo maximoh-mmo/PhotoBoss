@@ -2,6 +2,8 @@
 
 #include <set>
 #include <map>
+#include <array>
+#include <unordered_map>
 
 #include "types/DataTypes.h"
 #include "types/GroupTypes.h"
@@ -87,6 +89,11 @@ namespace photoboss {
 
         std::vector<WeightedHash> m_hashes_;
 
+        // Inverted index: 16-bit sub-hash → cluster indices in m_clusters_
+        std::unordered_map<quint16, std::vector<size_t>> m_subHashIndex_;
+
+        // Tracks cluster indices modified since last getGroupDelta() call
+        std::set<size_t> m_dirtyClusterIndices_;
 
     private:
         void initHashes();
@@ -106,5 +113,8 @@ namespace photoboss {
         );
 
         static double score(const ImageNode& img);
+
+        static std::array<quint16, 4> extractSubHashes(
+            const QString& phashHex);
     };
 }

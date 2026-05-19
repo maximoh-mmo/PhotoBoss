@@ -1,4 +1,5 @@
 #include "ui/UiUpdateQueue.h"
+#include "util/AppSettings.h"
 #include <QDebug>
 
 namespace photoboss {
@@ -6,6 +7,10 @@ namespace photoboss {
 UiUpdateQueue::UiUpdateQueue(QObject* parent)
     : QObject(parent)
 {
+    m_throttleTimer_.setInterval(settings::UiPollIntervalMs);
+    m_throttleTimer_.setSingleShot(false);
+    connect(&m_throttleTimer_, &QTimer::timeout,
+            this, &UiUpdateQueue::maybeEmitSnapshot);
 }
 
 void UiUpdateQueue::reset()
@@ -13,6 +18,7 @@ void UiUpdateQueue::reset()
     QMutexLocker lock(&m_mutex);
     m_pendingGroups.clear();
     m_updatedGroups.clear();
+    m_modifiedGroupIds_.clear();
     m_thumbnailCache.clear();
     m_thumbnailWaiters.clear();
     m_phaseProgress.clear();
@@ -25,16 +31,13 @@ void UiUpdateQueue::reset()
     scheduleSnapshotEmit();
 }
 
-// Helper: schedule a single queued emission if none is pending
+// Helper: ensure the throttle timer is running (called from any thread)
 void UiUpdateQueue::scheduleSnapshotEmit()
 {
-    if (!m_emitPending) {
-        m_emitPending = true;
-        // Use QueuedConnection so the call is executed on the UI thread
-        QMetaObject::invokeMethod(this,
-            &UiUpdateQueue::maybeEmitSnapshot,
-            Qt::QueuedConnection);
-    }
+    QMetaObject::invokeMethod(this, [this]() {
+        if (!m_throttleTimer_.isActive())
+            m_throttleTimer_.start();
+    }, Qt::QueuedConnection);
 }
 
 void UiUpdateQueue::addPendingGroup(const ImageGroup& group)
@@ -50,6 +53,7 @@ void UiUpdateQueue::updateGroup(const ImageGroup& group)
 {
     QMutexLocker lock(&m_mutex);
     m_updatedGroups[group.id] = group;
+    m_modifiedGroupIds_.insert(group.id);
     m_dirty = true;
     lock.unlock();
     scheduleSnapshotEmit();
@@ -117,12 +121,17 @@ void UiUpdateQueue::setPipelineState(Pipeline::PipelineState state)
     scheduleSnapshotEmit();
 }
 
-UiSnapshot UiUpdateQueue::snapshot() const
+UiSnapshot UiUpdateQueue::snapshot()
 {
     QMutexLocker lock(&m_mutex);
     UiSnapshot snap;
     snap.pendingGroups = m_pendingGroups;
-    snap.updatedGroups = m_updatedGroups;
+    for (quint64 id : m_modifiedGroupIds_) {
+        auto it = m_updatedGroups.find(id);
+        if (it != m_updatedGroups.end())
+            snap.updatedGroups.insert(id, it.value());
+    }
+    m_modifiedGroupIds_.clear();
     snap.thumbnailCache = m_thumbnailCache;
     snap.thumbnailWaiters = m_thumbnailWaiters;
     snap.phaseProgress = m_phaseProgress;
@@ -145,19 +154,15 @@ bool UiSnapshot::operator==(const UiSnapshot& other) const
 
 void UiUpdateQueue::maybeEmitSnapshot()
 {
-    UiSnapshot snap;
     {
         QMutexLocker lock(&m_mutex);
         if (!m_dirty) {
-            m_emitPending = false;
-            return; // nothing changed since we were scheduled
+            m_throttleTimer_.stop();
+            return;
         }
-        snap = this->snapshot(); // copy under lock
         m_dirty = false;
-        m_emitPending = false;
     }
-    // Emit outside the lock to avoid re‑entrancy issues
-    emit snapshotReady(snap);
+    emit snapshotReady(this->snapshot());
 }
 
 } // namespace photoboss
