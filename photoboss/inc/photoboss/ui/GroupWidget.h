@@ -2,9 +2,9 @@
 #include <QWidget>
 #include <QVector>
 #include <QMap>
-#include <qlayout.h>
-#include <Qlabel>
-#include <qpushbutton>
+#include <QLayout>
+#include <QLabel>
+#include <QPushButton>
 #include "types/GroupTypes.h"
 
 namespace photoboss {

@@ -21,7 +21,7 @@ namespace photoboss
 		);
 
 	public slots:
-		void run();
+		void doRun() override;
 
 	private:
 		Queue<FileIdentity>& m_inputQueue_;

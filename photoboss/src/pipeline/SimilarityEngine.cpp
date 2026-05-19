@@ -8,7 +8,7 @@
 namespace photoboss {
 
     SimilarityEngine::SimilarityEngine(Config cfg)
-        : m_cfg(cfg)
+        : m_cfg_(cfg)
     {
         initHashes();
     }
@@ -21,13 +21,13 @@ namespace photoboss {
             const QString& key = h.method->key();
 
             if (key == "Perceptual Hash")
-                m_hashes_.push_back({ std::move(h.method), m_cfg.pHashWeight });
+                m_hashes_.push_back({ std::move(h.method), m_cfg_.pHashWeight });
             else if (key == "Difference Hash")
-                m_hashes_.push_back({ std::move(h.method), m_cfg.dHashWeight });
+                m_hashes_.push_back({ std::move(h.method), m_cfg_.dHashWeight });
             else if (key == "Average Hash")
-                m_hashes_.push_back({ std::move(h.method), m_cfg.aHashWeight });
+                m_hashes_.push_back({ std::move(h.method), m_cfg_.aHashWeight });
             else if (key == "Aspect Ratio")
-                m_hashes_.push_back({ std::move(h.method), m_cfg.ratioWeight });
+                m_hashes_.push_back({ std::move(h.method), m_cfg_.ratioWeight });
         }
     }
 
@@ -81,7 +81,7 @@ namespace photoboss {
                 for (const auto& [ci, count] : matchCount) {
                     if (count >= 2 && ci < m_clusters_.size()) {
                         double sim = confidence(*node->result, *m_clusters_[ci].representative->result);
-                        if (sim >= m_cfg.strongThreshold) {
+                        if (sim >= m_cfg_.strongThreshold) {
                             m_clusters_[ci].members.push_back(node);
                             if (better(*node, *m_clusters_[ci].representative))
                                 m_clusters_[ci].representative = node;
@@ -97,7 +97,7 @@ namespace photoboss {
             if (!placed && phashIt == img->hashes.end()) {
                 for (auto& cluster : m_clusters_) {
                     double sim = confidence(*node->result, *cluster.representative->result);
-                    if (sim >= m_cfg.strongThreshold) {
+                    if (sim >= m_cfg_.strongThreshold) {
                         cluster.members.push_back(node);
                         if (better(*node, *cluster.representative))
                             cluster.representative = node;
@@ -110,7 +110,7 @@ namespace photoboss {
 
             if (!placed) {
                 SimilarityGroup c;
-                c.id = m_nextGroupId++;
+                c.id = m_nextGroupId_++;
                 c.representative = node;
                 c.members.push_back(node);
                 m_clusters_.push_back(std::move(c));
@@ -225,10 +225,10 @@ namespace photoboss {
                 b.hashes.at(key)
             );
 
-            if (key == "Perceptual Hash" && sim < m_cfg.pHashGate)
+            if (key == "Perceptual Hash" && sim < m_cfg_.pHashGate)
                 return 0.0;
 
-            if (key == "Difference Hash" && sim < m_cfg.dHashGate)
+            if (key == "Difference Hash" && sim < m_cfg_.dHashGate)
                 return 0.0;
 
             score += sim * h.weight;

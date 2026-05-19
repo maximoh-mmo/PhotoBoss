@@ -1,6 +1,6 @@
 #include "hashing/PerceptualImage.h"
 #include "util/AppSettings.h"
-#include "qpainter.h"
+#include <QPainter>
 
 namespace photoboss
 {

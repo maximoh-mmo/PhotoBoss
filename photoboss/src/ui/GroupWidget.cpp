@@ -1,4 +1,3 @@
-#pragma once
 #include "ui/GroupWidget.h"
 #include "ui/ImageThumbWidget.h"
 #include "util/AppSettings.h"
@@ -36,10 +35,10 @@ namespace photoboss {
     {
         m_header_->setText(tr("Group (%1 images)").arg(group.images.size()));
 
-        size_t oldCount = m_thumbs_.size();
+        int oldCount = static_cast<int>(m_thumbs_.size());
 
         // Add any missing thumbs
-        for (size_t i = oldCount; i < group.images.size(); ++i) {
+        for (int i = oldCount; i < static_cast<int>(group.images.size()); ++i) {
             const auto& entry = group.images[i];
             auto* thumb = new ImageThumbWidget(entry, this);
             m_thumbs_.push_back(thumb);
@@ -62,16 +61,16 @@ namespace photoboss {
 
         if (m_userModified_) {
             // User has manually changed selections — only set defaults for newly added thumbs
-            for (size_t i = oldCount; i < m_thumbs_.size(); ++i) {
-                if (static_cast<int>(i) == group.bestIndex)
+            for (int i = oldCount; i < m_thumbs_.size(); ++i) {
+                if (i == group.bestIndex)
                     m_thumbs_[i]->setState(ImageThumbWidget::State::Keep);
                 else
                     m_thumbs_[i]->setState(ImageThumbWidget::State::Delete);
             }
         } else {
             // Pipeline mode: keep all thumb states in sync with bestIndex
-            for (size_t i = 0; i < m_thumbs_.size(); ++i) {
-                if (static_cast<int>(i) == group.bestIndex)
+            for (int i = 0; i < m_thumbs_.size(); ++i) {
+                if (i == group.bestIndex)
                     m_thumbs_[i]->setState(ImageThumbWidget::State::Keep);
                 else
                     m_thumbs_[i]->setState(ImageThumbWidget::State::Delete);

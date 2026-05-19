@@ -1,4 +1,4 @@
-#include "ui/mainwindow.h"
+#include "ui/MainWindow.h"
 #include "ui_mainwindow.h"
 #include "util/AppSettings.h"
 #include "ui/GroupWidget.h"
@@ -11,6 +11,7 @@
 #include "pipeline/Pipeline.h"
 
 #include <QFileDialog>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QSplitter>
 
@@ -29,7 +30,7 @@ MainWindow::MainWindow(std::unique_ptr<PipelineController> controller,
     , m_deletionService_(std::move(deletionService))
 {
     m_ui_->setupUi(this);
-    Init();
+    init();
 }
 
 MainWindow::~MainWindow()
@@ -38,7 +39,7 @@ MainWindow::~MainWindow()
     delete m_ui_;
 }
 
-void MainWindow::Init()
+void MainWindow::init()
 {
     m_status_bar_ = m_ui_->statusbar;
     m_browse_button_ = m_ui_->browsebutton;
@@ -90,20 +91,20 @@ void MainWindow::Init()
                 updateDeleteButtonState();
             });
 
-    WireConnections();
+    wireConnections();
 }
 
-void MainWindow::OnBrowse()
+void MainWindow::onBrowse()
 {
     if (QString directory = QFileDialog::getExistingDirectory(this, tr("Open Directory"), QDir::homePath()); !directory.isEmpty())
     {
-        SetCurrentFolder(directory);
+        setCurrentFolder(directory);
     }
 }
 
-void MainWindow::WireConnections()
+void MainWindow::wireConnections()
 {
-    connect(m_browse_button_, &QPushButton::clicked, this, &MainWindow::OnBrowse);
+    connect(m_browse_button_, &QPushButton::clicked, this, &MainWindow::onBrowse);
     connect(m_scan_button_, &QPushButton::clicked, this, [this]() {
         auto state = m_pipeline_controller_->state();
         if (state == Pipeline::PipelineState::Running) {
@@ -113,7 +114,7 @@ void MainWindow::WireConnections()
             }
         }
         else if (state == Pipeline::PipelineState::Stopped) {
-            const QString folder = GetCurrentFolder();
+            const QString folder = getCurrentFolder();
             if (!folder.isEmpty()) {
                 m_pipeline_controller_->uiQueue()->reset();
                 clearResults();
@@ -130,20 +131,27 @@ void MainWindow::WireConnections()
 
     connect(m_btn_delete_, &QPushButton::clicked,
             m_deletionService_.get(), &DeletionService::executeDeletion);
+
+    connect(m_ui_->actionQuit, &QAction::triggered, this, &QWidget::close);
+    connect(m_ui_->actionLicense, &QAction::triggered, this, [this]() {
+        QMessageBox::about(this, tr("License"),
+            tr("PhotoBoss is provided under the MIT License.\n\n"
+               "See the LICENSE file for details."));
+    });
 }
 
-void MainWindow::OnCurrentFolderChanged()
+void MainWindow::onCurrentFolderChanged()
 {
     m_ui_->filepath->setPlainText(m_current_folder_);
     m_pipeline_controller_->uiQueue()->reset();
     clearResults();
 }
 
-void MainWindow::SetCurrentFolder(const QString& folder)
+void MainWindow::setCurrentFolder(const QString& folder)
 {
     if (folder != m_current_folder_) {
         m_current_folder_ = folder;
-        OnCurrentFolderChanged();
+        onCurrentFolderChanged();
     }
 }
 

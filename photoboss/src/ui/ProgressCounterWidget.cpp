@@ -1,6 +1,6 @@
 #include "ui/ProgressCounterWidget.h"
-#include <QLabel.h>
-#include <qstyle.h>
+#include <QLabel>
+#include <QStyle>
 
 namespace photoboss
 {

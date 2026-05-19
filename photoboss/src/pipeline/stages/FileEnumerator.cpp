@@ -18,7 +18,7 @@ FileEnumerator::FileEnumerator(
 
 FileEnumerator::~FileEnumerator() {}
 
-void FileEnumerator::run()
+void FileEnumerator::doRun()
 {
     emit status(QString("Enumerating Directory : " + m_request_.directory));
 

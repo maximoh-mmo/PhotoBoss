@@ -1,7 +1,7 @@
 #pragma once
-#include <qdatetime.h>
-#include <qsize.h>
-#include <qimage.h>
+#include <QDateTime>
+#include <QSize>
+#include <QImage>
 #include "types/FileIdentity.h"
 
 namespace photoboss {

@@ -21,7 +21,7 @@ public:
     ~FileEnumerator() override;
 
 private:
-    void run() override;
+        void doRun() override;
     void onStop() override;
 
     std::atomic<bool> m_cancelled_{ false };

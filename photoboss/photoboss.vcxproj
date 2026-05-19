@@ -179,14 +179,13 @@
     <ClCompile Include="src\pipeline\SimilarityEngine.cpp" />
     <ClCompile Include="src\hashmethods\AverageHash.cpp" />
     <ClCompile Include="src\hashmethods\DifferenceHash.cpp" />
-    <ClCompile Include="inc\photoboss\hashing\HashCatalog.cpp" />
+    <ClCompile Include="src\hashmethods\HashCatalog.cpp" />
     <ClCompile Include="src\exif\ExifParser.cpp" />
     <ClCompile Include="src\hashmethods\PerceptualImage.cpp" />
     <ClCompile Include="src\hashmethods\Sha256Hash.cpp" />
     <ClCompile Include="src\pipeline\stages\CacheStore.cpp" />
     <ClCompile Include="src\caching\SqliteHashCache.cpp" />
     <ClCompile Include="src\pipeline\stages\CacheLookup.cpp" />
-    <ClCompile Include="src\pipeline\stages\ExifRead.cpp" />
     <ClCompile Include="src\pipeline\stages\FileEnumerator.cpp" />
     <ClCompile Include="src\pipeline\PipelineFactory.cpp" />
     <ClCompile Include="src\pipeline\stages\ResultProcessor.cpp" />
@@ -223,7 +222,7 @@
     <QtMoc Include="inc\photoboss\ui\ShaderSpinnerWidget.h" />
     <QtMoc Include="inc\photoboss\ui\UiUpdateQueue.h" />
     <ClInclude Include="inc\photoboss\ui\IUiUpdateSink.h" />
-    <ClInclude Include="inc\photoboss\util\humanSize.h" />
+    <ClInclude Include="inc\photoboss\util\HumanSize.h" />
     <ClInclude Include="inc\photoboss\util\IQueue.h" />
     <ClInclude Include="inc\photoboss\util\OrientImage.h" />
     <ClInclude Include="inc\photoboss\util\ScopedTimer.h" />
@@ -237,7 +236,6 @@
     <QtMoc Include="inc\photoboss\pipeline\PipelineFactory.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\ResultProcessor.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\DiskReader.h" />
-    <QtMoc Include="inc\photoboss\pipeline\stages\ExifRead.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\FileEnumerator.h" />
     <QtMoc Include="inc\photoboss\pipeline\stages\CacheLookup.h" />
     <ClInclude Include="inc\photoboss\hashing\HashMethod.h" />

@@ -17,10 +17,10 @@ namespace photoboss {
             QObject* parent = nullptr
         );
 
-        void run();
+        void doRun() override;
 
     signals:
-        void Finished();
+        void finished();
 
     private:
         Queue<FileIdentity>& m_input_queue_; 

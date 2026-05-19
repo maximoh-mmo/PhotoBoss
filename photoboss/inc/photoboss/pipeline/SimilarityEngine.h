@@ -12,16 +12,6 @@
 namespace photoboss {
     class HashMethod;
 
-    class HashScorer {
-    public:
-        virtual ~HashScorer() = default;
-        virtual QString key() const = 0;
-        virtual double compare(
-            const HashedImageResult& a,
-            const HashedImageResult& b
-        ) const = 0;
-    };
-
     class SimilarityEngine {
     public:
         struct Config {
@@ -71,8 +61,8 @@ namespace photoboss {
         };
 
     private:
-        Config m_cfg;
-        quint64 m_nextGroupId = 1;
+        Config m_cfg_;
+        quint64 m_nextGroupId_ = 1;
 
         std::list<ImageNode> m_nodes_;
         std::unordered_map<QString, ExactGroup> m_exactGroups_;

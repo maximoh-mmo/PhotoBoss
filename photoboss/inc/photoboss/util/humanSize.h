@@ -1,9 +1,8 @@
 #pragma once
-#include <qnumeric.h>
-#include <qstring.h>
+#include <QString>
 
 namespace photoboss {
-    static QString humanSize(qint64 bytes)
+    inline QString humanSize(qint64 bytes)
     {
         constexpr double KB = 1024.0;
         constexpr double MB = KB * 1024.0;

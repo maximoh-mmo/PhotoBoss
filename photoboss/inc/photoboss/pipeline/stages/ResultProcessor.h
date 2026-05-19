@@ -44,7 +44,7 @@ namespace photoboss {
         void groupUpdated(const ImageGroup& group);
     
     protected:
-        void run() override;
+        void doRun() override;
 
     private:
         Queue<std::shared_ptr<HashedImageResult>>& m_input_;

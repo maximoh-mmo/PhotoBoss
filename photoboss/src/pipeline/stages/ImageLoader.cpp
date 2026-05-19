@@ -35,4 +35,4 @@ std::vector<std::optional<QImage>> ImageLoader::loadBatch(const std::vector<Disk
     return results;
 }
 
-} // namespace photoboss::pipeline::factory
+} // namespace photoboss

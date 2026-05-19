@@ -50,7 +50,7 @@ namespace photoboss {
     // ---------------------------------------------------------------------------
     void PipelineController::stop()
     {
-        if (m_pipeline_ == nullptr || m_pipeline_->State() != Pipeline::PipelineState::Running)
+        if (m_pipeline_ == nullptr || m_pipeline_->state() != Pipeline::PipelineState::Running)
             return;
 
         if (m_pipeline_) {

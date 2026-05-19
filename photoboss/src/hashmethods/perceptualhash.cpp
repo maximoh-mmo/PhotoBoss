@@ -2,7 +2,7 @@
 #include <QtMath>
 #include <vector>
 #include <algorithm>
-#include <qimage.h>
+#include <QImage>
 #include "hashing/HashMethod.h"
 #include "hashing/PerceptualHash.h"
 
@@ -106,7 +106,7 @@ namespace photoboss
         return 1.0 - (static_cast<double>(distance) / 64.0);
     }
 
-    HashInput PerceptualHash::InputType() const
+    HashInput PerceptualHash::inputType() const
     {
         return HashInput::Image;
     }

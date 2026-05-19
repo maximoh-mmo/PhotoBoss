@@ -31,7 +31,7 @@ namespace photoboss
 		std::vector<std::pair<HashedImageResult, QMap<QString, int>>> m_batch_;
 
 		// Inherited via StageBase
-		void run() override;
+		void doRun() override;
 		void onStop() override;
 	};
 }

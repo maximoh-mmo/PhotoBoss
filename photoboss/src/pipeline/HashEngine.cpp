@@ -7,9 +7,9 @@ namespace photoboss {
 HashEngine::HashEngine(std::vector<HashCatalog::Entry> methods) {
     // Separate the methods by the type of input they require.
     for (auto &entry : methods) {
-        if (entry.method->InputType() == HashInput::Bytes) {
+        if (entry.method->inputType() == HashInput::Bytes) {
             m_byteMethods.push_back(std::move(entry));
-        } else if (entry.method->InputType() == HashInput::Image) {
+        } else if (entry.method->inputType() == HashInput::Image) {
             m_imageMethods.push_back(std::move(entry));
         }
     }
@@ -63,4 +63,4 @@ HashEngine::compute(const DiskReadResult &item, const std::optional<QImage> &ima
     return result;
 }
 
-} // namespace photoboss::pipeline::factory
+} // namespace photoboss

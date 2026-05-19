@@ -16,7 +16,7 @@ DiskReader::DiskReader(Queue<FileIdentity> &input_queue,
   m_output_queue_.register_producer();
 }
 
-void DiskReader::run() {
+void DiskReader::doRun() {
   while (true) {
     FileIdentity fileIdentity;
     if (!m_input_queue_.wait_and_pop(fileIdentity)) {

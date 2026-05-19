@@ -16,7 +16,7 @@ namespace photoboss {
     {
     }
 
-    void ThumbnailGenerator::run()
+    void ThumbnailGenerator::doRun()
     {
         ThumbnailRequestPtr request;
         while (m_input_.wait_and_pop(request)) {

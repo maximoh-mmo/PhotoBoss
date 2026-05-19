@@ -38,7 +38,7 @@ namespace photoboss {
 
     }
 
-    HashInput DifferenceHash::InputType() const
+    HashInput DifferenceHash::inputType() const
     {
         return HashInput::Image;
     }

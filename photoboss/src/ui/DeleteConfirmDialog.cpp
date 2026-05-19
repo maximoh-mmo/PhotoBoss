@@ -1,5 +1,5 @@
 #include "ui/DeleteConfirmDialog.h"
-#include "util/humanSize.h"
+#include "util/HumanSize.h"
 #include "util/AppSettings.h"
 #include <QMessageBox>
 #include <QDebug>

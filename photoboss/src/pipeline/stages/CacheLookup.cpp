@@ -26,7 +26,7 @@ namespace photoboss
         m_diskReadQueue_.producer_done();
     }
 
-    void CacheLookup::run()
+    void CacheLookup::doRun()
     {
         int totalProcessed = 0;
         while (true) {

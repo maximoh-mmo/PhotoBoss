@@ -1,8 +1,8 @@
 #pragma once
 
-#include <QWidget.h>
-#include <QLabel.h>
-#include <qlayout.h>
+#include <QWidget>
+#include <QLabel>
+#include <QLayout>
 #include "ui/ShaderSpinnerWidget.h"
 
 namespace photoboss {
@@ -36,7 +36,6 @@ namespace photoboss {
 		ShaderSpinnerWidget* m_spinner_ = nullptr;
 		QLabel* m_titleLabel_ = nullptr;
 		QLabel* m_progressLabel_ = nullptr;
-		QLabel* m_totalLabel_ = nullptr;
-		bool m_active_ = false;
+
 	};
 }

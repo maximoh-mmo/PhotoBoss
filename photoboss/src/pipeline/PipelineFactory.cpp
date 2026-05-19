@@ -12,9 +12,6 @@
 #include "pipeline/Pipeline.h"
 #include "ui/IUiUpdateSink.h"
 
-#ifdef Q_PRIVATE_SLOTS
-#undef Q_PRIVATE_SLOTS
-#endif
 
 namespace photoboss {
 
@@ -55,7 +52,7 @@ namespace photoboss {
             *identityQueuePtr,
             *diskPtr,
             *resultQueuePtr,
-			pipeline->ScanId()
+			pipeline->scanId()
         );
 
         int diskReaderCount = config.storage == StorageStrategy::Parallel
@@ -78,7 +75,7 @@ namespace photoboss {
         CacheStore* cacheStore = new CacheStore(
             *cacheStoreQueuePtr,
             *resultQueuePtr,
-            pipeline->ScanId()
+            pipeline->scanId()
         );
 
         int workers = config.storage == StorageStrategy::Parallel
@@ -101,7 +98,7 @@ namespace photoboss {
         std::vector<ThumbnailGenerator*> thumbnailWorkers;
         for (int i = 0; i < workers; ++i) {
             ThumbnailGenerator* worker = new ThumbnailGenerator(
-                *thumbnailQueuePtr, pipeline->ScanId()
+                *thumbnailQueuePtr, pipeline->scanId()
             );
             thumbnailWorkers.push_back(worker);
             QThread* thread = new QThread();
@@ -163,12 +160,12 @@ namespace photoboss {
         }
 
 		// Transfer queue ownership to pipeline
-		pipeline->AddQueue(std::move(identityQueue));
-		pipeline->AddQueue(std::move(disk));
-		pipeline->AddQueue(std::move(resultQueue));
-		pipeline->AddQueue(std::move(readQueue));
-		pipeline->AddQueue(std::move(cacheStoreQueue));
-		pipeline->AddQueue(std::move(thumbnailQueue));
+		pipeline->addQueue(std::move(identityQueue));
+		pipeline->addQueue(std::move(disk));
+		pipeline->addQueue(std::move(resultQueue));
+		pipeline->addQueue(std::move(readQueue));
+		pipeline->addQueue(std::move(cacheStoreQueue));
+		pipeline->addQueue(std::move(thumbnailQueue));
 
 		return pipeline;
     }
@@ -180,7 +177,7 @@ namespace photoboss {
         }
         stage->moveToThread(thread);
         QObject::connect(thread, &QThread::started,
-            stage, &StageBase::Run,
+            stage, &StageBase::run,
             Qt::QueuedConnection);
         QObject::connect(stage, &StageBase::stageFinished,
             thread, &QThread::quit,
@@ -188,7 +185,7 @@ namespace photoboss {
         QObject::connect(thread, &QThread::finished,
             stage, &QObject::deleteLater,
             Qt::QueuedConnection);
-		pipeline->AddThread(thread);
-        pipeline->AddStage(stage);
+		pipeline->addThread(thread);
+        pipeline->addStage(stage);
     }
 }

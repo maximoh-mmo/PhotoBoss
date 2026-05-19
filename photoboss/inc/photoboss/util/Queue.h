@@ -50,7 +50,7 @@ public:
     // Try to push without blocking; returns false if full or shutdown
     bool try_push(T&& item) {
         std::unique_lock lock(m_mutex_);
-        if (m_deque_.size() >= m_capacity_ || b_shutdown_)
+        if (m_deque_.size() >= m_capacity_ || m_shutdown_)
             return false;
         m_deque_.push_back(std::move(item));
         m_notEmpty_.notify_one();
@@ -60,10 +60,10 @@ public:
     // Pop an item, blocks until available or shutdown. Returns false if queue empty & shutdown.
     bool wait_and_pop(T& item) {
         std::unique_lock lock(m_mutex_);
-        if (m_deque_.empty() && !b_shutdown_)
+        if (m_deque_.empty() && !m_shutdown_)
             ++m_consumerWaitCount_;
-        m_notEmpty_.wait(lock, [this]() { return !m_deque_.empty() || b_shutdown_; });
-        if (b_shutdown_ && m_deque_.empty()) return false;
+        m_notEmpty_.wait(lock, [this]() { return !m_deque_.empty() || m_shutdown_; });
+        if (m_shutdown_ && m_deque_.empty()) return false;
         item = std::move(m_deque_.front());
         m_deque_.pop_front();
         m_notFull_.notify_one();
@@ -110,7 +110,7 @@ public:
     // Reset shutdown flag (use with caution)
     void reset_shutdown() {
         std::unique_lock lock(m_mutex_);
-        b_shutdown_ = false;
+        m_shutdown_ = false;
     }
 
     // Register Producer that uses this queue
@@ -144,7 +144,7 @@ public:
     }
 
 private:
-    bool b_shutdown_ = false;
+    bool m_shutdown_ = false;
     std::deque<T> m_deque_;
     const size_t m_capacity_;
     mutable std::mutex m_mutex_;
@@ -157,16 +157,16 @@ private:
     // Signal Shutdown and wake all waiting threads
     void shutdown() override {
         std::unique_lock lock(m_mutex_);
-        b_shutdown_ = true;
+        m_shutdown_ = true;
         m_notEmpty_.notify_all();
         m_notFull_.notify_all();
     }
 
     // Wait until there is space in the queue (for bounded) or shutdown
     bool wait_for_space(std::unique_lock<std::mutex>& lock) {
-        if (m_deque_.size() >= m_capacity_ && !b_shutdown_)
+        if (m_deque_.size() >= m_capacity_ && !m_shutdown_)
             ++m_producerWaitCount_;
-        m_notFull_.wait(lock, [this]() { return m_deque_.size() < m_capacity_ || b_shutdown_; });
-        return !b_shutdown_;
+        m_notFull_.wait(lock, [this]() { return m_deque_.size() < m_capacity_ || m_shutdown_; });
+        return !m_shutdown_;
     }
 };

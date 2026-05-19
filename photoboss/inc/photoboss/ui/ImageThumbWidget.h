@@ -1,7 +1,7 @@
 #pragma once
-#include <QWidget.h>
-#include <qcheckbox.h>
-#include <qlabel.h>
+#include <QWidget>
+#include <QCheckBox>
+#include <QLabel>
 #include "types/GroupTypes.h"
 
 namespace photoboss {

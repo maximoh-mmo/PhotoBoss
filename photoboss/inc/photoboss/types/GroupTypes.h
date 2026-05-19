@@ -1,6 +1,6 @@
 #pragma once
-#include <qdatetime.h>
-#include <qsize.h>
+#include <QDateTime>
+#include <QSize>
 
 namespace photoboss {
 

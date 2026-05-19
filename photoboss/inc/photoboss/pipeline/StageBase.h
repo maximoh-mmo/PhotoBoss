@@ -6,7 +6,7 @@
 /// <summary>
 /// 
 /// Base for a stage in the processing pipeline.
-/// All stages should inherit from this class and implement the Run() method.
+/// All stages should inherit from this class and implement the run() method.
 /// 
 /// Signals:
 /// 
@@ -27,9 +27,9 @@ namespace photoboss {
         }
         ~StageBase() override = default;
     
-        void Run() {
+        void run() {
             try {
-                run();
+                doRun();
             }
             catch (const std::exception& e) {
                 error(e.what());
@@ -54,7 +54,7 @@ namespace photoboss {
         void stageFinished();
 
     protected:
-        virtual void run() = 0;
+        virtual void doRun() = 0;
         virtual void onStop() = 0;
     };
 }

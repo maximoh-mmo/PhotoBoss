@@ -27,7 +27,7 @@ namespace photoboss
         m_batch_.reserve(settings::CacheStoreBatchSize);
     }
 
-    void CacheStore::run()
+    void CacheStore::doRun()
     {
         std::shared_ptr<HashedImageResult> item;
         while (m_input_.wait_and_pop(item)) {

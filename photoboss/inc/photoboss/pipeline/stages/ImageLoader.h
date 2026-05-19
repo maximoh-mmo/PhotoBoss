@@ -28,4 +28,4 @@ public:
     std::vector<std::optional<QImage>> loadBatch(const std::vector<DiskReadResult*>& batch) const;
 };
 
-} // namespace photoboss::pipeline::factory
+} // namespace photoboss

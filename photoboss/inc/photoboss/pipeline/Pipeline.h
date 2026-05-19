@@ -2,20 +2,11 @@
 #include "util/Queue.h"
 #include "util/StageMetrics.h"
 #include "types/DataTypes.h"
-#include <qthread.h>
+#include <QThread>
 #include <memory>
 #include "StageBase.h"
 
 namespace photoboss {
-    class DiskReader;
-    class ResultProcessor;
-    class CacheLookup;
-    class CacheStore;
-    class HashWorker;
-	class ThumbnailGenerator;
-	class FileEnumerator;
-	class ExifRead;
-
     class Pipeline : public QObject {
         Q_OBJECT
 
@@ -28,15 +19,15 @@ namespace photoboss {
             explicit Pipeline(QObject* parent = nullptr);
 		~Pipeline();
 
-        void AddStage(StageBase* stage) { allStages.push_back(std::move(stage)); }
-        void AddQueue(std::unique_ptr<IQueue> queue) { allQueues.push_back(std::move(queue)); }
-        void AddThread(QThread* thread);
+        void addStage(StageBase* stage) { m_allStages_.push_back(std::move(stage)); }
+        void addQueue(std::unique_ptr<IQueue> queue) { m_allQueues_.push_back(std::move(queue)); }
+        void addThread(QThread* thread);
 
 		void start();
 		void stop();
-        PipelineState State() const { return state; }
-		Phase GetPhase() const { return currentPhase; }
-		quint64 ScanId() const { return m_scanId_; }
+        PipelineState state() const { return m_state_; }
+		Phase getPhase() const { return m_currentPhase_; }
+		quint64 scanId() const { return m_scanId_; }
 
     signals:
         void stateChanged(PipelineState state);
@@ -45,12 +36,12 @@ namespace photoboss {
         void clearQueues();
         void requestShutdown();
         void onThreadFinished();
-        std::vector<StageBase*> allStages;
-        std::vector<std::unique_ptr<IQueue>> allQueues;
-        std::vector<QThread*> allThreads;
-        int m_runningThreads = 0;
-		Phase currentPhase = Phase::Find;
-		PipelineState state = PipelineState::Stopped;
+        std::vector<StageBase*> m_allStages_;
+        std::vector<std::unique_ptr<IQueue>> m_allQueues_;
+        std::vector<QThread*> m_allThreads_;
+        int m_runningThreads_ = 0;
+		Phase m_currentPhase_ = Phase::Find;
+		PipelineState m_state_ = PipelineState::Stopped;
         quint64 m_scanId_;
     };
 }

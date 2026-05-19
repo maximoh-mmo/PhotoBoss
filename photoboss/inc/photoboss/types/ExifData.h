@@ -1,7 +1,7 @@
 #pragma once
 #include <optional>
-#include <qtypes.h>
-#include <qstring.h>
+#include <QtTypes>
+#include <QString>
 
 namespace photoboss {
 	struct ExifData {

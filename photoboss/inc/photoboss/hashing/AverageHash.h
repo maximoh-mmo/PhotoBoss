@@ -11,6 +11,6 @@ namespace photoboss {
         QString key() const override { return "Average Hash"; }
 
         // Inherited via HashMethod
-        HashInput InputType() const override;
+        HashInput inputType() const override;
     };
 }

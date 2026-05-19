@@ -11,7 +11,7 @@ namespace photoboss
         virtual ~HashMethod() = default;
 
         virtual QString key() const = 0;
-        virtual HashInput InputType() const = 0;
+        virtual HashInput inputType() const = 0;
 
         virtual QString compute(const QByteArray&) {
             throw std::logic_error("Byte input not supported");

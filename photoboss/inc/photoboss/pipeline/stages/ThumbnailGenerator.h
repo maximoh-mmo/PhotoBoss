@@ -23,7 +23,7 @@ namespace photoboss {
         void workerFinished();
 
     protected:
-        void run() override;
+        void doRun() override;
         void onStop() override;
 
     private:

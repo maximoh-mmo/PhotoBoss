@@ -1,5 +1,5 @@
 #include "hashing/Sha256Hash.h"
-#include <qcryptographichash.h>
+#include <QCryptographicHash>
 
 namespace photoboss
 {

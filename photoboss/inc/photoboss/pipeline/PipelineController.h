@@ -26,7 +26,7 @@ namespace photoboss {
 
         void start(const ScanRequest& request);
         void stop();
-        Pipeline::PipelineState state() const { return m_pipeline_ ? m_pipeline_->State() : Pipeline::PipelineState::Stopped; }
+        Pipeline::PipelineState state() const { return m_pipeline_ ? m_pipeline_->state() : Pipeline::PipelineState::Stopped; }
         UiUpdateQueue* uiQueue() { return m_uiQueue_.get(); }
 
     private:

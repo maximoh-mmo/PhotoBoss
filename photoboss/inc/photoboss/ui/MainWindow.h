@@ -39,7 +39,7 @@ public:
                QWidget* parent = nullptr);
     ~MainWindow();
 
-    QString GetCurrentFolder() const { return m_current_folder_; }
+    QString getCurrentFolder() const { return m_current_folder_; }
 
 private slots:
     void applySnapshot(const UiSnapshot& snap);
@@ -47,11 +47,11 @@ private slots:
     void onGroupSelectionChanged();
 
 private:
-    void Init();
-    void WireConnections();
-    void OnBrowse();
-    void SetCurrentFolder(const QString& folder);
-    void OnCurrentFolderChanged();
+    void init();
+    void wireConnections();
+    void onBrowse();
+    void setCurrentFolder(const QString& folder);
+    void onCurrentFolderChanged();
     void clearResults();
     void updateDeleteButtonState();
     void updatePhaseProgress(const UiSnapshot& snap);

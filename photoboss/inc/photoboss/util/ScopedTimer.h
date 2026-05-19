@@ -14,19 +14,19 @@ namespace photoboss {
 class ScopedTimer {
 public:
     explicit ScopedTimer(const char* name)
-        : m_name(name)
+        : m_name_(name)
     {
-        m_timer.start();
+        m_timer_.start();
     }
 
     ~ScopedTimer()
     {
-        StageMetrics::instance().record(m_name, m_timer.nsecsElapsed());
+        StageMetrics::instance().record(m_name_, m_timer_.nsecsElapsed());
     }
 
 private:
-    const char* m_name;
-    QElapsedTimer m_timer;
+    const char* m_name_;
+    QElapsedTimer m_timer_;
 };
 
 } // namespace photoboss

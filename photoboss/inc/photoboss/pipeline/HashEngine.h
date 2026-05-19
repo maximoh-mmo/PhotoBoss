@@ -31,4 +31,4 @@ private:
     std::vector<HashCatalog::Entry> m_imageMethods;
 };
 
-} // namespace photoboss::pipeline::factory
+} // namespace photoboss

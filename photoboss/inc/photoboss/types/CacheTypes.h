@@ -1,5 +1,5 @@
 #pragma once
-#include "DataTypes.h"
+#include "types/DataTypes.h"
 namespace photoboss
 {
     enum class Lookup {
@@ -28,9 +28,8 @@ namespace photoboss
         FileIdentity fileIdentity;
         QList<QString> hashMethods; // e.g. ["md5", "phash"]
 
-        CacheQuery(FileIdentity id, std::map<QString, QString> hashMap = {})
-            : fileIdentity(std::move(id)),
-			hashMethods()
+        explicit CacheQuery(FileIdentity id)
+            : fileIdentity(std::move(id))
         {
         }
     };

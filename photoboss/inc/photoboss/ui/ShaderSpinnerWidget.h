@@ -17,9 +17,9 @@ public:
     void stop();
 
     void setColor(const QColor& c);
-    QColor color() const { return m_color; }
+    QColor color() const { return m_color_; }
 
-    float angle() const { return m_angle; }
+    float angle() const { return m_angle_; }
     void setAngle(float a);
 
 protected:
@@ -28,18 +28,18 @@ protected:
     void resizeGL(int w, int h) override;
 
 private:
-    QOpenGLShaderProgram m_program;
-    QPropertyAnimation* m_anim = nullptr;
+    QOpenGLShaderProgram m_program_;
+    QPropertyAnimation* m_anim_ = nullptr;
 
-    GLuint m_vao = 0;
-    GLuint m_vbo = 0;
+    GLuint m_vao_ = 0;
+    GLuint m_vbo_ = 0;
 
-    QColor m_color = Qt::black;
-    float m_angle = 0.0f;
+    QColor m_color_ = Qt::black;
+    float m_angle_ = 0.0f;
 
     // Spinner parameters (relative)
-    float m_radius = 0.9f;
-    float m_thickness = 0.25f;
-    float m_trail = 0.7f;
-    float m_speed = 1.5f; // revolutions per second
+    float m_radius_ = 0.9f;
+    float m_thickness_ = 0.25f;
+    float m_trail_ = 0.7f;
+    float m_speed_ = 1.5f; // revolutions per second
 };

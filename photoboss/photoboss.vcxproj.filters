@@ -51,7 +51,7 @@
     <ClCompile Include="src\hashmethods\AverageHash.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="inc\photoboss\hashing\HashCatalog.cpp">
+    <ClCompile Include="src\hashmethods\HashCatalog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\pipeline\SimilarityEngine.cpp">
@@ -87,9 +87,6 @@
     <ClCompile Include="src\exif\ExifParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\pipeline\stages\ExifRead.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\pipeline\stages\FileEnumerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -114,7 +111,7 @@
     <ClCompile Include="src\ui\UiUpdateQueue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="inc\photoboss\pipeline\Pipeline.cpp">
+    <ClCompile Include="src\pipeline\Pipeline.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -156,9 +153,6 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="inc\photoboss\ui\ProgressCounterWidget.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="inc\photoboss\pipeline\stages\ExifRead.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="inc\photoboss\pipeline\stages\FileEnumerator.h">
@@ -211,7 +205,7 @@
     <ClInclude Include="inc\photoboss\pipeline\SimilarityEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\photoboss\util\humanSize.h">
+    <ClInclude Include="inc\photoboss\util\HumanSize.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\photoboss\util\OrientImage.h">

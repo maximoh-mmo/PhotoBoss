@@ -3,7 +3,7 @@
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QPixmap>
-#include "util/humanSize.h"
+#include "util/HumanSize.h"
 #include "util/OrientImage.h"
 #include "types/GroupTypes.h"
 

@@ -1,4 +1,4 @@
-#include "HashCatalog.h"
+#include "hashing/HashCatalog.h"
 #include "hashing/Sha256Hash.h"
 #include "hashing/PerceptualHash.h"
 #include "hashing/DifferenceHash.h"

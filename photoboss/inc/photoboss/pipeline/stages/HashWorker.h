@@ -29,14 +29,14 @@ public:
                      QObject* parent = nullptr);
     ~HashWorker() override;
 
-    void run() override;
+    void doRun() override;
     void onStop() override;
 
 private:
-    Queue<std::unique_ptr<DiskReadResult>>& m_inputQueue;
-    Queue<std::shared_ptr<HashedImageResult>>& m_outputQueue;
-    ImageLoader m_imageLoader;
-    HashEngine m_hashEngine;
+    Queue<std::unique_ptr<DiskReadResult>>& m_inputQueue_;
+    Queue<std::shared_ptr<HashedImageResult>>& m_outputQueue_;
+    ImageLoader m_imageLoader_;
+    HashEngine m_hashEngine_;
 };
 
-} // namespace photoboss::pipeline::factory
+} // namespace photoboss

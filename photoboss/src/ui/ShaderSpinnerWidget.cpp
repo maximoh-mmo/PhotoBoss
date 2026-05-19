@@ -8,29 +8,29 @@ ShaderSpinnerWidget::ShaderSpinnerWidget(QWidget* parent)
     setAttribute(Qt::WA_TranslucentBackground);
     hide();
 
-    m_anim = new QPropertyAnimation(this, "angle");
-    m_anim->setStartValue(0.0f);
-    m_anim->setEndValue(6.28318530718f); // 2π
-    m_anim->setLoopCount(-1);
+    m_anim_ = new QPropertyAnimation(this, "angle");
+    m_anim_->setStartValue(0.0f);
+    m_anim_->setEndValue(6.28318530718f); // 2π
+    m_anim_->setLoopCount(-1);
 }
 
 void ShaderSpinnerWidget::start() {
     show();
-    m_anim->setDuration(int(1000.0f / m_speed));
-    m_anim->start();
+    m_anim_->setDuration(int(1000.0f / m_speed_));
+    m_anim_->start();
 }
 
 void ShaderSpinnerWidget::stop() {
-    m_anim->stop();
+    m_anim_->stop();
 }
 
 void ShaderSpinnerWidget::setColor(const QColor& c) {
-    m_color = c;
+    m_color_ = c;
     update();
 }
 
 void ShaderSpinnerWidget::setAngle(float a) {
-    m_angle = a;
+    m_angle_ = a;
     update();
 }
 
@@ -47,14 +47,14 @@ void ShaderSpinnerWidget::initializeGL() {
         -1,  1, 0, 1
     };
 
-    glGenVertexArrays(1, &m_vao);
-    glGenBuffers(1, &m_vbo);
+    glGenVertexArrays(1, &m_vao_);
+    glGenBuffers(1, &m_vbo_);
 
-    glBindVertexArray(m_vao);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+    glBindVertexArray(m_vao_);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbo_);
     glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
 
-    m_program.addShaderFromSourceCode(QOpenGLShader::Vertex,
+    m_program_.addShaderFromSourceCode(QOpenGLShader::Vertex,
         R"(
         #version 330 core
         layout(location = 0) in vec2 pos;
@@ -66,7 +66,7 @@ void ShaderSpinnerWidget::initializeGL() {
         }
         )");
 
-    m_program.addShaderFromSourceCode(QOpenGLShader::Fragment,
+    m_program_.addShaderFromSourceCode(QOpenGLShader::Fragment,
         R"(
         #version 330 core
         in vec2 v_uv;
@@ -104,7 +104,7 @@ void ShaderSpinnerWidget::initializeGL() {
         }
         )");
 
-    m_program.link();
+    m_program_.link();
 
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
@@ -117,21 +117,21 @@ void ShaderSpinnerWidget::paintGL() {
     glClearColor(bg.redF(), bg.greenF(), bg.blueF(), 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    m_program.bind();
+    m_program_.bind();
 
     float aspect = float(width()) / float(height());
 
-    m_program.setUniformValue("u_color", m_color);
-    m_program.setUniformValue("u_angle", m_angle);
-    m_program.setUniformValue("u_trail", m_trail);
-    m_program.setUniformValue("u_thickness", m_thickness);
-    m_program.setUniformValue("u_radius", m_radius);
-    m_program.setUniformValue("u_aspect", aspect);
+    m_program_.setUniformValue("u_color", m_color_);
+    m_program_.setUniformValue("u_angle", m_angle_);
+    m_program_.setUniformValue("u_trail", m_trail_);
+    m_program_.setUniformValue("u_thickness", m_thickness_);
+    m_program_.setUniformValue("u_radius", m_radius_);
+    m_program_.setUniformValue("u_aspect", aspect);
 
-    glBindVertexArray(m_vao);
+    glBindVertexArray(m_vao_);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
-    m_program.release();
+    m_program_.release();
 }
 
 void ShaderSpinnerWidget::resizeGL(int w, int h) {

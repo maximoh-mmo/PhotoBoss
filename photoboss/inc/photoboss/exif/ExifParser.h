@@ -1,7 +1,7 @@
 #pragma once
 #include <exiv2/exiv2.hpp>
 #include "types/ExifData.h"
-#include <qstring.h>
+#include <QString>
 
 namespace photoboss {
 namespace exif {
@@ -12,6 +12,8 @@ public:
     static ExifData parse(const QByteArray& bytes);
 
 private:
+    static ExifData parseFromImage(Exiv2::Image::UniquePtr image);
+
     ExifParser() = delete;
     ~ExifParser() = delete;
 };

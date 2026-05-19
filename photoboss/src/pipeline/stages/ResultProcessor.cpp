@@ -17,7 +17,7 @@ namespace photoboss {
         m_thumbnailOutput_.register_producer();
     }
 
-    void ResultProcessor::run() {
+    void ResultProcessor::doRun() {
         SimilarityEngine engine;
         std::shared_ptr<HashedImageResult> item;
 

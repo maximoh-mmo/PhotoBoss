@@ -1,4 +1,4 @@
-#include "ui/mainwindow.h"
+#include "ui/MainWindow.h"
 #include "ui/ThumbnailManager.h"
 #include "ui/PreviewPane.h"
 #include "ui/DeletionService.h"

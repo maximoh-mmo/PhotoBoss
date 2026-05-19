@@ -47,7 +47,7 @@ namespace photoboss {
         return std::clamp(1.0 - (distance / MaxBits), 0.0, 1.0);
     }
 
-    HashInput AverageHash::InputType() const
+    HashInput AverageHash::inputType() const
     {
         return HashInput::Image;
     }

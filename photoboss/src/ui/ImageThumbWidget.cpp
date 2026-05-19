@@ -1,9 +1,9 @@
 #include "ui/ImageThumbWidget.h"
-#include "util/humanSize.h"
+#include "util/HumanSize.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QMouseEvent>
-#include <qstyle.h>
+#include <QStyle>
 #include "util/AppSettings.h"
 
 namespace photoboss {

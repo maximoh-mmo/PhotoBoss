@@ -9,40 +9,40 @@ HashWorker::HashWorker(Queue<std::unique_ptr<DiskReadResult>>& inputQueue,
                                      Queue<std::shared_ptr<HashedImageResult>>& outputQueue,
                                      QObject* parent)
     : StageBase(parent)
-    , m_inputQueue(inputQueue)
-    , m_outputQueue(outputQueue)
-    , m_imageLoader()
-    , m_hashEngine(HashCatalog::createAll())
+    , m_inputQueue_(inputQueue)
+    , m_outputQueue_(outputQueue)
+    , m_imageLoader_()
+    , m_hashEngine_(HashCatalog::createAll())
 {
     // Register as producer for the downstream queue.
-    m_outputQueue.register_producer();
+    m_outputQueue_.register_producer();
 }
 
 HashWorker::~HashWorker() = default;
 
-void HashWorker::run()
+void HashWorker::doRun()
 {
     while (true) {
         std::unique_ptr<DiskReadResult> item;
-        if (!m_inputQueue.wait_and_pop(item)) {
+        if (!m_inputQueue_.wait_and_pop(item)) {
             break;
         }
         SCOPED_TIMER("HashWorker");
 
         // Decode at thumbnail size so the QImage can be forwarded to
         // ThumbnailGenerator instead of requiring a second disk read.
-        std::optional<QImage> img = m_imageLoader.load(*item, settings::ThumbnailWidth);
+        std::optional<QImage> img = m_imageLoader_.load(*item, settings::ThumbnailWidth);
 
         // Compute hashes using both raw bytes and, if available, the QImage.
         // decodedImage is passed through to the result for ThumbnailGenerator.
-        m_outputQueue.emplace(m_hashEngine.compute(*item, img));
+        m_outputQueue_.emplace(m_hashEngine_.compute(*item, img));
     }
 }
 
 void HashWorker::onStop()
 {
     // Signal that this worker will produce no more results.
-    m_outputQueue.producer_done();
+    m_outputQueue_.producer_done();
 }
 
-} // namespace photoboss::pipeline::factory
+} // namespace photoboss
