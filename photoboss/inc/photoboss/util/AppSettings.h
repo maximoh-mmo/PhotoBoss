@@ -8,7 +8,10 @@ namespace photoboss::settings {
     static inline constexpr int MetaHeight = 40;
 
     // SQL Schema
-    static inline constexpr int SCHEMA_VERSION = 0;
+    static inline constexpr int SCHEMA_VERSION = 1;
+
+    // Cache store
+    static inline constexpr int CacheStoreBatchSize = 100;
 
     // Hashing
     static inline constexpr int HashSampleSize = 32;

@@ -19,7 +19,9 @@ public:
     ImageLoader() = default;
 
     // Decode a single result.  Returns std::nullopt if the image cannot be read.
-    std::optional<QImage> load(const DiskReadResult &item) const;
+    // targetSize controls the IDCT-scaled decode size (pass ThumbnailWidth to get a
+    // thumbnail-suitable QImage, or HashSampleSize to get a hash-suitable one).
+    std::optional<QImage> load(const DiskReadResult &item, int targetSize = -1) const;
 
     // Decode a whole batch (vector of pointers to results).  Returns a vector
     // with the same ordering; each entry is either a valid QImage or nullopt.

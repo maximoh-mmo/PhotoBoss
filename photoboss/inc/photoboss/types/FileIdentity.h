@@ -30,7 +30,9 @@ namespace photoboss {
 			, m_exif_(exif)
 		{
 		}
+		FileIdentity(const FileIdentity&) = default;
 		FileIdentity& operator=(const FileIdentity&) = delete;
+		FileIdentity& operator=(FileIdentity&&) = default;
 
 		// Getters
 		const QString& name() const noexcept { return m_name_; }
@@ -55,11 +57,11 @@ namespace photoboss {
 		}
 
 	private:
-		const QString m_name_;
-		const QString m_path_;
-		const quint64 m_size_;
-		const quint64 m_modifiedTime_;
-		const QString m_extension_;
-		const ExifData m_exif_;
+		QString m_name_;
+		QString m_path_;
+		quint64 m_size_ = 0;
+		quint64 m_modifiedTime_ = 0;
+		QString m_extension_;
+		ExifData m_exif_;
 	};
 }

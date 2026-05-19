@@ -6,7 +6,7 @@ namespace photoboss {
 
 FileEnumerator::FileEnumerator(
     ScanRequest request,
-    Queue<std::shared_ptr<QStringList>>& outputQueue,
+    Queue<FileIdentity>& outputQueue,
     QObject* parent)
     : StageBase(parent)
     , m_request_(std::move(request))
@@ -30,9 +30,6 @@ void FileEnumerator::run()
 
     QDirIterator it(m_request_.directory, filters, QDir::Files | QDir::NoSymLinks, flags);
 
-    QStringList batch;
-    const int batchSize = 100;
-
     int count = 0;
 
     while (it.hasNext()) {
@@ -47,18 +44,16 @@ void FileEnumerator::run()
             continue;
         }
 
-        batch.push_back(path);
         ++count;
         emit incrementProgress(1);
-
-        if (batch.size() >= batchSize) {
-            m_outputQueue_.emplace(std::make_shared<QStringList>(batch));
-            batch.clear();
-        }
-    }
-
-    if (!batch.isEmpty()) {
-        m_outputQueue_.emplace(std::make_shared<QStringList>(batch));
+        m_outputQueue_.emplace(FileIdentity(
+            fileInfo.fileName(),
+            fileInfo.absolutePath(),
+            fileInfo.suffix().toUpper(),
+            static_cast<quint64>(fileInfo.size()),
+            static_cast<quint64>(fileInfo.lastModified().toSecsSinceEpoch()),
+            {} // EXIF parsed later in DiskReader
+        ));
     }
 
     emit finalCount(count);

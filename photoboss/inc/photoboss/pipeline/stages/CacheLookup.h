@@ -13,8 +13,8 @@ namespace photoboss
 		Q_OBJECT
 	public:
 		CacheLookup(
-			Queue<FileIdentityBatchPtr>& input,
-			Queue<FileIdentityBatchPtr>& diskOut,
+			Queue<FileIdentity>& input,
+			Queue<FileIdentity>& diskOut,
 			Queue< std::shared_ptr<HashedImageResult>>& resultOut,
 			quint64 scanId,
 			QObject* parent = nullptr
@@ -24,8 +24,8 @@ namespace photoboss
 		void run();
 
 	private:
-		Queue<FileIdentityBatchPtr>& m_inputQueue_;
-		Queue<FileIdentityBatchPtr>& m_diskReadQueue_;
+		Queue<FileIdentity>& m_inputQueue_;
+		Queue<FileIdentity>& m_diskReadQueue_;
 		Queue< std::shared_ptr<HashedImageResult>>& m_resultQueue_;
 		std::unique_ptr<IHashCache> m_cache_;
 		QList<QString> m_methods_;

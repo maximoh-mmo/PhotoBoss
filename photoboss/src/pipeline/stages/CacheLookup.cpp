@@ -3,7 +3,7 @@
 
 namespace photoboss
 {
-	CacheLookup::CacheLookup(Queue<FileIdentityBatchPtr>& input, Queue<FileIdentityBatchPtr>& diskOut, 
+	CacheLookup::CacheLookup(Queue<FileIdentity>& input, Queue<FileIdentity>& diskOut, 
         Queue<std::shared_ptr<HashedImageResult>>& resultOut, quint64 scanId, QObject* parent)
 : StageBase(parent),
  		m_inputQueue_(input),
@@ -29,37 +29,24 @@ namespace photoboss
     {
         int totalProcessed = 0;
         while (true) {
-            FileIdentityBatchPtr batch;
+            FileIdentity fileId;
 
-            if (!m_inputQueue_.wait_and_pop(batch))
+            if (!m_inputQueue_.wait_and_pop(fileId))
                 break;
 
-            if (!batch || batch->empty())
-                continue;
+            totalProcessed++;
+            emit incrementProgress(1);
+            CacheQuery query(fileId);
 
-            std::shared_ptr<std::vector<FileIdentity>> misses;
-            misses = std::make_shared<std::vector<FileIdentity>>();
-            misses->reserve(batch->size());
+            query.hashMethods = m_methods_;
 
-            for (const auto& fileId : *batch) {
-                totalProcessed++;
-                emit incrementProgress(1);
-                CacheQuery query(fileId);
+            auto result = m_cache_->lookup(query);
 
-                query.hashMethods = m_methods_; // empty means "any"
-
-                auto result = m_cache_->lookup(query);
-
-                if (result.hit == Lookup::Hit) {
-                    m_resultQueue_.emplace(std::make_shared<HashedImageResult>(std::move(result.hashedImage)));
-                }
-                else {
-                    misses->push_back(fileId);
-                }
+            if (result.hit == Lookup::Hit) {
+                m_resultQueue_.emplace(std::make_shared<HashedImageResult>(std::move(result.hashedImage)));
             }
-
-            if (!misses->empty()) {
-                m_diskReadQueue_.emplace(std::move(misses));
+            else {
+                m_diskReadQueue_.emplace(std::move(fileId));
             }
         }
     }

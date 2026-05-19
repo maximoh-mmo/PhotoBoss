@@ -1,4 +1,5 @@
 #include "pipeline/stages/HashWorker.h"
+#include "util/AppSettings.h"
 #include <QDebug>
 
 namespace photoboss {
@@ -23,18 +24,16 @@ void HashWorker::run()
     while (true) {
         std::unique_ptr<DiskReadResult> item;
         if (!m_inputQueue.wait_and_pop(item)) {
-            // Upstream shutdown – exit the loop.
             break;
         }
 
-        // Decode the image (may fail).
-        std::optional<QImage> img = m_imageLoader.load(*item);
+        // Decode at thumbnail size so the QImage can be forwarded to
+        // ThumbnailGenerator instead of requiring a second disk read.
+        std::optional<QImage> img = m_imageLoader.load(*item, settings::ThumbnailWidth);
 
         // Compute hashes using both raw bytes and, if available, the QImage.
-        auto result = m_hashEngine.compute(*item, img);
-
-        // Forward the result downstream.
-        m_outputQueue.emplace(std::move(result));
+        // decodedImage is passed through to the result for ThumbnailGenerator.
+        m_outputQueue.emplace(m_hashEngine.compute(*item, img));
     }
 }
 

@@ -1,5 +1,7 @@
 #pragma once
 #include <QObject>
+#include <vector>
+#include <utility>
 #include "util/Queue.h"
 #include "types/DataTypes.h"
 #include "pipeline/StageBase.h"
@@ -20,10 +22,13 @@ namespace photoboss
 		~CacheStore() override = default;
 
 	private:
+		void flushBatch();
+
 		std::unique_ptr<IHashCache> m_cache_;
 
 		Queue<std::shared_ptr<HashedImageResult>>& m_input_;
 		Queue<std::shared_ptr<HashedImageResult>>& m_output_;
+		std::vector<std::pair<HashedImageResult, QMap<QString, int>>> m_batch_;
 
 		// Inherited via StageBase
 		void run() override;

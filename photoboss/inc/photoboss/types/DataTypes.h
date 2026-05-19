@@ -32,18 +32,21 @@ namespace photoboss {
         QDateTime cachedAt;
         QSize resolution;
         std::map<QString, QString> hashes;  // SHA256, pHash, etc.
+        std::optional<QImage> decodedImage;
 
 		// Constructor to initialize fileIdentity
         HashedImageResult(FileIdentity id,
             HashSource src = HashSource::Fresh,
             QDateTime time = QDateTime::currentDateTimeUtc(),
             QSize resolution = {0,0},
-            std::map<QString, QString> hashMap = {})
+            std::map<QString, QString> hashMap = {},
+            std::optional<QImage> decodedImg = {})
             : fileIdentity(std::move(id))
             , source(src)
             , cachedAt(time)
             , resolution(resolution)
             , hashes(std::move(hashMap))
+            , decodedImage(std::move(decodedImg))
         { }
     };
 
@@ -65,6 +68,8 @@ namespace photoboss {
         int rotation;
         int width;
         int height;
+        std::optional<QImage> preDecoded;
+        std::optional<FileIdentity> fileIdentity;
     };
 
     using ThumbnailRequestPtr = std::shared_ptr<ThumbnailRequest>;
@@ -73,6 +78,4 @@ namespace photoboss {
         QString path;
         QImage image;
     };
-
-    using FileIdentityBatchPtr = std::shared_ptr<std::vector<FileIdentity>>;
 }

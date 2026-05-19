@@ -15,7 +15,7 @@ class FileEnumerator : public StageBase {
 public:
     explicit FileEnumerator(
         ScanRequest request,
-        Queue<std::shared_ptr<QStringList>>& outputQueue,
+        Queue<FileIdentity>& outputQueue,
         QObject* parent = nullptr);
 
     ~FileEnumerator() override;
@@ -26,7 +26,7 @@ private:
 
     std::atomic<bool> m_cancelled_{ false };
     ScanRequest m_request_;
-    Queue<std::shared_ptr<QStringList>>& m_outputQueue_;
+    Queue<FileIdentity>& m_outputQueue_;
 };
 
 }

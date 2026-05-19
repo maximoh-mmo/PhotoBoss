@@ -12,7 +12,7 @@ namespace photoboss {
         Q_OBJECT
     public:
         explicit DiskReader(
-			Queue<FileIdentityBatchPtr>& input,
+			Queue<FileIdentity>& input,
             Queue<std::unique_ptr<DiskReadResult>>& output, 
             QObject* parent = nullptr
         );
@@ -21,12 +21,10 @@ namespace photoboss {
 
     signals:
         void Finished();
-        void ReadProgress(int current, int total);
 
     private:
-        Queue<FileIdentityBatchPtr>& m_input_queue_; 
+        Queue<FileIdentity>& m_input_queue_; 
         Queue<std::unique_ptr<DiskReadResult>>& m_output_queue_;
-
 
         // Inherited via StageBase
         void onStop() override;

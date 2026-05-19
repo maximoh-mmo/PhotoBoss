@@ -18,7 +18,14 @@ namespace photoboss {
             const HashedImageResult& result,
             const QMap<QString, int>& methodVersions);
 
+        void storeBatch(
+            const std::vector<std::pair<HashedImageResult, QMap<QString, int>>>& batch) override;
+
         void prune(const QString& root);
+
+        // Thumbnail cache
+        std::optional<QImage> getThumbnail(const FileIdentity& fi, int width, int rotation);
+        void putThumbnail(const FileIdentity& fi, int width, int rotation, const QImage& image);
 
         quint64 nextScanId(const photoboss::Token&);
     private:
@@ -36,5 +43,7 @@ namespace photoboss {
         bool ensureMethod(const QString& key, int version, int& outMethodId);
         void updateScanIdForFile(int fileId);
         void ensureOpen();
+        bool storeItem(QSqlQuery& q, const HashedImageResult& result,
+            const QMap<QString, int>& methodVersions);
     };
 }

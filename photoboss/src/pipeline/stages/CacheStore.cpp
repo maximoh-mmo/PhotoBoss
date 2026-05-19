@@ -1,5 +1,6 @@
 #include "pipeline/stages/CacheStore.h"
 #include "caching/SqliteHashCache.h"
+#include "util/AppSettings.h"
 
 namespace photoboss
 {
@@ -14,19 +15,35 @@ namespace photoboss
         m_input_(input)
     {
         m_output_.register_producer();
+        m_batch_.reserve(settings::CacheStoreBatchSize);
+    }
+
+    void CacheStore::flushBatch()
+    {
+        if (m_batch_.empty()) return;
+        m_cache_->storeBatch(m_batch_);
+        m_batch_.clear();
+        m_batch_.reserve(settings::CacheStoreBatchSize);
     }
 
     void CacheStore::run()
     {
         std::shared_ptr<HashedImageResult> item;
         while (m_input_.wait_and_pop(item)) {
-            m_cache_->store(HashedImageResult(item.get()->fileIdentity, item.get()->source, item.get()->cachedAt, item.get()->resolution, item.get()->hashes), {});
+            HashedImageResult copy(item->fileIdentity, item->source,
+                item->cachedAt, item->resolution, item->hashes);
+            copy.decodedImage = item->decodedImage;
+            m_batch_.emplace_back(std::move(copy), QMap<QString, int>{});
             m_output_.push(std::move(item));
+            if (m_batch_.size() >= settings::CacheStoreBatchSize)
+                flushBatch();
         }
+        flushBatch();
     }
 
     void CacheStore::onStop()
     {
+        flushBatch();
         m_output_.producer_done();
     }
 }

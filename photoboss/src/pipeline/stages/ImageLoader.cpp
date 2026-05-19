@@ -6,12 +6,13 @@
 
 namespace photoboss {
 
-std::optional<QImage> ImageLoader::load(const DiskReadResult &item) const {
+std::optional<QImage> ImageLoader::load(const DiskReadResult &item, int targetSize) const {
     const FileIdentity &fi = item.fileIdentity;
+    int size = targetSize > 0 ? targetSize : settings::HashSampleSize;
     QBuffer buf(const_cast<QByteArray*>(&item.imageBytes));
     buf.open(QIODevice::ReadOnly);
     QImageReader reader(&buf);
-    reader.setScaledSize(QSize(settings::HashSampleSize, settings::HashSampleSize));
+    reader.setScaledSize(QSize(size, size));
     QImage img = reader.read();
     if (img.isNull()) {
         return std::nullopt;

@@ -21,7 +21,9 @@ HashEngine::compute(const DiskReadResult &item, const std::optional<QImage> &ima
         item.fileIdentity,
         HashSource::Fresh,
         QDateTime::currentDateTimeUtc(),
-        image ? image->size() : QSize{0,0}
+        image ? image->size() : QSize{0,0},
+        std::map<QString, QString>{},
+        image
     );
 
     // ---------- Byte‑based hash methods ----------

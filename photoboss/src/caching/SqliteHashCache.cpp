@@ -6,6 +6,8 @@
 #include <QDir>
 #include <QThread>
 #include <QDebug>
+#include <QBuffer>
+#include <QImageWriter>
 #include "util/AppSettings.h"
 
 namespace photoboss
@@ -184,6 +186,19 @@ namespace photoboss
         )");
         if (!execOrLog(q, "create file_exif")) { q.exec("ROLLBACK;"); return false; }
 
+        // thumbnails table
+        q.prepare(R"(
+            CREATE TABLE IF NOT EXISTS thumbnails (
+                file_id INTEGER NOT NULL,
+                width INTEGER NOT NULL,
+                rotation INTEGER NOT NULL,
+                data BLOB NOT NULL,
+                PRIMARY KEY (file_id, width, rotation),
+                FOREIGN KEY (file_id) REFERENCES files(id) ON DELETE CASCADE
+            );
+        )");
+        if (!execOrLog(q, "create thumbnails")) { q.exec("ROLLBACK;"); return false; }
+
         // initialize schema_version & last_scan_id
         q.prepare(R"(INSERT OR IGNORE INTO meta(key, value) VALUES('schema_version', '0');)");
         if (!execOrLog(q, "init schema_version")) { q.exec("ROLLBACK;"); return false; }
@@ -219,7 +234,26 @@ namespace photoboss
         QSqlQuery q(m_db_);
         if (!q.exec("BEGIN IMMEDIATE TRANSACTION;")) return false;
 
-        // nothing new yet for v1, just bump version
+        // Hashes from old full-resolution decode are incompatible with
+        // new IDCT-scaled decode — clear them all so they recompute.
+        q.exec("DELETE FROM hashes;");
+        if (!execOrLog(q, "delete hashes")) { q.exec("ROLLBACK;"); return false; }
+        q.exec("DELETE FROM hash_methods;");
+        if (!execOrLog(q, "delete hash methods")) { q.exec("ROLLBACK;"); return false; }
+
+        // Add thumbnail cache table
+        q.prepare(R"(
+            CREATE TABLE IF NOT EXISTS thumbnails (
+                file_id INTEGER NOT NULL,
+                width INTEGER NOT NULL,
+                rotation INTEGER NOT NULL,
+                data BLOB NOT NULL,
+                PRIMARY KEY (file_id, width, rotation),
+                FOREIGN KEY (file_id) REFERENCES files(id) ON DELETE CASCADE
+            );
+        )");
+        if (!execOrLog(q, "create thumbnails")) { q.exec("ROLLBACK;"); return false; }
+
         q.prepare("UPDATE meta SET value='1' WHERE key='schema_version';");
         if (!execOrLog(q, "bump schema_version")) { q.exec("ROLLBACK;"); return false; }
 
@@ -337,8 +371,6 @@ namespace photoboss
         if (!q.isNull(4)) cachedExif.dateTimeOriginal = q.value(4).toULongLong();
         if (!q.isNull(5)) cachedExif.cameraMake = q.value(5).toString();
         if (!q.isNull(6)) cachedExif.cameraModel = q.value(6).toString();
-        if (!(cachedExif == cacheQuery.fileIdentity.exif())) return { Lookup::Miss, cacheQuery.fileIdentity };
-
         QSet<QString> requestedMethods{ cacheQuery.hashMethods.begin(), cacheQuery.hashMethods.end() };
         QSet<QString> foundMethods;
 
@@ -364,14 +396,9 @@ namespace photoboss
     // Optimized Store
     // -----------------------------
 
-    void SqliteHashCache::store(const HashedImageResult& result, const QMap<QString, int>& methodVersions)
+    bool SqliteHashCache::storeItem(QSqlQuery& q, const HashedImageResult& result,
+        const QMap<QString, int>& methodVersions)
     {
-        ensureOpen();
-        if (!m_valid_) return;
-
-        QSqlQuery q(m_db_);
-        if (!q.exec("BEGIN TRANSACTION;")) { qWarning() << "[SqliteHashCache] BEGIN failed"; return; }
-
         // upsert file
         q.prepare(R"(
             INSERT INTO files(name, path, size, modified_time, format, width, height, last_seen_scan_id)
@@ -390,20 +417,20 @@ namespace photoboss
         q.bindValue(":height", result.resolution.height());
         q.bindValue(":scan", m_scanId_);
 
-        if (!execOrLog(q, "upsert file")) { q.exec("ROLLBACK;"); return; }
+        if (!execOrLog(q, "upsert file")) return false;
 
         // fetch file id
         q.prepare("SELECT id FROM files WHERE name=:name AND path=:path;");
-        q.bindValue(":name", result.fileIdentity.name()); 
+        q.bindValue(":name", result.fileIdentity.name());
         q.bindValue(":path", result.fileIdentity.path());
-        if (!execOrLog(q, "fetch file id") || !q.next()) { q.exec("ROLLBACK;"); return; }
+        if (!execOrLog(q, "fetch file id") || !q.next()) return false;
         const int fileId = q.value(0).toInt();
         const qint64 now = QDateTime::currentSecsSinceEpoch();
 
-        // upsert hashes in batch
+        // upsert hashes
         for (auto it = result.hashes.begin(); it != result.hashes.end(); ++it) {
             int methodId;
-            if (!ensureMethod(it->first, methodVersions.value(it->first, 0), methodId)) { q.exec("ROLLBACK;"); return; }
+            if (!ensureMethod(it->first, methodVersions.value(it->first, 0), methodId)) return false;
 
             QSqlQuery hq(m_db_);
             hq.prepare(R"(
@@ -417,7 +444,7 @@ namespace photoboss
             hq.bindValue(":value", it->second);
             hq.bindValue(":time", now);
 
-            if (!execOrLog(hq, "upsert hash")) { q.exec("ROLLBACK;"); return; }
+            if (!execOrLog(hq, "upsert hash")) return false;
         }
 
         // upsert exif
@@ -438,9 +465,143 @@ namespace photoboss
         ex.bindValue(":make", exif.cameraMake ? QVariant(*exif.cameraMake) : QVariant());
         ex.bindValue(":model", exif.cameraModel ? QVariant(*exif.cameraModel) : QVariant());
 
-        if (!execOrLog(ex, "upsert exif")) { q.exec("ROLLBACK;"); return; }
+        if (!execOrLog(ex, "upsert exif")) return false;
+
+        return true;
+    }
+
+    void SqliteHashCache::store(const HashedImageResult& result, const QMap<QString, int>& methodVersions)
+    {
+        ensureOpen();
+        if (!m_valid_) return;
+
+        QSqlQuery q(m_db_);
+        if (!q.exec("BEGIN TRANSACTION;")) { qWarning() << "[SqliteHashCache] BEGIN failed"; return; }
+
+        if (!storeItem(q, result, methodVersions)) {
+            q.exec("ROLLBACK;");
+            return;
+        }
 
         q.exec("COMMIT;");
+    }
+
+    void SqliteHashCache::storeBatch(
+        const std::vector<std::pair<HashedImageResult, QMap<QString, int>>>& batch)
+    {
+        ensureOpen();
+        if (!m_valid_ || batch.empty()) return;
+
+        QSqlQuery q(m_db_);
+        if (!q.exec("BEGIN IMMEDIATE TRANSACTION;")) return;
+
+        for (const auto& [result, versions] : batch) {
+            if (!storeItem(q, result, versions)) {
+                q.exec("ROLLBACK;");
+                return;
+            }
+
+            // Persist thumbnail from fresh images (decodedImage is already rotated by ImageLoader)
+            if (result.decodedImage) {
+                q.prepare("SELECT id FROM files WHERE name=:name AND path=:path;");
+                q.bindValue(":name", result.fileIdentity.name());
+                q.bindValue(":path", result.fileIdentity.path());
+                if (!execOrLog(q, "find file for thumbnail") || !q.next()) continue;
+                int fileId = q.value(0).toInt();
+
+                // Serialize as JPEG BLOB
+                QByteArray blob;
+                QBuffer buf(&blob);
+                buf.open(QIODevice::WriteOnly);
+                QImageWriter writer(&buf, "JPEG");
+                writer.setQuality(85);
+                if (!writer.write(*result.decodedImage)) continue;
+                buf.close();
+
+                // Clean up old rotation-keyed entries and upsert with rotation=0
+                q.prepare("DELETE FROM thumbnails WHERE file_id=:file AND rotation!=0;");
+                q.bindValue(":file", fileId);
+                execOrLog(q, "delete old thumbnail rotations");
+
+                q.prepare(R"(
+                    INSERT INTO thumbnails(file_id, width, rotation, data)
+                    VALUES(:file, :width, 0, :data)
+                    ON CONFLICT(file_id, width, rotation) DO UPDATE SET
+                        data = excluded.data;
+                )");
+                q.bindValue(":file", fileId);
+                q.bindValue(":width", settings::ThumbnailWidth);
+                q.bindValue(":data", blob);
+                execOrLog(q, "upsert thumbnail");
+            }
+        }
+
+        q.exec("COMMIT;");
+    }
+
+    std::optional<QImage> SqliteHashCache::getThumbnail(
+        const FileIdentity& fi, int width, int rotation)
+    {
+        ensureOpen();
+        if (!m_valid_) return std::nullopt;
+
+        QSqlQuery q(m_db_);
+        q.prepare(R"(
+            SELECT t.data FROM thumbnails t
+            JOIN files f ON f.id = t.file_id
+            WHERE f.name = :name AND f.path = :path
+              AND f.size = :size AND f.modified_time = :mtime
+              AND t.width = :width AND t.rotation = :rotation
+        )");
+        q.bindValue(":name", fi.name());
+        q.bindValue(":path", fi.path());
+        q.bindValue(":size", fi.size());
+        q.bindValue(":mtime", fi.modifiedTime());
+        q.bindValue(":width", width);
+        q.bindValue(":rotation", rotation);
+
+        if (!execOrLog(q, "get thumbnail") || !q.next()) return std::nullopt;
+
+        QImage img;
+        if (!img.loadFromData(q.value(0).toByteArray())) return std::nullopt;
+        return img;
+    }
+
+    void SqliteHashCache::putThumbnail(
+        const FileIdentity& fi, int width, int rotation, const QImage& image)
+    {
+        ensureOpen();
+        if (!m_valid_) return;
+
+        QSqlQuery q(m_db_);
+        // Find file id
+        q.prepare("SELECT id FROM files WHERE name=:name AND path=:path;");
+        q.bindValue(":name", fi.name());
+        q.bindValue(":path", fi.path());
+        if (!execOrLog(q, "find file for thumbnail") || !q.next()) return;
+        int fileId = q.value(0).toInt();
+
+        // Serialize QImage as JPEG BLOB
+        QByteArray blob;
+        QBuffer buf(&blob);
+        buf.open(QIODevice::WriteOnly);
+        QImageWriter writer(&buf, "JPEG");
+        writer.setQuality(85);
+        if (!writer.write(image)) return;
+        buf.close();
+
+        // Upsert thumbnail
+        q.prepare(R"(
+            INSERT INTO thumbnails(file_id, width, rotation, data)
+            VALUES(:file, :width, :rotation, :data)
+            ON CONFLICT(file_id, width, rotation) DO UPDATE SET
+                data = excluded.data;
+        )");
+        q.bindValue(":file", fileId);
+        q.bindValue(":width", width);
+        q.bindValue(":rotation", rotation);
+        q.bindValue(":data", blob);
+        execOrLog(q, "upsert thumbnail");
     }
 
     void SqliteHashCache::prune(const QString& path)

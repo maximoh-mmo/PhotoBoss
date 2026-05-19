@@ -1,5 +1,4 @@
 #include "pipeline/PipelineFactory.h"
-#include "pipeline/stages/ExifRead.h"
 #include "pipeline/stages/FileEnumerator.h"
 #include "pipeline/stages/DiskReader.h"
 #include "pipeline/stages/HashWorker.h"
@@ -32,18 +31,16 @@ namespace photoboss {
     {
         auto pipeline = std::make_unique<Pipeline>();
         
-        auto pathsQueue = std::make_unique<Queue<std::shared_ptr<QStringList>>>();
-        auto exifQueue = std::make_unique<Queue<FileIdentityBatchPtr>>();
-        auto disk = std::make_unique<Queue<FileIdentityBatchPtr>>();
+        auto identityQueue = std::make_unique<Queue<FileIdentity>>();
+        auto disk = std::make_unique<Queue<FileIdentity>>();
         auto resultQueue = std::make_unique<Queue<std::shared_ptr<HashedImageResult>>>();
         auto readQueue = std::make_unique<Queue<std::unique_ptr<DiskReadResult>>>(settings::ReadQueueCapacity);
         auto cacheStoreQueue = std::make_unique<Queue<std::shared_ptr<HashedImageResult>>>();
         auto thumbnailQueue = std::make_unique<Queue<ThumbnailRequestPtr>>();
 
         // Get raw pointers for stages (ownership transferred to pipeline later)
-        Queue<std::shared_ptr<QStringList>>* pathsQueuePtr = pathsQueue.get();
-        Queue<FileIdentityBatchPtr>* exifQueuePtr = exifQueue.get();
-        Queue<FileIdentityBatchPtr>* diskPtr = disk.get();
+        Queue<FileIdentity>* identityQueuePtr = identityQueue.get();
+        Queue<FileIdentity>* diskPtr = disk.get();
         Queue<std::shared_ptr<HashedImageResult>>* resultQueuePtr = resultQueue.get();
         Queue<std::unique_ptr<DiskReadResult>>* readQueuePtr = readQueue.get();
         Queue<std::shared_ptr<HashedImageResult>>* cacheStoreQueuePtr = cacheStoreQueue.get();
@@ -51,36 +48,27 @@ namespace photoboss {
 
         auto enumerator = new FileEnumerator(
             config.request,
-            *pathsQueuePtr
+            *identityQueuePtr
         );
 
-        const int workerCount = config.storage == StorageStrategy::Parallel
-            ? std::max(1, QThread::idealThreadCount() - 1)
-            : 1;
-
-        std::vector<ExifRead*> exifReaders;
-        for (int i = 0; i < workerCount; ++i) {
-            ExifRead* reader = new ExifRead(
-                *pathsQueuePtr,
-                *exifQueuePtr
-            );
-            exifReaders.push_back(reader);
-
-            QThread* thread = new QThread();
-			moveToThread(pipeline.get(), reader, thread);
-        }
-
         CacheLookup* cacheLookup = new CacheLookup(
-            *exifQueuePtr,
+            *identityQueuePtr,
             *diskPtr,
             *resultQueuePtr,
 			pipeline->ScanId()
         );
 
-        DiskReader* reader = new DiskReader(
-            *diskPtr,
-            *readQueuePtr
-        );
+        int diskReaderCount = config.storage == StorageStrategy::Parallel
+            ? std::max(1, QThread::idealThreadCount() / 2)
+            : 1;
+
+        std::vector<DiskReader*> diskReaders;
+        for (int i = 0; i < diskReaderCount; ++i) {
+            DiskReader* dr = new DiskReader(*diskPtr, *readQueuePtr);
+            diskReaders.push_back(dr);
+            QThread* thread = new QThread();
+            moveToThread(pipeline.get(), dr, thread);
+        }
 
         ResultProcessor* resultProcessor = new ResultProcessor(
             *resultQueuePtr,
@@ -113,7 +101,7 @@ namespace photoboss {
         std::vector<ThumbnailGenerator*> thumbnailWorkers;
         for (int i = 0; i < workers; ++i) {
             ThumbnailGenerator* worker = new ThumbnailGenerator(
-                *thumbnailQueuePtr
+                *thumbnailQueuePtr, pipeline->ScanId()
             );
             thumbnailWorkers.push_back(worker);
             QThread* thread = new QThread();
@@ -122,7 +110,6 @@ namespace photoboss {
 
         moveToThread(pipeline.get(), enumerator);
         moveToThread(pipeline.get(), cacheLookup);
-        moveToThread(pipeline.get(), reader);
         moveToThread(pipeline.get(), cacheStore);
         moveToThread(pipeline.get(), resultProcessor);
 
@@ -143,13 +130,11 @@ namespace photoboss {
                 &FileEnumerator::finalCount,
                 [sink](int total) { sink->setFileTotal(total); });
 
-            // Connect ALL workers for phase progress
-            for (auto* reader : exifReaders) {
-                QObject::connect(reader,
-                    &ExifRead::incrementProgress,
-                    [sink](int inc) { sink->incrementPhaseProgress(Pipeline::Phase::Find, inc); });
-            }
+            QObject::connect(enumerator,
+                &FileEnumerator::incrementProgress,
+                [sink](int inc) { sink->incrementPhaseProgress(Pipeline::Phase::Find, inc); });
 
+            // Connect ALL workers for phase progress
             QObject::connect(cacheLookup,
                 &CacheLookup::incrementProgress,
                 [sink](int inc) { sink->incrementPhaseProgress(Pipeline::Phase::Analyze, inc); });
@@ -178,8 +163,7 @@ namespace photoboss {
         }
 
 		// Transfer queue ownership to pipeline
-		pipeline->AddQueue(std::move(pathsQueue));
-		pipeline->AddQueue(std::move(exifQueue));
+		pipeline->AddQueue(std::move(identityQueue));
 		pipeline->AddQueue(std::move(disk));
 		pipeline->AddQueue(std::move(resultQueue));
 		pipeline->AddQueue(std::move(readQueue));

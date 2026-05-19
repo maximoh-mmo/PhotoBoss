@@ -14,8 +14,8 @@ class ExifRead : public StageBase {
     Q_OBJECT
 public:
     explicit ExifRead(
-        Queue<std::shared_ptr<QStringList>>& inputQueue,
-        Queue<FileIdentityBatchPtr>& outputQueue,
+        Queue<QString>& inputQueue,
+        Queue<FileIdentity>& outputQueue,
         QObject* parent = nullptr);
 
     ~ExifRead() override;
@@ -25,8 +25,8 @@ private:
     void onStop() override;
 
     std::atomic<bool> m_cancelled_{ false };
-    Queue<std::shared_ptr<QStringList>>& m_inputQueue_;
-    Queue<FileIdentityBatchPtr>& m_outputQueue_;
+    Queue<QString>& m_inputQueue_;
+    Queue<FileIdentity>& m_outputQueue_;
 };
 
 }

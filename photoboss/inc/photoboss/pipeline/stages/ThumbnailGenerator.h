@@ -1,8 +1,10 @@
 #pragma once
 #include <QObject>
+#include <memory>
 #include "util/Queue.h"
 #include "types/DataTypes.h"
 #include "pipeline/StageBase.h"
+#include "caching/SqliteHashCache.h"
 
 namespace photoboss {
 
@@ -12,6 +14,7 @@ namespace photoboss {
     public:
         explicit ThumbnailGenerator(
             Queue<ThumbnailRequestPtr>& input,
+            quint64 scanId,
             QObject* parent = nullptr
         );
 
@@ -25,5 +28,6 @@ namespace photoboss {
 
     private:
         Queue<ThumbnailRequestPtr>& m_input_;
+        std::unique_ptr<SqliteHashCache> m_cache_;
     };
 }

@@ -35,6 +35,8 @@ namespace photoboss {
             processedCount++;
             emit incrementProgress(1);
 
+            QString fullPath = item->fileIdentity.path() + "/" + item->fileIdentity.name();
+            m_pathToItem_[fullPath] = item;
             m_items_.push_back(std::move(item));
 
             auto delta = engine.getGroupDelta();
@@ -50,6 +52,11 @@ namespace photoboss {
                         thumbReq->rotation = img.rotation;
                         thumbReq->width = settings::ThumbnailWidth;
                         thumbReq->height = settings::ThumbnailWidth;
+                        auto srcIt = m_pathToItem_.find(img.path);
+                        if (srcIt != m_pathToItem_.end()) {
+                            thumbReq->preDecoded = srcIt.value()->decodedImage;
+                            thumbReq->fileIdentity.emplace(srcIt.value()->fileIdentity);
+                        }
                         m_thumbnailOutput_.push(std::move(thumbReq));
                         m_thumbnailRequested_.insert(img.path);
                     }
@@ -69,6 +76,11 @@ namespace photoboss {
                         thumbReq->rotation = img.rotation;
                         thumbReq->width = settings::ThumbnailWidth;
                         thumbReq->height = settings::ThumbnailWidth;
+                        auto srcIt = m_pathToItem_.find(img.path);
+                        if (srcIt != m_pathToItem_.end()) {
+                            thumbReq->preDecoded = srcIt.value()->decodedImage;
+                            thumbReq->fileIdentity.emplace(srcIt.value()->fileIdentity);
+                        }
                         m_thumbnailOutput_.push(std::move(thumbReq));
                         m_thumbnailRequested_.insert(img.path);
                     }
