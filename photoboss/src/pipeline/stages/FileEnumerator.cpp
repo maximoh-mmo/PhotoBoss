@@ -1,6 +1,7 @@
 #include <QDirIterator>
 #include <QFileInfo>
 #include "pipeline/stages/FileEnumerator.h"
+#include "util/ScopedTimer.h"
 
 namespace photoboss {
 
@@ -36,6 +37,7 @@ void FileEnumerator::run()
         if (m_cancelled_.load()) {
             break;
         }
+        SCOPED_TIMER("FileEnumerator");
 
         QString path = it.next();
         QFileInfo fileInfo(path);

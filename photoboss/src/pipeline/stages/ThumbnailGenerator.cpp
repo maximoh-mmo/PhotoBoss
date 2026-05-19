@@ -1,6 +1,7 @@
 #include "pipeline/stages/ThumbnailGenerator.h"
 #include "caching/SqliteHashCache.h"
 #include "util/OrientImage.h"
+#include "util/ScopedTimer.h"
 #include <QImageReader>
 #include <QTransform>
 
@@ -19,6 +20,7 @@ namespace photoboss {
     {
         ThumbnailRequestPtr request;
         while (m_input_.wait_and_pop(request)) {
+            SCOPED_TIMER("ThumbnailGenerator");
             QImage img;
 
             // 1. Fastest path: forwarded from HashWorker (pre-decoded + already rotated by ImageLoader)

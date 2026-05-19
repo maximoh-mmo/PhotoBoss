@@ -1,5 +1,6 @@
 #pragma once
 #include "util/Queue.h"
+#include "util/StageMetrics.h"
 #include "types/DataTypes.h"
 #include <qthread.h>
 #include <memory>

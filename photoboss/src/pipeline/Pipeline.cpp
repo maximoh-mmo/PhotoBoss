@@ -1,4 +1,4 @@
-#include "Pipeline.h"
+#include "pipeline/Pipeline.h"
 #include "caching/SqliteHashCache.h"
 
 photoboss::Pipeline::Pipeline(QObject* parent)
@@ -34,6 +34,8 @@ void photoboss::Pipeline::onThreadFinished()
     m_runningThreads--;
     if (m_runningThreads <= 0 && state == PipelineState::Running) {
         state = PipelineState::Stopped;
+        StageMetrics::instance().printAll();
+        StageMetrics::instance().reset();
         emit stateChanged(PipelineState::Stopped);
     }
 }

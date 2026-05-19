@@ -1,4 +1,5 @@
 #include "pipeline/HashEngine.h"
+#include "util/ScopedTimer.h"
 #include <QDebug>
 
 namespace photoboss {
@@ -16,6 +17,8 @@ HashEngine::HashEngine(std::vector<HashCatalog::Entry> methods) {
 
 std::shared_ptr<HashedImageResult>
 HashEngine::compute(const DiskReadResult &item, const std::optional<QImage> &image) const {
+    SCOPED_TIMER("HashEngine");
+
     // Initialise the result object – matches the legacy HashWorker constructor.
     auto result = std::make_shared<HashedImageResult>(
         item.fileIdentity,

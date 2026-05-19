@@ -2,6 +2,7 @@
 #include "hashing/HashCatalog.h"
 #include "pipeline/SimilarityEngine.h"
 #include "util/AppSettings.h"
+#include "util/ScopedTimer.h"
 #include <QElapsedTimer>
 
 namespace photoboss {
@@ -24,6 +25,7 @@ namespace photoboss {
         bool firstEmit = false;
 
         while (m_input_.wait_and_pop(item)) {
+            SCOPED_TIMER("ResultProcessor");
             Q_ASSERT(!item->hashes.empty());
 
             if (!firstEmit) {

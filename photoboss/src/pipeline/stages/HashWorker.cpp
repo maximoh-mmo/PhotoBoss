@@ -1,5 +1,6 @@
 #include "pipeline/stages/HashWorker.h"
 #include "util/AppSettings.h"
+#include "util/ScopedTimer.h"
 #include <QDebug>
 
 namespace photoboss {
@@ -26,6 +27,7 @@ void HashWorker::run()
         if (!m_inputQueue.wait_and_pop(item)) {
             break;
         }
+        SCOPED_TIMER("HashWorker");
 
         // Decode at thumbnail size so the QImage can be forwarded to
         // ThumbnailGenerator instead of requiring a second disk read.

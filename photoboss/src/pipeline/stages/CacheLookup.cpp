@@ -1,5 +1,6 @@
 #include "pipeline/stages/CacheLookup.h"
 #include "caching/SqliteHashCache.h"
+#include "util/ScopedTimer.h"
 
 namespace photoboss
 {
@@ -33,6 +34,7 @@ namespace photoboss
 
             if (!m_inputQueue_.wait_and_pop(fileId))
                 break;
+            SCOPED_TIMER("CacheLookup");
 
             totalProcessed++;
             emit incrementProgress(1);

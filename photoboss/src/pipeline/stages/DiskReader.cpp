@@ -1,6 +1,7 @@
 #include "pipeline/stages/DiskReader.h"
 #include "types/DataTypes.h"
 #include "exif/ExifParser.h"
+#include "util/ScopedTimer.h"
 #include <QCryptographicHash>
 #include <QFile>
 #include <QThread>
@@ -21,6 +22,7 @@ void DiskReader::run() {
     if (!m_input_queue_.wait_and_pop(fileIdentity)) {
       break;
     }
+    SCOPED_TIMER("DiskReader");
 
     QFile file(fileIdentity.path() + "/" + fileIdentity.name());
     if (file.open(QIODevice::ReadOnly)) {

@@ -7,9 +7,12 @@
 
 #include <QtWidgets/QApplication>
 #include <QFile>
+#include <exiv2/error.hpp>
 
 int main(int argc, char *argv[])
 {
+    Exiv2::LogMsg::setLevel(Exiv2::LogMsg::mute);  // suppress EXIF parser warnings to stderr
+
     QApplication app(argc, argv);
 
     QFile f(":/styles/dark.qss");

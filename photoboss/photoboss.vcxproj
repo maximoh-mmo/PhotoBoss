@@ -163,7 +163,7 @@
     <QtMoc Include="inc\photoboss\ui\DeletionService.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="inc\photoboss\pipeline\Pipeline.cpp" />
+    <ClCompile Include="src\pipeline\Pipeline.cpp" />
     <ClCompile Include="src\pipeline\stages\HashWorker.cpp" />
     <ClCompile Include="src\pipeline\HashEngine.cpp" />
     <ClCompile Include="src\pipeline\stages\ImageLoader.cpp" />
@@ -171,6 +171,7 @@
     <ClCompile Include="src\ui\ShaderSpinnerWidget.cpp" />
     <ClCompile Include="src\ui\UiUpdateQueue.cpp" />
     <ClCompile Include="src\util\OrientImage.cpp" />
+    <ClCompile Include="src\util\StageMetrics.cpp" />
     <ClCompile Include="src\util\StorageInfo.cpp" />
     <ClCompile Include="src\ui\GroupWidget.cpp" />
     <ClCompile Include="src\pipeline\stages\ThumbnailGenerator.cpp" />
@@ -225,6 +226,8 @@
     <ClInclude Include="inc\photoboss\util\humanSize.h" />
     <ClInclude Include="inc\photoboss\util\IQueue.h" />
     <ClInclude Include="inc\photoboss\util\OrientImage.h" />
+    <ClInclude Include="inc\photoboss\util\ScopedTimer.h" />
+    <ClInclude Include="inc\photoboss\util\StageMetrics.h" />
     <ClInclude Include="inc\photoboss\util\StorageInfo.h" />
     <ClInclude Include="inc\photoboss\util\Token.h" />
     <ClInclude Include="inc\photoboss\hashing\Sha256Hash.h" />

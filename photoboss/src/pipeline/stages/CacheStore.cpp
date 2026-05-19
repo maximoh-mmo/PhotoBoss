@@ -1,6 +1,7 @@
 #include "pipeline/stages/CacheStore.h"
 #include "caching/SqliteHashCache.h"
 #include "util/AppSettings.h"
+#include "util/ScopedTimer.h"
 
 namespace photoboss
 {
@@ -30,6 +31,7 @@ namespace photoboss
     {
         std::shared_ptr<HashedImageResult> item;
         while (m_input_.wait_and_pop(item)) {
+            SCOPED_TIMER("CacheStore");
             HashedImageResult copy(item->fileIdentity, item->source,
                 item->cachedAt, item->resolution, item->hashes);
             copy.decodedImage = item->decodedImage;
